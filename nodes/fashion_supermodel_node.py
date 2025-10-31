@@ -88,13 +88,16 @@ class FashionSupermodelNode:
         resolved_glamour = _choose(glamour_enhancement, glamour_options)
         resolved_gender = _choose(gender, character_options["gender"])
 
-        # Determine location: prefer region if specified, otherwise use country
+        # Determine location: prefer region if specified, otherwise use country, fallback to generic
         if resolved_region and resolved_region != "none":
             location = resolved_region
             location_type = "regional"
-        else:
+        elif resolved_country and resolved_country != "none":
             location = resolved_country
             location_type = "country"
+        else:
+            location = "contemporary"
+            location_type = "generic"
 
         # Get style configuration
         style_config = prompt_styles.get(prompt_style, prompt_styles["SDXL"])
@@ -103,7 +106,26 @@ class FashionSupermodelNode:
         token_limit = style_config["token_limit"]
 
         # Build the prompt instruction for the LLM
-        system_prompt = f"""You are a professional text-to-image prompt engineer specializing in contemporary fashion and modern style. Create vivid, detailed prompts for high-end fashion supermodel photography featuring modern clothing styles from specific locations.
+        if location_type == "generic":
+            system_prompt = f"""You are a professional text-to-image prompt engineer specializing in contemporary fashion and modern style. Create vivid, detailed prompts for high-end fashion supermodel photography featuring current fashion trends and styles.
+
+TARGET MODEL: {style_label}
+FORMATTING STYLE: {style_guidance}
+TOKEN LIMIT: {token_limit} tokens maximum
+
+Your prompts should include:
+1. Subject description (supermodel with appropriate gender/identity)
+2. Contemporary fashion details (modern clothing styles, fabrics, colors, patterns)
+3. Accessories and jewelry (current fashion trends)
+4. Makeup and hair styling (contemporary beauty standards)
+5. Pose (glamorous, confident, fashion-forward)
+6. Background/setting (modern fashion editorial or neutral backdrop)
+7. Lighting (professional studio lighting, high-end fashion photography)
+8. Overall mood and atmosphere
+
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary high-fashion aesthetics. Output only the prompt, no explanations or meta-commentary."""
+        else:
+            system_prompt = f"""You are a professional text-to-image prompt engineer specializing in contemporary fashion and modern style. Create vivid, detailed prompts for high-end fashion supermodel photography featuring modern clothing styles from specific locations.
 
 TARGET MODEL: {style_label}
 FORMATTING STYLE: {style_guidance}
@@ -121,7 +143,27 @@ Your prompts should include:
 
 CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary fashion while incorporating location-specific influences. Output only the prompt, no explanations or meta-commentary."""
 
-        user_prompt = f"""Create a professional fashion photography prompt for a {resolved_gender} supermodel wearing contemporary {location} fashion with {resolved_glamour} glamour enhancement.
+        if location_type == "generic":
+            user_prompt = f"""Create a professional fashion photography prompt for a {resolved_gender} supermodel wearing contemporary fashion with {resolved_glamour} glamour enhancement.
+
+Requirements:
+- Contemporary fashion trends as the foundation
+- Enhance the glamour with {resolved_glamour} styling approach
+- Professional studio lighting setup
+- Glamorous pose suitable for high-fashion editorial
+- Detailed description of modern fashion elements enhanced with glamour
+- Contemporary accessories and jewelry with current trends
+- Professional makeup and hair styling that complements the fashion
+- Sophisticated background that maintains fashion editorial aesthetic
+- High-end fashion photography aesthetic
+- Confident, powerful supermodel presence
+
+IMPORTANT: Format this prompt EXACTLY according to {style_label} style: {style_guidance}
+Keep it under {token_limit} tokens.
+
+Generate the prompt now:"""
+        else:
+            user_prompt = f"""Create a professional fashion photography prompt for a {resolved_gender} supermodel wearing contemporary {location} fashion with {resolved_glamour} glamour enhancement.
 
 Requirements:
 - Contemporary {location} fashion as the foundation

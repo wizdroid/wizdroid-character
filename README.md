@@ -1,14 +1,44 @@
 # Wizdroid Character Nodes for ComfyUI
 
-A collection of custom nodes for ComfyUI that generate professional fashion supermodel prompts featuring traditional cultural outfits from various countries with glamorous styling.
+A comprehensive collection of custom nodes for ComfyUI that provide AI-powered prompt generation tools using Ollama. These nodes help create detailed, professional prompts for text-to-image generation across various domains including character creation, fashion, fantasy scenes, and image analysis.
 
 ## Features
 
-- **Fashion Supermodel Node**: Generates detailed prompts for fashion photography featuring traditional cultural attire enhanced with various glamour styles
-- **Cultural Integration**: Supports traditional outfits from multiple countries
-- **Glamour Enhancements**: 28 different glamour enhancement options including sultry, sensual, erotic, royal, and religious themes
-- **Ollama Integration**: Uses local Ollama models for prompt generation
-- **Multiple Prompt Styles**: Supports different AI model formats (SDXL, etc.)
+### Character Prompt Builder
+- **Purpose**: Generates detailed character prompts for image generation with extensive customization options
+- **Attributes**: Gender, age group, body type, hair color/style, eye color, facial expressions, poses, makeup, fashion styles, and backgrounds
+- **Integration**: Ollama LLM integration for intelligent prompt crafting
+- **Output**: Positive prompt, negative prompt, and follow-up questions for refinement
+
+### Fantasy Scene Builder
+- **Purpose**: Creates atmospheric fantasy and horror scene prompts
+- **Elements**: Fantasy themes, subjects, environments, lighting, visual styles, textures, compositions, and special effects
+- **Integration**: Ollama LLM for generating vivid, immersive scene descriptions
+- **Output**: Scene prompt and negative prompt
+
+### Upcycled Fashion Node
+- **Purpose**: Generates professional prompts for sustainable fashion featuring everyday objects transformed into glamorous designer wear
+- **Materials**: 50+ upcycled materials including plastic bags, bubble wrap, tarpaulin, garbage bags, latex, and more
+- **Integration**: Ollama LLM for creative upcycling prompt generation
+- **Output**: High-fashion photography prompts showcasing sustainable design innovation
+
+### Fashion Supermodel Node
+- **Purpose**: Generates professional fashion photography prompts featuring contemporary regional fashion styles
+- **Features**: 28 glamour enhancement options (subtle, sensual, erotic, royal, religious themes), regional fashion from around the world
+- **Integration**: Ollama LLM for modern regional fashion prompt creation
+- **Output**: Detailed fashion photography prompt with regional style focus
+
+### Photo Aspect Extractor
+- **Purpose**: Analyzes images using vision models to extract specific aspects
+- **Modes**: Clothes, pose, style, background, expression, lighting, hair, makeup, accessories, camera settings, composition, color palette
+- **Integration**: Ollama vision models (LLaVA, Florence, etc.) for image analysis
+- **Output**: Extracted aspect descriptions for prompt engineering
+
+### Pose Extraction Node
+- **Purpose**: Extracts detailed pose descriptions from character images
+- **Features**: Analyzes body position, stance, gestures, camera angles, and framing
+- **Integration**: Ollama vision models for precise pose analysis
+- **Output**: Pose-focused prompts for consistent character positioning
 
 ## Installation
 
@@ -23,39 +53,46 @@ A collection of custom nodes for ComfyUI that generate professional fashion supe
    pip install -r requirements.txt
    ```
 
-3. Ensure Ollama is running with a compatible model (e.g., llama2, mistral)
-
-## Usage
-
-After installation, the nodes will appear in ComfyUI under the "Wizdroid/character" category.
-
-### Fashion Supermodel Node
-
-- **Inputs**:
-  - `ollama_url`: URL of your Ollama server (default: http://localhost:11434)
-  - `ollama_model`: Available Ollama models
-  - `prompt_style`: Output format style (SDXL, etc.)
-  - `country`: Traditional outfit country (or Random)
-  - `glamour_enhancement`: Glamour styling approach (or Random)
-  - `gender`: Model gender identity (or Random)
-
-- **Output**: Generated fashion photography prompt
+3. Ensure Ollama is running with appropriate models:
+   - For text generation: Install models like `llama2`, `mistral`, or `codellama`
+   - For vision analysis: Install vision models like `llava`, `bakllava`, or `florence`
 
 ## Configuration
 
-The node uses JSON configuration files in the `data/` directory:
-- `character_options.json`: Gender and other character options
-- `countries.json`: Available countries for traditional outfits
-- `prompt_styles.json`: Prompt formatting styles for different AI models
-- `glamour_options.json`: Glamour enhancement options
+The nodes use JSON configuration files in the `data/` directory:
+- `character_options.json`: Character attributes and options
+- `regions.json`: Regional fashion areas
+- `fantasy_options.json`: Fantasy scene elements
+- `prompt_styles.json`: Output format styles for different AI models
+- `glamour_options.json`: Glamour enhancement styles
+- `upcycled_materials.json`: Everyday materials for upcycled fashion
+- `followup_questions.json`: Refinement questions for prompts
+
+## Usage
+
+After installation, the nodes will appear in ComfyUI under the "Wizdroid/character" and "Wizdroid/fantasy" categories.
+
+### Common Workflow
+1. Use **Character Prompt Builder** or **Fashion Supermodel Node** to generate base prompts
+2. Use **Photo Aspect Extractor** or **Pose Extraction Node** to analyze reference images
+3. Combine extracted elements with generated prompts for refined results
+4. Use **Fantasy Scene Builder** for atmospheric scene creation
+
+## Requirements
+
+- ComfyUI
+- Ollama server running locally
+- Python packages: requests, torch, PIL (Pillow)
+- For vision features: Ollama vision models
 
 ## Contributing
 
 Feel free to contribute by:
-- Adding more countries and traditional outfits
-- Expanding glamour enhancement options
+- Adding more cultural outfits and countries
+- Expanding attribute options in JSON files
 - Improving prompt generation logic
 - Adding new node types
+- Enhancing vision model integrations
 
 ## License
 

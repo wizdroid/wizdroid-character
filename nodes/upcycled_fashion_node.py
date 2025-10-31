@@ -1,7 +1,7 @@
 import json
 import random
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -30,21 +30,21 @@ def _choose(value: str, options: List[str]) -> Optional[str]:
     return value
 
 
-class FashionSupermodelNode:
+class UpcycledFashionNode:
     """
-    ComfyUI node to generate professional fashion supermodel prompts featuring
-    contemporary regional fashion styles with glamorous styling.
+    ComfyUI node to generate professional upcycled fashion supermodel prompts featuring
+    everyday objects transformed into glamorous designer wear.
     """
 
     CATEGORY = "Wizdroid/character"
     RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("fashion_prompt",)
-    FUNCTION = "generate_fashion_prompt"
+    RETURN_NAMES = ("upcycled_fashion_prompt",)
+    FUNCTION = "generate_upcycled_fashion_prompt"
 
     @classmethod
     def INPUT_TYPES(cls):
         character_options = _load_json("character_options.json")
-        region_options = _load_json("regions.json")
+        upcycled_materials = _load_json("upcycled_materials.json")
         prompt_styles = _load_json("prompt_styles.json")
         glamour_options_data = _load_json("glamour_options.json")
         ollama_models = cls._collect_ollama_models()
@@ -57,29 +57,29 @@ class FashionSupermodelNode:
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
                 "prompt_style": (style_options, {"default": "SDXL"}),
-                "region": (_with_random(region_options["regions"]), {"default": RANDOM_LABEL}),
+                "upcycled_material": (_with_random(upcycled_materials["upcycled_materials"]), {"default": RANDOM_LABEL}),
                 "glamour_enhancement": (_with_random(glamour_options), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
             }
         }
 
-    def generate_fashion_prompt(
+    def generate_upcycled_fashion_prompt(
         self,
         ollama_url: str,
         ollama_model: str,
         prompt_style: str,
-        region: str,
+        upcycled_material: str,
         glamour_enhancement: str,
         gender: str,
     ) -> Tuple[str]:
         character_options = _load_json("character_options.json")
-        region_options = _load_json("regions.json")
+        upcycled_materials = _load_json("upcycled_materials.json")
         prompt_styles = _load_json("prompt_styles.json")
         glamour_options_data = _load_json("glamour_options.json")
 
         glamour_options = glamour_options_data["glamour_options"]
 
-        resolved_region = _choose(region, region_options["regions"])
+        resolved_material = _choose(upcycled_material, upcycled_materials["upcycled_materials"])
         resolved_glamour = _choose(glamour_enhancement, glamour_options)
         resolved_gender = _choose(gender, character_options["gender"])
 
@@ -90,7 +90,7 @@ class FashionSupermodelNode:
         token_limit = style_config["token_limit"]
 
         # Build the prompt instruction for the LLM
-        system_prompt = f"""You are a professional text-to-image prompt engineer specializing in regional fashion and contemporary style. Create vivid, detailed prompts for high-end fashion supermodel photography featuring modern regional clothing styles.
+        system_prompt = f"""You are a professional text-to-image prompt engineer specializing in upcycled fashion and sustainable design. Create vivid, detailed prompts for high-end fashion supermodel photography featuring everyday objects transformed into glamorous designer wear.
 
 TARGET MODEL: {style_label}
 FORMATTING STYLE: {style_guidance}
@@ -98,28 +98,28 @@ TOKEN LIMIT: {token_limit} tokens maximum
 
 Your prompts should include:
 1. Subject description (supermodel with appropriate gender/identity)
-2. Regional fashion details (contemporary clothing styles, fabrics, colors, patterns from the region)
-3. Accessories and jewelry (regionally inspired modern designs)
-4. Makeup and hair styling (contemporary yet regionally influenced)
-5. Pose (glamorous, confident, fashion-forward)
-6. Background/setting (modern regional or neutral fashion backdrop)
-7. Lighting (professional studio lighting, high-end fashion photography)
-8. Overall mood and atmosphere
+2. Upcycled material transformation (how everyday objects become designer garments)
+3. Design innovation (creative use of materials, textures, shapes)
+4. Glamour styling (professional makeup, hair, accessories)
+5. Pose (confident, fashion-forward runway poses)
+6. Setting (high-fashion editorial environment)
+7. Lighting (studio lighting emphasizing material textures)
+8. Overall aesthetic (sustainable luxury, innovative design)
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary regional fashion while maintaining high-fashion aesthetics. Output only the prompt, no explanations or meta-commentary."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on creative upcycling while maintaining high-fashion aesthetic. Output only the prompt, no explanations or meta-commentary."""
 
-        user_prompt = f"""Create a professional fashion photography prompt for a {resolved_gender} supermodel wearing contemporary {resolved_region} regional fashion with {resolved_glamour} glamour enhancement.
+        user_prompt = f"""Create a professional upcycled fashion photography prompt for a {resolved_gender} supermodel wearing designer garments made from {resolved_material} with {resolved_glamour} glamour enhancement.
 
 Requirements:
-- Contemporary {resolved_region} fashion as the foundation
+- Transform {resolved_material} into high-end designer fashion
 - Enhance the glamour with {resolved_glamour} styling approach
-- Professional studio lighting setup
+- Professional studio lighting setup highlighting material textures
 - Glamorous pose suitable for high-fashion editorial
-- Detailed description of regional fashion elements enhanced with modern glamour
-- Contemporary accessories and jewelry with regional inspiration
-- Professional makeup and hair styling that complements the regional fashion
-- Sophisticated background that honors the region while maintaining fashion editorial aesthetic
-- High-end fashion photography aesthetic
+- Detailed description of innovative design and material transformation
+- Creative accessories and jewelry complementing the upcycled aesthetic
+- Professional makeup and hair styling that enhances the sustainable luxury vibe
+- Sophisticated background that showcases the upcycled design
+- High-end fashion photography aesthetic with sustainable innovation focus
 - Confident, powerful supermodel presence
 
 IMPORTANT: Format this prompt EXACTLY according to {style_label} style: {style_guidance}
@@ -143,11 +143,11 @@ Generate the prompt now:"""
             }
         }
 
-        print(f"[FashionSupermodel] Generating prompt for {resolved_region} regional fashion")
-        print(f"[FashionSupermodel] Glamour enhancement: {resolved_glamour}")
-        print(f"[FashionSupermodel] Gender: {resolved_gender}")
-        print(f"[FashionSupermodel] Prompt style: {style_label} (max {token_limit} tokens)")
-        print(f"[FashionSupermodel] Using model: {ollama_model}")
+        print(f"[UpcycledFashion] Generating prompt for {resolved_material} upcycled material")
+        print(f"[UpcycledFashion] Glamour enhancement: {resolved_glamour}")
+        print(f"[UpcycledFashion] Gender: {resolved_gender}")
+        print(f"[UpcycledFashion] Prompt style: {style_label} (max {token_limit} tokens)")
+        print(f"[UpcycledFashion] Using model: {ollama_model}")
 
         response = self._invoke_ollama(generate_url, payload)
 
@@ -161,40 +161,40 @@ Generate the prompt now:"""
         if requests is None:
             raise RuntimeError("'requests' is required for Ollama integration. Install optional dependencies.")
         try:
-            print(f"[FashionSupermodel] Sending request to {ollama_url}")
-            print(f"[FashionSupermodel] Model: {payload.get('model')}")
+            print(f"[UpcycledFashion] Sending request to {ollama_url}")
+            print(f"[UpcycledFashion] Model: {payload.get('model')}")
 
             response = requests.post(ollama_url, json=payload, timeout=120)
 
-            print(f"[FashionSupermodel] Response status: {response.status_code}")
+            print(f"[UpcycledFashion] Response status: {response.status_code}")
 
             response.raise_for_status()
             data = response.json()
 
             result = (data.get("response") or "").strip()
-            print(f"[FashionSupermodel] Received response ({len(result)} chars): {result[:100]}...")
+            print(f"[UpcycledFashion] Received response ({len(result)} chars): {result[:100]}...")
 
             if not result:
-                print("[FashionSupermodel] WARNING: Empty response from Ollama")
+                print("[UpcycledFashion] WARNING: Empty response from Ollama")
                 return "[Empty response from LLM]"
 
             return result
         except requests.exceptions.HTTPError as exc:
-            error_msg = f"[FashionSupermodel] HTTP error: {exc}"
+            error_msg = f"[UpcycledFashion] HTTP error: {exc}"
             print(error_msg)
             if hasattr(exc.response, 'text'):
-                print(f"[FashionSupermodel] Response body: {exc.response.text[:500]}")
+                print(f"[UpcycledFashion] Response body: {exc.response.text[:500]}")
             return f"[ERROR: {exc}]"
         except requests.exceptions.ConnectionError as exc:
-            error_msg = f"[FashionSupermodel] Connection error: {exc}"
+            error_msg = f"[UpcycledFashion] Connection error: {exc}"
             print(error_msg)
             return f"[ERROR: Cannot connect to Ollama at {ollama_url}]"
         except requests.exceptions.Timeout as exc:
-            error_msg = f"[FashionSupermodel] Timeout error: {exc}"
+            error_msg = f"[UpcycledFashion] Timeout error: {exc}"
             print(error_msg)
             return "[ERROR: Request timed out]"
         except Exception as exc:
-            error_msg = f"[FashionSupermodel] Error invoking Ollama: {exc}"
+            error_msg = f"[UpcycledFashion] Error invoking Ollama: {exc}"
             print(error_msg)
             return f"[ERROR: {str(exc)}]"
 
@@ -218,14 +218,14 @@ Generate the prompt now:"""
         except requests.exceptions.Timeout:
             return ["ollama_timeout"]
         except Exception as exc:
-            print(f"[FashionSupermodel] Error fetching Ollama models: {exc}")
+            print(f"[UpcycledFashion] Error fetching Ollama models: {exc}")
             return ["ollama_error"]
 
 
 NODE_CLASS_MAPPINGS = {
-    "WizdroidFashionSupermodel": FashionSupermodelNode,
+    "WizdroidUpcycledFashion": UpcycledFashionNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidFashionSupermodel": "Fashion Supermodel (Wizdroid)",
+    "WizdroidUpcycledFashion": "Upcycled Fashion (Wizdroid)",
 }

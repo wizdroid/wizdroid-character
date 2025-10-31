@@ -33,7 +33,7 @@ def _choose(value: str, options: List[str]) -> Optional[str]:
 class FashionSupermodelNode:
     """
     ComfyUI node to generate professional fashion supermodel prompts featuring
-    contemporary regional fashion styles with glamorous styling.
+    contemporary fashion styles from specific countries or broader regions with glamorous styling.
     """
 
     CATEGORY = "Wizdroid/character"
@@ -44,6 +44,7 @@ class FashionSupermodelNode:
     @classmethod
     def INPUT_TYPES(cls):
         character_options = _load_json("character_options.json")
+        country_options = _load_json("countries.json")
         region_options = _load_json("regions.json")
         prompt_styles = _load_json("prompt_styles.json")
         glamour_options_data = _load_json("glamour_options.json")
@@ -57,7 +58,8 @@ class FashionSupermodelNode:
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
                 "prompt_style": (style_options, {"default": "SDXL"}),
-                "region": (_with_random(region_options["regions"]), {"default": RANDOM_LABEL}),
+                "country": (_with_random(country_options["countries"]), {"default": RANDOM_LABEL}),
+                "region": (_with_random(region_options["regions"]), {"default": "none"}),
                 "glamour_enhancement": (_with_random(glamour_options), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
             }
@@ -68,20 +70,31 @@ class FashionSupermodelNode:
         ollama_url: str,
         ollama_model: str,
         prompt_style: str,
+        country: str,
         region: str,
         glamour_enhancement: str,
         gender: str,
     ) -> Tuple[str]:
         character_options = _load_json("character_options.json")
+        country_options = _load_json("countries.json")
         region_options = _load_json("regions.json")
         prompt_styles = _load_json("prompt_styles.json")
         glamour_options_data = _load_json("glamour_options.json")
 
         glamour_options = glamour_options_data["glamour_options"]
 
+        resolved_country = _choose(country, country_options["countries"])
         resolved_region = _choose(region, region_options["regions"])
         resolved_glamour = _choose(glamour_enhancement, glamour_options)
         resolved_gender = _choose(gender, character_options["gender"])
+
+        # Determine location: prefer region if specified, otherwise use country
+        if resolved_region and resolved_region != "none":
+            location = resolved_region
+            location_type = "regional"
+        else:
+            location = resolved_country
+            location_type = "country"
 
         # Get style configuration
         style_config = prompt_styles.get(prompt_style, prompt_styles["SDXL"])
@@ -90,7 +103,7 @@ class FashionSupermodelNode:
         token_limit = style_config["token_limit"]
 
         # Build the prompt instruction for the LLM
-        system_prompt = f"""You are a professional text-to-image prompt engineer specializing in regional fashion and contemporary style. Create vivid, detailed prompts for high-end fashion supermodel photography featuring modern regional clothing styles.
+        system_prompt = f"""You are a professional text-to-image prompt engineer specializing in contemporary fashion and modern style. Create vivid, detailed prompts for high-end fashion supermodel photography featuring modern clothing styles from specific locations.
 
 TARGET MODEL: {style_label}
 FORMATTING STYLE: {style_guidance}
@@ -98,27 +111,27 @@ TOKEN LIMIT: {token_limit} tokens maximum
 
 Your prompts should include:
 1. Subject description (supermodel with appropriate gender/identity)
-2. Regional fashion details (contemporary clothing styles, fabrics, colors, patterns from the region)
-3. Accessories and jewelry (regionally inspired modern designs)
-4. Makeup and hair styling (contemporary yet regionally influenced)
+2. Location-specific fashion details (contemporary clothing styles, fabrics, colors, patterns from the {location_type})
+3. Accessories and jewelry (modern designs inspired by the location)
+4. Makeup and hair styling (contemporary yet location-influenced)
 5. Pose (glamorous, confident, fashion-forward)
-6. Background/setting (modern regional or neutral fashion backdrop)
+6. Background/setting (modern location-inspired or neutral fashion backdrop)
 7. Lighting (professional studio lighting, high-end fashion photography)
 8. Overall mood and atmosphere
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary regional fashion while maintaining high-fashion aesthetics. Output only the prompt, no explanations or meta-commentary."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary fashion while incorporating location-specific influences. Output only the prompt, no explanations or meta-commentary."""
 
-        user_prompt = f"""Create a professional fashion photography prompt for a {resolved_gender} supermodel wearing contemporary {resolved_region} regional fashion with {resolved_glamour} glamour enhancement.
+        user_prompt = f"""Create a professional fashion photography prompt for a {resolved_gender} supermodel wearing contemporary {location} fashion with {resolved_glamour} glamour enhancement.
 
 Requirements:
-- Contemporary {resolved_region} fashion as the foundation
+- Contemporary {location} fashion as the foundation
 - Enhance the glamour with {resolved_glamour} styling approach
 - Professional studio lighting setup
 - Glamorous pose suitable for high-fashion editorial
-- Detailed description of regional fashion elements enhanced with modern glamour
-- Contemporary accessories and jewelry with regional inspiration
-- Professional makeup and hair styling that complements the regional fashion
-- Sophisticated background that honors the region while maintaining fashion editorial aesthetic
+- Detailed description of location-inspired fashion elements enhanced with modern glamour
+- Contemporary accessories and jewelry with location inspiration
+- Professional makeup and hair styling that complements the fashion
+- Sophisticated background that honors the location while maintaining fashion editorial aesthetic
 - High-end fashion photography aesthetic
 - Confident, powerful supermodel presence
 
@@ -143,7 +156,7 @@ Generate the prompt now:"""
             }
         }
 
-        print(f"[FashionSupermodel] Generating prompt for {resolved_region} regional fashion")
+        print(f"[FashionSupermodel] Generating prompt for {location} {location_type} fashion")
         print(f"[FashionSupermodel] Glamour enhancement: {resolved_glamour}")
         print(f"[FashionSupermodel] Gender: {resolved_gender}")
         print(f"[FashionSupermodel] Prompt style: {style_label} (max {token_limit} tokens)")

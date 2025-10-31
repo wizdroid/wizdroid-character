@@ -23,10 +23,10 @@ A comprehensive collection of custom nodes for ComfyUI that provide AI-powered p
 - **Output**: High-fashion photography prompts showcasing sustainable design innovation
 
 ### Fashion Supermodel Node
-- **Purpose**: Generates professional fashion photography prompts featuring contemporary regional fashion styles
-- **Features**: 28 glamour enhancement options (subtle, sensual, erotic, royal, religious themes), regional fashion from around the world
-- **Integration**: Ollama LLM for modern regional fashion prompt creation
-- **Output**: Detailed fashion photography prompt with regional style focus
+- **Purpose**: Generates professional fashion photography prompts featuring contemporary fashion styles from countries or regions
+- **Features**: 28 glamour enhancement options, choice between specific countries or broader regional areas (with "none" option)
+- **Integration**: Ollama LLM for modern location-inspired fashion prompt creation
+- **Output**: Detailed fashion photography prompt with location-specific style focus
 
 ### Photo Aspect Extractor
 - **Purpose**: Analyzes images using vision models to extract specific aspects
@@ -61,7 +61,8 @@ A comprehensive collection of custom nodes for ComfyUI that provide AI-powered p
 
 The nodes use JSON configuration files in the `data/` directory:
 - `character_options.json`: Character attributes and options
-- `regions.json`: Regional fashion areas
+- `countries.json`: Specific countries for fashion inspiration
+- `regions.json`: Broader regional areas for fashion inspiration
 - `fantasy_options.json`: Fantasy scene elements
 - `prompt_styles.json`: Output format styles for different AI models
 - `glamour_options.json`: Glamour enhancement styles

@@ -1,0 +1,15 @@
+{
+  "general": [
+    "Should the character hold any props or interact with specific objects?",
+    "Are there cultural or era-specific details we should add?",
+    "What mood or storytelling moment are we aiming to capture?"
+  ],
+  "visual": [
+    "Do you want notable lighting cues like rim light, spotlights, or volumetric rays?",
+    "Should the scene include any foreground or background supporting characters?"
+  ],
+  "render": [
+    "Is there a target color palette or hue temperature we should reinforce?",
+    "Do you need the prompt to reference a particular artist inspiration or medium?"
+  ]
+}

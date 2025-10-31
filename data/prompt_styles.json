@@ -1,0 +1,32 @@
+{
+  "SD": {
+    "label": "Stable Diffusion 1.x",
+    "guidance": "Single line, comma-separated tags. Order: subject, outfit, pose, environment, lighting, camera, style.",
+    "negative_prompt": "blurry, low quality, distorted anatomy, extra limbs, cropped, watermark",
+    "token_limit": 75
+  },
+  "SDXL": {
+    "label": "Stable Diffusion XL",
+    "guidance": "Single detailed paragraph (3-5 sentences). Start with subject description, add styling/outfit, environment, lighting, camera angle.",
+    "negative_prompt": "grainy, lowres, oversaturated, deformed, bad proportions, text artifacts",
+    "token_limit": 150
+  },
+  "Flux": {
+    "label": "Flux",
+    "guidance": "Concise paragraph (2-4 sentences) emphasizing mood, motion, and composition. Include camera cues.",
+    "negative_prompt": "flat lighting, static, dull colors, artifacting",
+    "token_limit": 120
+  },
+  "Qwen": {
+    "label": "Qwen",
+    "guidance": "Semicolon-separated clauses: appearance; outfit; pose; environment; lighting; camera.",
+    "negative_prompt": "noise, bad hands, unbalanced composition, low detail",
+    "token_limit": 100
+  },
+  "HiDream": {
+    "label": "HiDream",
+    "guidance": "Whimsical paragraph (3-4 sentences) with dreamlike qualities, textures, and fantastical details.",
+    "negative_prompt": "mundane, low detail, flat shadows, inconsistent perspective",
+    "token_limit": 130
+  }
+}

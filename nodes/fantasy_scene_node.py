@@ -35,8 +35,8 @@ def _choose(value: str, options: List[str]) -> str:
 
 class FantasySceneBuilder:
     CATEGORY = "Wizdroid/fantasy"
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("prompt", "negative_prompt")
+    RETURN_TYPES = ("STRING", "STRING", "STRING")
+    RETURN_NAMES = ("prompt", "negative_prompt", "preview")
     FUNCTION = "build_prompt"
 
     @classmethod
@@ -105,7 +105,7 @@ class FantasySceneBuilder:
         )
 
         negative_prompt = style_meta.get("negative_prompt", "")
-        return llm_response, negative_prompt
+        return llm_response, negative_prompt, llm_response
 
     @staticmethod
     def _collect_ollama_models(ollama_url: str = DEFAULT_OLLAMA_URL) -> List[str]:

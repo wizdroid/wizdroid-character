@@ -136,8 +136,8 @@ class PoseExtractionNode:
     """
 
     CATEGORY = "Wizdroid/character"
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("pose_prompt",)
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("pose_prompt", "preview")
     FUNCTION = "extract_pose"
 
     @classmethod
@@ -197,7 +197,8 @@ class PoseExtractionNode:
         )
         
         if character_desc.startswith("[ERROR"):
-            return (f"Failed to analyze image: {character_desc}",)
+            error_msg = f"Failed to analyze image: {character_desc}"
+            return (error_msg, error_msg)
         
         print(f"[PoseExtractionNode] Analysis complete")
         print(f"  - Character pose: {character_desc[:80]}...")
@@ -256,9 +257,9 @@ Requirements:
             custom_prefix = ", ".join(custom_parts)
             final_prompt = f"{custom_prefix}, {response}" if response else custom_prefix
             print(f"[PoseExtractionNode] Added custom prompts at beginning")
-            return (final_prompt,)
+            return (final_prompt, final_prompt)
         
-        return (response or "",)
+        return (response or "", response or "")
     
     def _analyze_single_image(
         self,

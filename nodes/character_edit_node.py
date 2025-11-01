@@ -40,8 +40,8 @@ class CharacterEditNode:
     """
 
     CATEGORY = "Wizdroid/character"
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("edit_prompt",)
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("edit_prompt", "preview")
     FUNCTION = "generate_edit_prompt"
 
     @classmethod
@@ -63,6 +63,9 @@ class CharacterEditNode:
                 "target_pose": (_with_random(character_options["pose_style"]), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "preview_prompt": ("STRING", {"widget": "text", "multiline": True, "readonly": True, "default": "Generated prompt will appear here..."}),
             }
         }
 
@@ -192,9 +195,10 @@ class CharacterEditNode:
         response = self._invoke_ollama(generate_url, payload)
 
         if not response or response.startswith("[ERROR"):
-            return (f"Failed to generate prompt: {response}",)
+            error_msg = f"Failed to generate prompt: {response}"
+            return (error_msg, error_msg)
 
-        return (response,)
+        return (response, response)
 
     @staticmethod
     def _invoke_ollama(ollama_url: str, payload: Dict) -> Optional[str]:

@@ -37,8 +37,8 @@ class UpcycledFashionNode:
     """
 
     CATEGORY = "Wizdroid/character"
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("upcycled_fashion_prompt",)
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("upcycled_fashion_prompt", "preview")
     FUNCTION = "generate_upcycled_fashion_prompt"
 
     @classmethod
@@ -158,9 +158,10 @@ Generate the prompt now:"""
         response = self._invoke_ollama(generate_url, payload)
 
         if not response or response.startswith("[ERROR"):
-            return (f"Failed to generate prompt: {response}",)
+            error_msg = f"Failed to generate prompt: {response}"
+            return (error_msg, error_msg)
 
-        return (response,)
+        return (response, response)
 
     @staticmethod
     def _invoke_ollama(ollama_url: str, payload: Dict) -> Optional[str]:

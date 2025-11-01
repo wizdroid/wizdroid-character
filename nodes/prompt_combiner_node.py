@@ -26,8 +26,8 @@ class PromptCombinerNode:
     """
 
     CATEGORY = "Wizdroid/character"
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("combined_prompt",)
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("combined_prompt", "preview")
     FUNCTION = "combine_prompts"
 
     @classmethod
@@ -142,9 +142,10 @@ class PromptCombinerNode:
         response = self._invoke_ollama(generate_url, payload)
 
         if not response or response.startswith("[ERROR"):
-            return (f"Failed to combine prompts: {response}",)
+            error_msg = f"Failed to combine prompts: {response}"
+            return (error_msg, error_msg)
 
-        return (response,)
+        return (response, response)
 
     @staticmethod
     def _invoke_ollama(ollama_url: str, payload: Dict) -> Optional[str]:

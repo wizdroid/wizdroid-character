@@ -63,9 +63,6 @@ class CharacterEditNode:
                 "target_pose": (_with_random(character_options["pose_style"]), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
-            },
-            "optional": {
-                "preview_prompt": ("STRING", {"widget": "text", "multiline": True, "readonly": True, "default": "Generated prompt will appear here..."}),
             }
         }
 

@@ -62,6 +62,7 @@ class FashionSupermodelNode:
                 "region": (_with_random(region_options["regions"]), {"default": "none"}),
                 "glamour_enhancement": (_with_random(glamour_options), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
+                "custom_text": ("STRING", {"multiline": True, "default": ""}),
             }
         }
 
@@ -74,6 +75,7 @@ class FashionSupermodelNode:
         region: str,
         glamour_enhancement: str,
         gender: str,
+        custom_text: str,
     ) -> Tuple[str]:
         character_options = _load_json("character_options.json")
         country_options = _load_json("countries.json")
@@ -181,6 +183,10 @@ IMPORTANT: Format this prompt EXACTLY according to {style_label} style: {style_g
 Keep it under {token_limit} tokens.
 
 Generate the prompt now:"""
+
+        # Add custom text if provided
+        if custom_text.strip():
+            user_prompt = f"{user_prompt}\n\nAdditional custom requirements: {custom_text.strip()}"
 
         # Ensure URL has the /api/generate endpoint
         generate_url = ollama_url

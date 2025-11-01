@@ -60,6 +60,7 @@ class UpcycledFashionNode:
                 "upcycled_material": (_with_random(upcycled_materials["upcycled_materials"]), {"default": RANDOM_LABEL}),
                 "glamour_enhancement": (_with_random(glamour_options), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
+                "custom_text": ("STRING", {"multiline": True, "default": ""}),
             }
         }
 
@@ -71,6 +72,7 @@ class UpcycledFashionNode:
         upcycled_material: str,
         glamour_enhancement: str,
         gender: str,
+        custom_text: str,
     ) -> Tuple[str]:
         character_options = _load_json("character_options.json")
         upcycled_materials = _load_json("upcycled_materials.json")
@@ -126,6 +128,10 @@ IMPORTANT: Format this prompt EXACTLY according to {style_label} style: {style_g
 Keep it under {token_limit} tokens.
 
 Generate the prompt now:"""
+
+        # Add custom text if provided
+        if custom_text.strip():
+            user_prompt = f"{user_prompt}\n\nAdditional custom requirements: {custom_text.strip()}"
 
         # Ensure URL has the /api/generate endpoint
         generate_url = ollama_url

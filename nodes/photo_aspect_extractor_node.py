@@ -213,6 +213,12 @@ class PhotoAspectExtractorNode:
             "synthesis_start": "with colors",
             "synthesis_focus": "Focus on the color palette, dominant hues, harmony, saturation, and contrast",
             "system_prompt": "You are a text-to-image prompt engineer specializing in color palette descriptions. Create concise, detailed prompts focusing on colors, harmony, saturation, and tonal relationships. Output only the prompt, no explanations."
+        },
+        "full_description": {
+            "analysis_prompt": "Provide a comprehensive description of everything visible in this image, including subjects, setting, lighting, colors, composition, mood, and any notable details. Be thorough and specific.",
+            "synthesis_start": "",
+            "synthesis_focus": "Provide a complete, detailed description of the entire scene including all subjects, environment, lighting, colors, and atmosphere",
+            "system_prompt": "You are a text-to-image prompt engineer specializing in comprehensive scene descriptions. Create detailed, vivid prompts that capture the complete essence of an image including all visual elements, mood, and context. Output only the prompt, no explanations."
         }
     }
 
@@ -224,7 +230,8 @@ class PhotoAspectExtractorNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "extraction_mode": (["clothes", "pose", "style", "background", "expression", "lighting", "hair", "makeup", "accessories", "camera", "composition", "color_palette"], {"default": "clothes"}),
+                "extraction_mode": (["clothes", "pose", "style", "background", "expression", "lighting", "hair", "makeup", "accessories", "camera", "composition", "color_palette", "full_description"], {"default": "clothes"}),
+                "retain_face": ("BOOLEAN", {"default": False}),
                 "character_image": ("IMAGE",),
                 "custom_prompt_1": ("STRING", {"default": "Transfer the clothing from the person in the second image onto the person from the first image, while matching the pose of the person in the third image. Preserve the identity and facial features of the person in the first image.", "multiline": True}),
                 "custom_prompt_2": ("STRING", {"default": "", "multiline": True}),
@@ -237,6 +244,7 @@ class PhotoAspectExtractorNode:
         ollama_url: str,
         ollama_model: str,
         extraction_mode: str,
+        retain_face: bool,
         character_image,
         custom_prompt_1: str = "",
         custom_prompt_2: str = "",
@@ -245,11 +253,24 @@ class PhotoAspectExtractorNode:
         # Get mode configuration
         mode_config = self.EXTRACTION_MODES.get(extraction_mode, self.EXTRACTION_MODES["clothes"])
 
+        # Modify prompts for face preservation if enabled
+        analysis_prompt = mode_config["analysis_prompt"]
+        system_prompt = mode_config["system_prompt"]
+
+        if retain_face and extraction_mode in ["expression", "hair", "makeup", "full_description"]:
+            if extraction_mode == "full_description":
+                analysis_prompt = "Provide a comprehensive description of everything visible in this image, including subjects, setting, lighting, colors, composition, mood, and any notable details. Be thorough and specific. IMPORTANT: Do not describe specific facial features (eyes, nose, mouth, face shape) as these should be preserved from the original."
+                system_prompt = "You are a text-to-image prompt engineer specializing in comprehensive scene descriptions for face-preserving image editing. Create detailed, vivid prompts that capture the complete essence of an image including all visual elements, mood, and context, while explicitly avoiding description of facial features. Output only the prompt, no explanations."
+            else:
+                analysis_prompt = mode_config["analysis_prompt"] + " IMPORTANT: Focus only on the requested aspect and avoid describing specific facial features (eyes, nose, mouth, face shape) as these should be preserved from the original."
+                system_prompt = mode_config["system_prompt"].replace("Output only the prompt, no explanations.", "IMPORTANT: Do not describe facial features (eyes, nose, mouth, face shape) as these should be preserved. Output only the prompt, no explanations.")
+
         character_b64 = _image_to_base64(character_image)
 
         print(f"[PhotoAspectExtractor] Image conversion results:")
         print(f"  - Character: {len(character_b64) if character_b64 else 0} chars")
         print(f"  - Extraction mode: {extraction_mode}")
+        print(f"  - Retain face: {retain_face}")
 
         if not character_b64:
             raise ValueError("Character image must be provided and valid")
@@ -270,7 +291,47 @@ class PhotoAspectExtractorNode:
         print(f"  - Extracted {extraction_mode}: {character_desc[:80]}...")
         
         # Generate final description prompt
-        synthesis_prompt = f"""Based on the following analysis, create a concise text-to-image prompt.
+        if extraction_mode == "full_description":
+            if retain_face:
+                synthesis_prompt = f"""Based on the following comprehensive analysis, create a detailed text-to-image prompt that captures the entire scene for face-preserving image editing.
+
+Analysis: {character_desc}
+
+Requirements:
+- Start with: 'Retain the facial features from the original image.'
+- Then create a complete, detailed description of the entire image
+- Include all subjects, setting, lighting, colors, mood, and atmosphere
+- Be vivid and specific with rich descriptive language
+- Do NOT describe facial features (eyes, nose, mouth, face shape) - these are preserved
+- Keep within 150 tokens for comprehensive coverage
+- No meta commentary, just the descriptive prompt"""
+            else:
+                synthesis_prompt = f"""Based on the following comprehensive analysis, create a detailed text-to-image prompt that captures the entire scene.
+
+Analysis: {character_desc}
+
+Requirements:
+- Create a complete, detailed description of the entire image
+- Include all subjects, setting, lighting, colors, mood, and atmosphere
+- Be vivid and specific with rich descriptive language
+- Keep within 150 tokens for comprehensive coverage
+- No meta commentary, just the descriptive prompt"""
+        else:
+            if retain_face and extraction_mode in ["expression", "hair", "makeup"]:
+                synthesis_prompt = f"""Based on the following analysis, create a concise text-to-image prompt for face-preserving image editing.
+
+Analysis: {character_desc}
+
+Requirements:
+- Start with: 'Retain the facial features from the original image.'
+- Then describe: '{mode_config['synthesis_start']}'
+- {mode_config['synthesis_focus']}
+- Be specific and detailed
+- Do NOT describe facial features (eyes, nose, mouth, face shape) - these are preserved
+- Keep within 100 tokens
+- No meta commentary, just the description"""
+            else:
+                synthesis_prompt = f"""Based on the following analysis, create a concise text-to-image prompt.
 
 Analysis: {character_desc}
 
@@ -294,7 +355,7 @@ Requirements:
             "system": system_prompt,
             "stream": False,
             "options": {
-                "num_predict": 200,
+                "num_predict": 250 if extraction_mode == "full_description" else 200,
                 "temperature": 0.7,
             }
         }

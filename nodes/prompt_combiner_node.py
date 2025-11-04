@@ -88,7 +88,8 @@ class PromptCombinerNode:
             f"Create concise prompts under {token_limit} tokens that merge the provided prompts into one cohesive description. "
             "Maintain the artistic style and key elements from all input prompts while eliminating redundancy. "
             "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', or any meta preface. "
-            "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s)."
+            "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
+            "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
         )
 
         # Build the user prompt
@@ -112,6 +113,7 @@ class PromptCombinerNode:
             "  * Preserves important details from each prompt",
             "Begin output with a descriptive adjective or noun; never start with 'Here', 'Here's', 'This prompt', or similar",
             "Exclude: negative prompt content, markdown, explanations, prefaces, or statements like 'Here is a prompt'",
+            "Remove any reasoning or planning text; do not include '<think>' or similar tags",
             "Output only the final combined prompt text:"
         ])
 
@@ -218,5 +220,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidPromptCombiner": "Prompt Combiner (Wizdroid)",
+    "WizdroidPromptCombiner": "Prompt Combiner",
 }

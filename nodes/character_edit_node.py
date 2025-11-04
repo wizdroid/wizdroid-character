@@ -1,5 +1,6 @@
 import json
 import random
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -15,6 +16,7 @@ NONE_LABEL = "none"
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 
+@lru_cache(maxsize=None)
 def _load_json(name: str) -> Dict:
     path = DATA_DIR / name
     with path.open("r", encoding="utf-8") as handle:
@@ -22,15 +24,26 @@ def _load_json(name: str) -> Dict:
 
 
 def _with_random(options: List[str]) -> Tuple[str, ...]:
-    return tuple([RANDOM_LABEL, NONE_LABEL] + options)
+    values: List[str] = [RANDOM_LABEL, NONE_LABEL]
+    for option in options:
+        if option == NONE_LABEL:
+            continue
+        values.append(option)
+    return tuple(values)
 
 
-def _choose(value: str, options: List[str]) -> Optional[str]:
+def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
     if value == RANDOM_LABEL:
-        return random.choice(options)
-    if value == NONE_LABEL:
+        pool = [opt for opt in options if opt != NONE_LABEL]
+        if not pool:
+            pool = options[:]
+        selection = rng.choice(pool)
+    else:
+        selection = value
+
+    if selection == NONE_LABEL or selection is None:
         return None
-    return value
+    return selection
 
 
 class CharacterEditNode:
@@ -63,6 +76,9 @@ class CharacterEditNode:
                 "target_pose": (_with_random(character_options["pose_style"]), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "widget": "seed"}),
             }
         }
 
@@ -77,14 +93,17 @@ class CharacterEditNode:
         target_pose: str,
         gender: str,
         custom_text: str,
+        seed: int = 0,
     ) -> Tuple[str]:
         character_options = _load_json("character_options.json")
         prompt_styles = _load_json("prompt_styles.json")
 
-        resolved_face_angle = _choose(target_face_angle, character_options["face_angle"])
-        resolved_camera_angle = _choose(target_camera_angle, character_options["camera_angle"])
-        resolved_pose = _choose(target_pose, character_options["pose_style"])
-        resolved_gender = _choose(gender, character_options["gender"])
+        rng = random.Random(seed)
+
+        resolved_face_angle = _choose(target_face_angle, character_options["face_angle"], rng)
+        resolved_camera_angle = _choose(target_camera_angle, character_options["camera_angle"], rng)
+        resolved_pose = _choose(target_pose, character_options["pose_style"], rng)
+        resolved_gender = _choose(gender, character_options["gender"], rng)
 
         # Get style configuration
         style_config = prompt_styles.get(prompt_style, prompt_styles["SDXL"])
@@ -99,7 +118,9 @@ class CharacterEditNode:
                 f"Create concise prompts under {token_limit} tokens that preserve the original face while modifying other aspects. "
                 "ALWAYS start prompts with 'Retain the facial features from the original image.' Then describe angle, pose, and positioning changes. "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', or any meta preface. "
-                "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s)."
+                "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
+                "You must honor every provided attribute literally—do not substitute synonyms or reinterpret selections. "
+                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
             )
         else:
             system_prompt = (
@@ -107,7 +128,9 @@ class CharacterEditNode:
                 f"Create concise prompts under {token_limit} tokens for editing character images. "
                 "Focus on face angles, camera angles, and poses. Be specific and descriptive but avoid excessive verbosity. "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', or any meta preface. "
-                "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s)."
+                "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
+                "You must honor every provided attribute literally—do not substitute synonyms or reinterpret selections. "
+                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
             )
 
         # Build attribute list, filtering out None values
@@ -147,6 +170,8 @@ class CharacterEditNode:
                 "Do NOT describe facial features (eyes, nose, mouth, face shape) - these are preserved from original",
                 "Begin output with a descriptive adjective or noun; never start with 'Here', 'Here's', 'This prompt', or similar",
                 "Exclude: negative prompt content, markdown, explanations, prefaces, or statements like 'Here is a prompt'",
+                "Remove any reasoning or planning text; do not include '<think>' or similar tags",
+                "MANDATORY: Use every specified attribute verbatim (face angle, camera angle, pose, gender); do not invent or alter values",
                 "Output only the final prompt text:"
             ])
         else:
@@ -159,6 +184,8 @@ class CharacterEditNode:
                 "  * Pose and body positioning",
                 "Begin output with a descriptive adjective or noun; never start with 'Here', 'Here's', 'This prompt', or similar",
                 "Exclude: negative prompt content, markdown, explanations, prefaces, or statements like 'Here is a prompt'",
+                "Remove any reasoning or planning text; do not include '<think>' or similar tags",
+                "MANDATORY: Use every specified attribute verbatim (face angle, camera angle, pose, gender); do not invent or alter values",
                 "Output only the final prompt text:"
             ])
 
@@ -268,5 +295,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidCharacterEdit": "Character Edit (Wizdroid)",
+    "WizdroidCharacterEdit": "Character Edit",
 }

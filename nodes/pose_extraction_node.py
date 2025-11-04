@@ -51,12 +51,18 @@ def _with_random(options: List[str]) -> Tuple[str, ...]:
     return tuple([RANDOM_LABEL, NONE_LABEL] + options)
 
 
-def _choose(value: str, options: List[str]) -> Optional[str]:
+def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
     if value == RANDOM_LABEL:
-        return random.choice(options)
-    if value == NONE_LABEL:
+        pool = [opt for opt in options if opt != NONE_LABEL]
+        if not pool:
+            pool = options[:]
+        selection = rng.choice(pool)
+    else:
+        selection = value
+
+    if selection == NONE_LABEL or selection is None:
         return None
-    return value
+    return selection
 
 
 def _extract_tensor(image_input) -> Optional[TorchTensor]:
@@ -156,6 +162,9 @@ class PoseExtractionNode:
                 "custom_prompt_1": ("STRING", {"default": "", "multiline": True}),
                 "custom_prompt_2": ("STRING", {"default": "", "multiline": True}),
                 "custom_prompt_3": ("STRING", {"default": "", "multiline": True}),
+            },
+            "optional": {
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "widget": "seed"}),
             }
         }
 
@@ -170,12 +179,15 @@ class PoseExtractionNode:
         custom_prompt_1: str = "",
         custom_prompt_2: str = "",
         custom_prompt_3: str = "",
+        seed: int = 0,
     ) -> Tuple[str]:
         option_map = _load_json("character_options.json")
 
-        resolved_style = _choose(style, option_map["image_category"]) if style else None
-        resolved_gender = _choose(gender, option_map["gender"])
-        resolved_age = _choose(age_group, option_map["age_group"])
+        rng = random.Random(seed)
+
+        resolved_style = _choose(style, option_map["image_category"], rng) if style else None
+        resolved_gender = _choose(gender, option_map["gender"], rng)
+        resolved_age = _choose(age_group, option_map["age_group"], rng)
 
         subject_phrase = _describe_subject(resolved_gender, resolved_age)
         style_phrase = resolved_style or "photorealistic"
@@ -403,5 +415,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidPoseExtraction": "Pose Extraction (Wizdroid)",
+    "WizdroidPoseExtraction": "Pose Extraction",
 }

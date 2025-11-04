@@ -1,7 +1,8 @@
 import json
 import random
+from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -15,6 +16,7 @@ NONE_LABEL = "none"
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 
+@lru_cache(maxsize=None)
 def _load_json(name: str) -> Dict:
     path = DATA_DIR / name
     with path.open("r", encoding="utf-8") as handle:
@@ -22,15 +24,26 @@ def _load_json(name: str) -> Dict:
 
 
 def _with_random(options: List[str]) -> Tuple[str, ...]:
-    return tuple([RANDOM_LABEL, NONE_LABEL] + options)
+    values: List[str] = [RANDOM_LABEL, NONE_LABEL]
+    for option in options:
+        if option == NONE_LABEL:
+            continue
+        values.append(option)
+    return tuple(values)
 
 
-def _choose(value: str, options: List[str]) -> str:
+def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
     if value == RANDOM_LABEL:
-        return random.choice(options)
-    if value == NONE_LABEL:
+        pool = [opt for opt in options if opt != NONE_LABEL]
+        if not pool:
+            pool = options[:]
+        selection = rng.choice(pool)
+    else:
+        selection = value
+
+    if selection == NONE_LABEL or selection is None:
         return None
-    return value
+    return selection
 
 
 class FantasySceneBuilder:
@@ -60,6 +73,9 @@ class FantasySceneBuilder:
                 "composition": (_with_random(option_map["composition"]), {"default": RANDOM_LABEL}),
                 "special_elements": (_with_random(option_map["special_elements"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "widget": "seed"}),
             }
         }
 
@@ -78,20 +94,23 @@ class FantasySceneBuilder:
         composition: str,
         special_elements: str,
         custom_text: str,
+        seed: int = 0,
     ):
         option_map = _load_json("fantasy_options.json")
         prompt_styles = _load_json("prompt_styles.json")
 
+        rng = random.Random(seed)
+
         resolved = {
-            "fantasy_theme": _choose(fantasy_theme, option_map["fantasy_theme"]),
-            "subject_type": _choose(subject_type, option_map["subject_type"]),
-            "environment": _choose(environment, option_map["environment"]),
-            "atmosphere": _choose(atmosphere, option_map["atmosphere"]),
-            "lighting": _choose(lighting, option_map["lighting"]),
-            "visual_style": _choose(visual_style, option_map["visual_style"]),
-            "texture": _choose(texture, option_map["texture"]),
-            "composition": _choose(composition, option_map["composition"]),
-            "special_elements": _choose(special_elements, option_map["special_elements"]),
+            "fantasy_theme": _choose(fantasy_theme, option_map["fantasy_theme"], rng),
+            "subject_type": _choose(subject_type, option_map["subject_type"], rng),
+            "environment": _choose(environment, option_map["environment"], rng),
+            "atmosphere": _choose(atmosphere, option_map["atmosphere"], rng),
+            "lighting": _choose(lighting, option_map["lighting"], rng),
+            "visual_style": _choose(visual_style, option_map["visual_style"], rng),
+            "texture": _choose(texture, option_map["texture"], rng),
+            "composition": _choose(composition, option_map["composition"], rng),
+            "special_elements": _choose(special_elements, option_map["special_elements"], rng),
         }
 
         style_meta = prompt_styles[prompt_style]
@@ -151,13 +170,15 @@ class FantasySceneBuilder:
             system_prompt = (
                 "You are a dark fantasy and horror prompt engineer for text-to-image AI. Create vivid, atmospheric prompts "
                 f"that evoke haunting scenes with characters or creatures. Keep output under {token_limit} tokens. "
-                "Use sensory details, texture descriptions, and atmospheric elements. Balance subject description with environment."
+                "Use sensory details, texture descriptions, and atmospheric elements. Balance subject description with environment. "
+                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
             )
         else:
             system_prompt = (
                 "You are a fantasy scene prompt engineer for text-to-image AI. Create vivid, atmospheric prompts "
                 f"that evoke otherworldly scenes. Keep output under {token_limit} tokens. Use sensory details, "
-                "texture descriptions, and atmospheric elements. Focus on environment and mood, not characters."
+                "texture descriptions, and atmospheric elements. Focus on environment and mood, not characters. "
+                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
             )
 
         # Build attribute list, filtering out None values
@@ -182,6 +203,7 @@ class FantasySceneBuilder:
             f"Token limit: {token_limit} tokens maximum",
             "Include: textures, lighting, atmosphere, special effects, composition",
             "Exclude: negative prompt content, markdown, explanations",
+            "Remove any reasoning or planning text; do not include '<think>' or similar tags",
             "Output only the final prompt text:"
         ])
 

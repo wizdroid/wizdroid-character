@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Test script for ClothesExtractionNode.
-Creates dummy images and tests the vision API call.
+Test script for PhotoAspectExtractorNode.
+Creates dummy images and tests the vision API call for clothing extraction.
 """
 
 import sys
@@ -12,7 +12,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import torch
 import numpy as np
-from nodes.clothes_extraction_node import ClothesExtractionNode
+from nodes.photo_aspect_extractor_node import (
+    PhotoAspectExtractorNode,
+    _image_to_base64,
+)
 
 def create_dummy_image(color=(128, 128, 128), size=(512, 512)):
     """Create a dummy torch image tensor with specified color."""
@@ -27,8 +30,6 @@ def create_dummy_image(color=(128, 128, 128), size=(512, 512)):
 def test_image_conversion():
     """Test that images convert to base64 correctly."""
     print("\n=== Testing Image Conversion ===")
-    from nodes.clothes_extraction_node import _image_to_base64
-    
     dummy_img = create_dummy_image((255, 0, 0))  # Red image
     b64_result = _image_to_base64(dummy_img)
     
@@ -64,9 +65,7 @@ def test_ollama_connection():
 def test_vision_models():
     """Test vision model detection."""
     print("\n=== Testing Vision Model Detection ===")
-    from nodes.clothes_extraction_node import ClothesExtractionNode
-    
-    models = ClothesExtractionNode._collect_ollama_models("http://localhost:11434")
+    models = PhotoAspectExtractorNode._collect_ollama_models("http://localhost:11434")
     if models:
         print(f"✓ Found {len(models)} vision models:")
         for model in models:
@@ -84,7 +83,7 @@ def test_full_prompt_generation():
     character_img = create_dummy_image((255, 0, 0))    # Red
     
     # Get available vision models
-    models = ClothesExtractionNode._collect_ollama_models("http://localhost:11434")
+    models = PhotoAspectExtractorNode._collect_ollama_models("http://localhost:11434")
     if not models:
         print("✗ No vision models available for testing")
         return False
@@ -93,14 +92,13 @@ def test_full_prompt_generation():
     print(f"Using model: {test_model}")
     
     # Initialize node
-    node = ClothesExtractionNode()
-    
+    node = PhotoAspectExtractorNode()
+
     params = {
         "ollama_url": "http://localhost:11434/api/generate",
         "ollama_model": test_model,
-        "style": "photorealistic",
-        "gender": "woman",
-        "age_group": "adult",
+        "extraction_mode": "clothes",
+        "retain_face": False,
         "character_image": character_img,
         "custom_prompt_1": "cinematic lighting",
         "custom_prompt_2": "4k ultra detailed",
@@ -110,7 +108,7 @@ def test_full_prompt_generation():
     print(f"\nGenerating clothing description prompt...")
     
     try:
-        result = node.extract_clothing(**params)
+        result = node.extract_aspect(**params)
         prompt = result[0]
         
         if prompt and not prompt.startswith("[ERROR"):

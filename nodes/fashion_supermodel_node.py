@@ -1,5 +1,6 @@
 import json
 import random
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -11,23 +12,40 @@ except ImportError:  # pragma: no cover
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 RANDOM_LABEL = "Random"
+NONE_LABEL = "none"
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 
+@lru_cache(maxsize=None)
 def _load_json(name: str) -> Dict:
     path = DATA_DIR / name
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
 
 
-def _with_random(options: List[str]) -> Tuple[str, ...]:
-    return tuple([RANDOM_LABEL] + options)
+def _with_random(options: List[str], allow_none: bool = True) -> Tuple[str, ...]:
+    values: List[str] = [RANDOM_LABEL]
+    if allow_none:
+        values.append(NONE_LABEL)
+    for option in options:
+        if allow_none and option == NONE_LABEL:
+            continue
+        values.append(option)
+    return tuple(values)
 
 
-def _choose(value: str, options: List[str]) -> Optional[str]:
+def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
     if value == RANDOM_LABEL:
-        return random.choice(options)
-    return value
+        pool = [opt for opt in options if opt != NONE_LABEL]
+        if not pool:
+            pool = options[:]
+        selection = rng.choice(pool)
+    else:
+        selection = value
+
+    if selection == NONE_LABEL or selection is None:
+        return None
+    return selection
 
 
 class FashionSupermodelNode:
@@ -59,10 +77,13 @@ class FashionSupermodelNode:
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
                 "prompt_style": (style_options, {"default": "SDXL"}),
                 "country": (_with_random(country_options["countries"]), {"default": RANDOM_LABEL}),
-                "region": (_with_random(region_options["regions"]), {"default": "none"}),
-                "glamour_enhancement": (_with_random(glamour_options), {"default": RANDOM_LABEL}),
+                "region": (_with_random(region_options["regions"]), {"default": NONE_LABEL}),
+                "glamour_enhancement": (_with_random(glamour_options, allow_none=False), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "widget": "seed"}),
             }
         }
 
@@ -76,6 +97,7 @@ class FashionSupermodelNode:
         glamour_enhancement: str,
         gender: str,
         custom_text: str,
+        seed: int = 0,
     ) -> Tuple[str]:
         character_options = _load_json("character_options.json")
         country_options = _load_json("countries.json")
@@ -85,21 +107,25 @@ class FashionSupermodelNode:
 
         glamour_options = glamour_options_data["glamour_options"]
 
-        resolved_country = _choose(country, country_options["countries"])
-        resolved_region = _choose(region, region_options["regions"])
-        resolved_glamour = _choose(glamour_enhancement, glamour_options)
-        resolved_gender = _choose(gender, character_options["gender"])
+        rng = random.Random(seed)
+
+        resolved_country = _choose(country, country_options["countries"], rng)
+        resolved_region = _choose(region, region_options["regions"], rng)
+        resolved_glamour = _choose(glamour_enhancement, glamour_options, rng)
+        resolved_gender = _choose(gender, character_options["gender"], rng)
 
         # Determine location: prefer region if specified, otherwise use country, fallback to generic
-        if resolved_region and resolved_region != "none":
+        if resolved_region:
             location = resolved_region
             location_type = "regional"
-        elif resolved_country and resolved_country != "none":
+        elif resolved_country:
             location = resolved_country
             location_type = "country"
         else:
             location = "contemporary"
             location_type = "generic"
+
+        gender_prefix = f"{resolved_gender} " if resolved_gender else ""
 
         # Get style configuration
         style_config = prompt_styles.get(prompt_style, prompt_styles["SDXL"])
@@ -125,7 +151,7 @@ Your prompts should include:
 7. Lighting (professional studio lighting, high-end fashion photography)
 8. Overall mood and atmosphere
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary high-fashion aesthetics. Output only the prompt, no explanations or meta-commentary."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary high-fashion aesthetics. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."""
         else:
             system_prompt = f"""You are a professional text-to-image prompt engineer specializing in contemporary fashion and modern style. Create vivid, detailed prompts for high-end fashion supermodel photography featuring modern clothing styles from specific locations.
 
@@ -143,10 +169,10 @@ Your prompts should include:
 7. Lighting (professional studio lighting, high-end fashion photography)
 8. Overall mood and atmosphere
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary fashion while incorporating location-specific influences. Output only the prompt, no explanations or meta-commentary."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary fashion while incorporating location-specific influences. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."""
 
         if location_type == "generic":
-            user_prompt = f"""Create a professional fashion photography prompt for a {resolved_gender} supermodel wearing contemporary fashion with {resolved_glamour} glamour enhancement.
+            user_prompt = f"""Create a professional fashion photography prompt for a {gender_prefix}supermodel wearing contemporary fashion with {resolved_glamour} glamour enhancement.
 
 Requirements:
 - Contemporary fashion trends as the foundation
@@ -165,7 +191,7 @@ Keep it under {token_limit} tokens.
 
 Generate the prompt now:"""
         else:
-            user_prompt = f"""Create a professional fashion photography prompt for a {resolved_gender} supermodel wearing contemporary {location} fashion with {resolved_glamour} glamour enhancement.
+            user_prompt = f"""Create a professional fashion photography prompt for a {gender_prefix}supermodel wearing contemporary {location} fashion with {resolved_glamour} glamour enhancement.
 
 Requirements:
 - Contemporary {location} fashion as the foundation
@@ -206,7 +232,7 @@ Generate the prompt now:"""
 
         print(f"[FashionSupermodel] Generating prompt for {location} {location_type} fashion")
         print(f"[FashionSupermodel] Glamour enhancement: {resolved_glamour}")
-        print(f"[FashionSupermodel] Gender: {resolved_gender}")
+        print(f"[FashionSupermodel] Gender: {resolved_gender or 'unspecified'}")
         print(f"[FashionSupermodel] Prompt style: {style_label} (max {token_limit} tokens)")
         print(f"[FashionSupermodel] Using model: {ollama_model}")
 
@@ -289,5 +315,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidFashionSupermodel": "Fashion Supermodel (Wizdroid)",
+    "WizdroidFashionSupermodel": "Fashion Supermodel",
 }

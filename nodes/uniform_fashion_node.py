@@ -2,7 +2,7 @@ import json
 import random
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -48,21 +48,20 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
     return selection
 
 
-class UpcycledFashionNode:
+class UniformFashionNode:
     """
-    ComfyUI node to generate professional upcycled fashion supermodel prompts featuring
-    everyday objects transformed into glamorous designer wear.
+    ComfyUI node to generate professional fashion prompts for characters in stylized uniforms.
     """
 
     CATEGORY = "Wizdroid/character"
     RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("upcycled_fashion_prompt", "preview")
-    FUNCTION = "generate_upcycled_fashion_prompt"
+    RETURN_NAMES = ("uniform_prompt", "preview")
+    FUNCTION = "generate_uniform_prompt"
 
     @classmethod
     def INPUT_TYPES(cls):
         character_options = _load_json("character_options.json")
-        upcycled_materials = _load_json("upcycled_materials.json")
+        uniform_options = _load_json("uniform_options.json")
         prompt_styles = _load_json("prompt_styles.json")
         glamour_options_data = _load_json("glamour_options.json")
         ollama_models = cls._collect_ollama_models()
@@ -75,7 +74,7 @@ class UpcycledFashionNode:
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
                 "prompt_style": (style_options, {"default": "SDXL"}),
-                "upcycled_material": (_with_random(upcycled_materials["upcycled_materials"], allow_none=False), {"default": RANDOM_LABEL}),
+                "uniform_style": (_with_random(uniform_options["uniform_styles"], allow_none=False), {"default": RANDOM_LABEL}),
                 "glamour_enhancement": (_with_random(glamour_options, allow_none=False), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
@@ -85,19 +84,19 @@ class UpcycledFashionNode:
             }
         }
 
-    def generate_upcycled_fashion_prompt(
+    def generate_uniform_prompt(
         self,
         ollama_url: str,
         ollama_model: str,
         prompt_style: str,
-        upcycled_material: str,
+        uniform_style: str,
         glamour_enhancement: str,
         gender: str,
         custom_text: str,
         seed: int = 0,
     ) -> Tuple[str]:
         character_options = _load_json("character_options.json")
-        upcycled_materials = _load_json("upcycled_materials.json")
+        uniform_options = _load_json("uniform_options.json")
         prompt_styles = _load_json("prompt_styles.json")
         glamour_options_data = _load_json("glamour_options.json")
 
@@ -105,7 +104,7 @@ class UpcycledFashionNode:
 
         rng = random.Random(seed)
 
-        resolved_material = _choose(upcycled_material, upcycled_materials["upcycled_materials"], rng)
+        resolved_uniform = _choose(uniform_style, uniform_options["uniform_styles"], rng)
         resolved_glamour = _choose(glamour_enhancement, glamour_options, rng)
         resolved_gender = _choose(gender, character_options["gender"], rng)
 
@@ -117,49 +116,46 @@ class UpcycledFashionNode:
         style_guidance = style_config["guidance"]
         token_limit = style_config["token_limit"]
 
-        # Build the prompt instruction for the LLM
-        system_prompt = f"""You are a professional text-to-image prompt engineer specializing in upcycled fashion and sustainable design. Create vivid, detailed prompts for high-end fashion supermodel photography featuring everyday objects transformed into glamorous designer wear.
+        system_prompt = f"""You are a professional text-to-image prompt engineer specializing in stylized uniform fashion. Create vivid, detailed prompts for high-end fashion photography featuring characters in professional or academic uniforms, enhanced with a glamorous, editorial aesthetic.
 
 TARGET MODEL: {style_label}
 FORMATTING STYLE: {style_guidance}
 TOKEN LIMIT: {token_limit} tokens maximum
 
 Your prompts should include:
-1. Subject description (supermodel with appropriate gender/identity)
-2. Upcycled material transformation (how everyday objects become designer garments)
-3. Design innovation (creative use of materials, textures, shapes)
-4. Glamour styling (professional makeup, hair, accessories)
-5. Pose (confident, fashion-forward runway poses)
-6. Setting (high-fashion editorial environment)
-7. Lighting (studio lighting emphasizing material textures)
-8. Overall aesthetic (sustainable luxury, innovative design)
+1. Subject description ({gender_prefix}model)
+2. Uniform details (specific garments, materials, colors, insignia)
+3. Glamour enhancement (how the uniform is stylized for a fashion context)
+4. Accessories and props (relevant to the uniform but styled for fashion)
+5. Makeup and hair styling (professional and complementary)
+6. Pose (confident, powerful, editorial)
+7. Background/setting (abstract or relevant, but with a high-fashion feel)
+8. Lighting (professional studio or dramatic location lighting)
+9. Overall mood and atmosphere (e.g., authoritative, chic, disciplined, elegant)
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on creative upcycling while maintaining high-fashion aesthetic. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on the fusion of uniform authenticity and high-fashion glamour. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."""
 
-        user_prompt = f"""Create a professional upcycled fashion photography prompt for a {gender_prefix}supermodel wearing designer garments made from {resolved_material} with {resolved_glamour} glamour enhancement.
+        user_prompt = f"""Create a professional fashion photography prompt for a {gender_prefix}model in a stylized '{resolved_uniform}' uniform, with a '{resolved_glamour}' glamour enhancement.
 
 Requirements:
-- Transform {resolved_material} into high-end designer fashion
-- Enhance the glamour with {resolved_glamour} styling approach
-- Professional studio lighting setup highlighting material textures
-- Glamorous pose suitable for high-fashion editorial
-- Detailed description of innovative design and material transformation
-- Creative accessories and jewelry complementing the upcycled aesthetic
-- Professional makeup and hair styling that enhances the sustainable luxury vibe
-- Sophisticated background that showcases the upcycled design
-- High-end fashion photography aesthetic with sustainable innovation focus
-- Confident, powerful supermodel presence
+- Base the outfit on a '{resolved_uniform}' uniform.
+- Apply a '{resolved_glamour}' styling approach to elevate it to high fashion.
+- Use professional studio or dramatic location lighting.
+- The pose should be confident and editorial.
+- Detail the specific garments, fabrics, and insignia of the uniform, reinterpreted for a fashion context.
+- Include fashion-forward accessories and props that complement the uniform's theme.
+- Makeup and hair should be polished and professional.
+- The background should be either abstract or a stylized version of a relevant environment.
+- The overall aesthetic should be a fusion of authentic uniform details and high-fashion glamour.
 
 IMPORTANT: Format this prompt EXACTLY according to {style_label} style: {style_guidance}
 Keep it under {token_limit} tokens.
 
 Generate the prompt now:"""
 
-        # Add custom text if provided
         if custom_text.strip():
             user_prompt = f"{user_prompt}\n\nAdditional custom requirements: {custom_text.strip()}"
 
-        # Ensure URL has the /api/generate endpoint
         generate_url = ollama_url
         if not generate_url.endswith("/api/generate"):
             generate_url = generate_url.rstrip("/") + "/api/generate"
@@ -175,11 +171,11 @@ Generate the prompt now:"""
             }
         }
 
-        print(f"[UpcycledFashion] Generating prompt for {resolved_material} upcycled material")
-        print(f"[UpcycledFashion] Glamour enhancement: {resolved_glamour}")
-        print(f"[UpcycledFashion] Gender: {resolved_gender or 'unspecified'}")
-        print(f"[UpcycledFashion] Prompt style: {style_label} (max {token_limit} tokens)")
-        print(f"[UpcycledFashion] Using model: {ollama_model}")
+        print(f"[UniformFashionNode] Generating prompt for '{resolved_uniform}' uniform")
+        print(f"[UniformFashionNode] Glamour enhancement: {resolved_glamour}")
+        print(f"[UniformFashionNode] Gender: {resolved_gender or 'unspecified'}")
+        print(f"[UniformFashionNode] Prompt style: {style_label} (max {token_limit} tokens)")
+        print(f"[UniformFashionNode] Using model: {ollama_model}")
 
         response = self._invoke_ollama(generate_url, payload)
 
@@ -194,40 +190,40 @@ Generate the prompt now:"""
         if requests is None:
             raise RuntimeError("'requests' is required for Ollama integration. Install optional dependencies.")
         try:
-            print(f"[UpcycledFashion] Sending request to {ollama_url}")
-            print(f"[UpcycledFashion] Model: {payload.get('model')}")
+            print(f"[UniformFashionNode] Sending request to {ollama_url}")
+            print(f"[UniformFashionNode] Model: {payload.get('model')}")
 
             response = requests.post(ollama_url, json=payload, timeout=120)
 
-            print(f"[UpcycledFashion] Response status: {response.status_code}")
+            print(f"[UniformFashionNode] Response status: {response.status_code}")
 
             response.raise_for_status()
             data = response.json()
 
             result = (data.get("response") or "").strip()
-            print(f"[UpcycledFashion] Received response ({len(result)} chars): {result[:100]}...")
+            print(f"[UniformFashionNode] Received response ({len(result)} chars): {result[:100]}...")
 
             if not result:
-                print("[UpcycledFashion] WARNING: Empty response from Ollama")
+                print("[UniformFashionNode] WARNING: Empty response from Ollama")
                 return "[Empty response from LLM]"
 
             return result
         except requests.exceptions.HTTPError as exc:
-            error_msg = f"[UpcycledFashion] HTTP error: {exc}"
+            error_msg = f"[UniformFashionNode] HTTP error: {exc}"
             print(error_msg)
             if hasattr(exc.response, 'text'):
-                print(f"[UpcycledFashion] Response body: {exc.response.text[:500]}")
+                print(f"[UniformFashionNode] Response body: {exc.response.text[:500]}")
             return f"[ERROR: {exc}]"
         except requests.exceptions.ConnectionError as exc:
-            error_msg = f"[UpcycledFashion] Connection error: {exc}"
+            error_msg = f"[UniformFashionNode] Connection error: {exc}"
             print(error_msg)
             return f"[ERROR: Cannot connect to Ollama at {ollama_url}]"
         except requests.exceptions.Timeout as exc:
-            error_msg = f"[UpcycledFashion] Timeout error: {exc}"
+            error_msg = f"[UniformFashionNode] Timeout error: {exc}"
             print(error_msg)
             return "[ERROR: Request timed out]"
         except Exception as exc:
-            error_msg = f"[UpcycledFashion] Error invoking Ollama: {exc}"
+            error_msg = f"[UniformFashionNode] Error invoking Ollama: {exc}"
             print(error_msg)
             return f"[ERROR: {str(exc)}]"
 
@@ -251,14 +247,14 @@ Generate the prompt now:"""
         except requests.exceptions.Timeout:
             return ["ollama_timeout"]
         except Exception as exc:
-            print(f"[UpcycledFashion] Error fetching Ollama models: {exc}")
+            print(f"[UniformFashionNode] Error fetching Ollama models: {exc}")
             return ["ollama_error"]
 
 
 NODE_CLASS_MAPPINGS = {
-    "WizdroidUpcycledFashion": UpcycledFashionNode,
+    "WizdroidUniformFashion": UniformFashionNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidUpcycledFashion": "Upcycled Fashion",
+    "WizdroidUniformFashion": "Uniform Fashion",
 }

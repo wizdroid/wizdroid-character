@@ -1,8 +1,8 @@
 import json
 import random
-import subprocess
+from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -16,6 +16,7 @@ NONE_LABEL = "none"
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 
+@lru_cache(maxsize=None)
 def _load_json(name: str) -> Dict:
     path = DATA_DIR / name
     with path.open("r", encoding="utf-8") as handle:
@@ -23,15 +24,26 @@ def _load_json(name: str) -> Dict:
 
 
 def _with_random(options: List[str]) -> Tuple[str, ...]:
-    return tuple([RANDOM_LABEL, NONE_LABEL] + options)
+    values: List[str] = [RANDOM_LABEL, NONE_LABEL]
+    for option in options:
+        if option == NONE_LABEL:
+            continue
+        values.append(option)
+    return tuple(values)
 
 
-def _choose(value: str, options: List[str]) -> str:
+def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
     if value == RANDOM_LABEL:
-        return random.choice(options)
-    if value == NONE_LABEL:
+        pool = [opt for opt in options if opt != NONE_LABEL]
+        if not pool:
+            pool = options[:]
+        selection = rng.choice(pool)
+    else:
+        selection = value
+
+    if selection == NONE_LABEL or selection is None:
         return None
-    return value
+    return selection
 
 
 class CharacterPromptBuilder:
@@ -67,6 +79,9 @@ class CharacterPromptBuilder:
                 "fashion_style": (_with_random(option_map["fashion_style"]), {"default": RANDOM_LABEL}),
                 "background_style": (_with_random(option_map["background_style"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
+            },
+            "optional": {
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "widget": "seed"}),
             }
         }
 
@@ -91,26 +106,28 @@ class CharacterPromptBuilder:
         fashion_style: str,
         background_style: str,
         custom_text: str,
+        seed: int = 0,
     ):
         option_map = _load_json("character_options.json")
         prompt_styles = _load_json("prompt_styles.json")
-        followup = self._pick_followup_questions()
+        rng = random.Random(seed)
+        followup = self._pick_followup_questions(rng)
 
         resolved = {
-            "image_category": _choose(image_category, option_map["image_category"]),
-            "gender": _choose(gender, option_map["gender"]),
-            "age_group": _choose(age_group, option_map["age_group"]),
-            "body_type": _choose(body_type, option_map["body_type"]),
-            "hair_color": _choose(hair_color, option_map["hair_color"]),
-            "hair_style": _choose(hair_style, option_map["hair_style"]),
-            "eye_color": _choose(eye_color, option_map["eye_color"]),
-            "facial_expression": _choose(facial_expression, option_map["facial_expression"]),
-            "face_angle": _choose(face_angle, option_map["face_angle"]),
-            "camera_angle": _choose(camera_angle, option_map["camera_angle"]),
-            "pose_style": _choose(pose_style, option_map["pose_style"]),
-            "makeup_style": _choose(makeup_style, option_map["makeup_style"]),
-            "fashion_style": _choose(fashion_style, option_map["fashion_style"]),
-            "background_style": _choose(background_style, option_map["background_style"]),
+            "image_category": _choose(image_category, option_map["image_category"], rng),
+            "gender": _choose(gender, option_map["gender"], rng),
+            "age_group": _choose(age_group, option_map["age_group"], rng),
+            "body_type": _choose(body_type, option_map["body_type"], rng),
+            "hair_color": _choose(hair_color, option_map["hair_color"], rng),
+            "hair_style": _choose(hair_style, option_map["hair_style"], rng),
+            "eye_color": _choose(eye_color, option_map["eye_color"], rng),
+            "facial_expression": _choose(facial_expression, option_map["facial_expression"], rng),
+            "face_angle": _choose(face_angle, option_map["face_angle"], rng),
+            "camera_angle": _choose(camera_angle, option_map["camera_angle"], rng),
+            "pose_style": _choose(pose_style, option_map["pose_style"], rng),
+            "makeup_style": _choose(makeup_style, option_map["makeup_style"], rng),
+            "fashion_style": _choose(fashion_style, option_map["fashion_style"], rng),
+            "background_style": _choose(background_style, option_map["background_style"], rng),
         }
 
         style_meta = prompt_styles[prompt_style]
@@ -170,7 +187,10 @@ class CharacterPromptBuilder:
                 f"Create concise prompts under {token_limit} tokens that preserve the original face while modifying other aspects. "
                 "ALWAYS start prompts with 'Retain the facial features from the original image.' Then describe outfit, pose, setting changes. "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', or any meta preface. "
-                "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s)."
+                "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
+                "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
+                "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
+                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
             )
         else:
             system_prompt = (
@@ -178,7 +198,10 @@ class CharacterPromptBuilder:
                 f"Keep output under {token_limit} tokens. Be specific and descriptive but avoid excessive verbosity. "
                 "ALWAYS describe clothing details (garment type, color, fabric) and pose (body position, stance). "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', or any meta preface. "
-                "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s)."
+                "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
+                "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
+                "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
+                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
             )
 
         # Build attribute list, filtering out None values
@@ -198,6 +221,11 @@ class CharacterPromptBuilder:
                 ", ".join(attr_parts),
             ]
         
+        lines.append(
+            "\nAttribute glossary: 'fashion_style' defines the outfit concept (clothing pieces, accessories, textures); "
+            "'makeup_style' guides cosmetics; 'background_style' sets the environment; 'pose_style' directs body language."
+        )
+
         if custom_text:
             lines.append(f"\nAdditional notes: {custom_text}")
 
@@ -213,6 +241,7 @@ class CharacterPromptBuilder:
                 "Do NOT describe facial features (eyes, nose, mouth, face shape) - these are preserved from original",
                 "Begin output with a descriptive adjective or noun; never start with 'Here', 'Here's', 'This prompt', or similar",
                 "Exclude: negative prompt content, markdown, explanations, prefaces, or statements like 'Here is a prompt'",
+                "Remove any reasoning or planning text; do not include '<think>' or similar tags",
                 "Output only the final prompt text:"
             ])
         else:
@@ -225,6 +254,7 @@ class CharacterPromptBuilder:
                 "  * Lighting, atmosphere, camera angle",
                 "Begin output with a descriptive adjective or noun; never start with 'Here', 'Here's', 'This prompt', or similar",
                 "Exclude: negative prompt content, markdown, explanations, prefaces, or statements like 'Here is a prompt'",
+                "Remove any reasoning or planning text; do not include '<think>' or similar tags",
                 "Output only the final prompt text:"
             ])
 
@@ -257,12 +287,12 @@ class CharacterPromptBuilder:
             return f"[Error: {str(e)}]"
 
     @staticmethod
-    def _pick_followup_questions() -> List[str]:
+    def _pick_followup_questions(rng: random.Random) -> List[str]:
         payload = _load_json("followup_questions.json")
         bag: List[str] = []
         for values in payload.values():
             bag.extend(values)
-        random.shuffle(bag)
+        rng.shuffle(bag)
         return bag[:3] if bag else []
 
 

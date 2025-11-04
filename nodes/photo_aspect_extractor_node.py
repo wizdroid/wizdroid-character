@@ -51,12 +51,18 @@ def _with_random(options: List[str]) -> Tuple[str, ...]:
     return tuple([RANDOM_LABEL, NONE_LABEL] + options)
 
 
-def _choose(value: str, options: List[str]) -> Optional[str]:
+def _choose(value: Optional[str], options: List[str]) -> Optional[str]:
     if value == RANDOM_LABEL:
-        return random.choice(options)
-    if value == NONE_LABEL:
+        pool = [opt for opt in options if opt != NONE_LABEL]
+        if not pool:
+            pool = options[:]
+        selection = random.choice(pool)
+    else:
+        selection = value
+
+    if selection == NONE_LABEL or selection is None:
         return None
-    return value
+    return selection
 
 
 def _extract_tensor(image_input) -> Optional[TorchTensor]:
@@ -522,5 +528,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidPhotoAspectExtractor": "Photo Aspect Extractor (Wizdroid)",
+    "WizdroidPhotoAspectExtractor": "Photo Aspect Extractor",
 }

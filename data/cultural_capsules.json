@@ -1,0 +1,286 @@
+{
+  "capsules": [
+    {
+      "id": "medieval_high_court",
+      "label": "Medieval High Court",
+      "heritage_context": "Inspired by 14th-century European court attire with sumptuous brocades, structured bodices, and heraldic motifs.",
+      "signature_garments": [
+        "floor-length houppelande with cascading sleeves",
+        "corseted bodice layered over quilted underdress",
+        "gem-set girdle belt",
+        "arched hennin-inspired headpiece"
+      ],
+      "traditional_materials": [
+        "heavy brocade",
+        "rich velvet",
+        "embossed leather",
+        "gold-thread embroidery"
+      ],
+      "ornamentation": [
+        "heraldic embroidery",
+        "illuminated manuscript motifs",
+        "hammered filigree clasps",
+        "lapis and carnelian cabochons"
+      ],
+      "symbolic_colors": [
+        "deep crimson",
+        "imperial purple",
+        "antique gold",
+        "midnight blue"
+      ],
+      "modern_fashion_infusions": [
+        "architectural tailoring",
+        "plunging structured neckline",
+        "laser-cut lattice overlays",
+        "transparent organza insets"
+      ],
+      "accessory_focus": [
+        "embroidered gauntlet gloves",
+        "jeweled torque choker",
+        "ornamental brocade boots"
+      ],
+      "environment_staging": [
+        "neo-gothic gallery with stained glass lighting",
+        "ultra-modern runway framed by pointed arches",
+        "polished stone courtyard under moonlight"
+      ],
+      "fusion_strategies": [
+        "translate houppelande volume into asymmetric couture cape",
+        "reinterpret heraldic motifs as metallic appliqué panels",
+        "swap traditional corsetry for sculpted power-bodice with mesh inserts"
+      ],
+      "follow_up": [
+        "Dial up crown silhouette with avant-garde millinery",
+        "Experiment with monochrome palette to emphasize shape",
+        "Introduce chainmail-inspired jewelry accents"
+      ]
+    },
+    {
+      "id": "norse_vanguard",
+      "label": "Norse Vanguard",
+      "heritage_context": "Draws from Viking era garments, protective layering, and seafaring symbolism elevated for a modern runway narrative.",
+      "signature_garments": [
+        "draped tunic with crossed leather harness",
+        "fur-trimmed cloak",
+        "pleated wool kirtle",
+        "shield-shaped belt buckle"
+      ],
+      "traditional_materials": [
+        "felted wool",
+        "aged leather",
+        "bronze detailing",
+        "shearling trim"
+      ],
+      "ornamentation": [
+        "runic embossing",
+        "knotwork embroidery",
+        "hammered metal studs",
+        "braided leather tassels"
+      ],
+      "symbolic_colors": [
+        "storm gray",
+        "fjord blue",
+        "ember copper",
+        "pine green"
+      ],
+      "modern_fashion_infusions": [
+        "razor-sharp tailoring",
+        "technical nylon paneling",
+        "iridescent metallic accents",
+        "structured shoulder armor in carbon fiber"
+      ],
+      "accessory_focus": [
+        "braided torque collar",
+        "stacked signet rings",
+        "statement combat boots with runic emboss"
+      ],
+      "environment_staging": [
+        "LED-lit fjord backdrop with mist",
+        "minimalist concrete runway with Nordic lighting",
+        "immersive aurora projection canopy"
+      ],
+      "fusion_strategies": [
+        "reinterpret chainmail as laser-cut neoprene mesh",
+        "translate fur cloak into tonal shearling-lined cape-coat",
+        "swap shields for sculptural clutch and harness details"
+      ],
+      "follow_up": [
+        "Highlight braids and hair jewelry in beauty pass",
+        "Introduce frost-glazed makeup finish",
+        "Experiment with asymmetrical cape lengths"
+      ]
+    },
+    {
+      "id": "greco_neo_classic",
+      "label": "Greco Neo-Classic",
+      "heritage_context": "Evokes classical Greek drapery, marble temple geometry, and laurel symbolism updated for luxe eveningwear.",
+      "signature_garments": [
+        "chiton-inspired silk gown",
+        "one-shoulder draped column dress",
+        "pleated peplos wrap",
+        "cinched metallic zone belt"
+      ],
+      "traditional_materials": [
+        "airy linen",
+        "silk chiffon",
+        "polished bronze",
+        "marble-white satin"
+      ],
+      "ornamentation": [
+        "laurel filigree",
+        "meander border embroidery",
+        "carved cameo clasps",
+        "draped chain accents"
+      ],
+      "symbolic_colors": [
+        "marble white",
+        "olive green",
+        "sunlit gold",
+        "Aegean teal"
+      ],
+      "modern_fashion_infusions": [
+        "liquid metallic fabric",
+        "cut-out waist architecture",
+        "micro-pleated panels",
+        "illusion mesh necklines"
+      ],
+      "accessory_focus": [
+        "laurel headband",
+        "columnar cuffs",
+        "sculptural sandals"
+      ],
+      "environment_staging": [
+        "marble runway with projected Ionic columns",
+        "sun-drenched terrace overlooking the sea",
+        "minimalist white cube filled with diffused light"
+      ],
+      "fusion_strategies": [
+        "convert draped himation into flowing detachable cape",
+        "render Greek key pattern as laser-cut overlay",
+        "pair classical sandals with mirrored stiletto heels"
+      ],
+      "follow_up": [
+        "Introduce olive branch accessories",
+        "Add pearlized body glow for a marble effect",
+        "Play with translucent layers for motion"
+      ]
+    },
+    {
+      "id": "roman_empire_renewal",
+      "label": "Roman Empire Renewal",
+      "heritage_context": "Roman imperial regalia, lorica segmentata textures, and forum grandeur remixed with contemporary power dressing.",
+      "signature_garments": [
+        "structured lorica-inspired corset",
+        "draped paludamentum cape",
+        "pleated stola panels",
+        "wide cingulum belt with medallions"
+      ],
+      "traditional_materials": [
+        "polished leather",
+        "metallic scales",
+        "rich wool",
+        "crushed crimson velvet"
+      ],
+      "ornamentation": [
+        "laurel coin appliqués",
+        "gladiatorial lacing",
+        "embossed imperial eagles",
+        "mosaic beadwork"
+      ],
+      "symbolic_colors": [
+        "imperial red",
+        "bronzed gold",
+        "charcoal black",
+        "ivory"
+      ],
+      "modern_fashion_infusions": [
+        "double-breasted cape blazer",
+        "sleek leather pencil skirt",
+        "metallic quilting",
+        "precision laser-engraved armor panels"
+      ],
+      "accessory_focus": [
+        "gladiator stilettos",
+        "laurel statement earrings",
+        "structured box clutch with mosaic inlay"
+      ],
+      "environment_staging": [
+        "modernist forum with travertine textures",
+        "circular runway lit like Colosseum arches",
+        "dramatic up-lighting with shadowed pillars"
+      ],
+      "fusion_strategies": [
+        "reinterpret lorica plating as layered metallic organza",
+        "translate paludamentum into tailored cape-trench",
+        "swap gladius for sculptural clutch accessory"
+      ],
+      "follow_up": [
+        "Emphasize waist armor with mirrored belts",
+        "Add crimson smoke lighting for drama",
+        "Experiment with dual-toned metallic fabrics"
+      ]
+    },
+    {
+      "id": "ancient_india_opulence",
+      "label": "Ancient India Opulence",
+      "heritage_context": "Celebrates Mauryan and Gupta era textiles, temple jewelry, and royal court opulence reimagined for couture glamour.",
+      "signature_garments": [
+        "layered lehenga-inspired skirt",
+        "draped sari pallu reinterpretation",
+        "ornate choli bodice",
+        "beaded angavastram cape"
+      ],
+      "traditional_materials": [
+        "Banarasi silk",
+        "zari brocade",
+        "hand-loomed muslin",
+        "kundan-set embellishment"
+      ],
+      "ornamentation": [
+        "paisley zari embroidery",
+        "jaali lattice beading",
+        "temple jewelry motifs",
+        "mirror-work highlights"
+      ],
+      "symbolic_colors": [
+        "sindoor red",
+        "royal sapphire",
+        "curcuma gold",
+        "peacock green"
+      ],
+      "modern_fashion_infusions": [
+        "sheer paneling with crystal scatter",
+        "structured corsetry under drape",
+        "asymmetric sari-tail trains",
+        "hand-embroidered power suit lapels"
+      ],
+      "accessory_focus": [
+        "maang tikka reinterpretation",
+        "layered hathphool chains",
+        "embroidered stilettos"
+      ],
+      "environment_staging": [
+        "reflective black runway with hanging diyas",
+        "contemporary marble pavilion with lotus projections",
+        "sunlit palace courtyard with silk canopies"
+      ],
+      "fusion_strategies": [
+        "convert lehenga volume into high-low couture skirt",
+        "translate temple carvings into 3D-printed appliqué",
+        "pair sari drape with structured blazer silhouette"
+      ],
+      "follow_up": [
+        "Add gemstone-encrusted belts",
+        "Experiment with monochrome zari work",
+        "Introduce sandalwood-inspired fragrance mist"
+      ]
+    }
+  ],
+  "silhouette_directions": [
+    "avant-garde couture",
+    "modern power suit",
+    "runway gown",
+    "editorial streetwear",
+    "sculptural cocktail ensemble"
+  ]
+}

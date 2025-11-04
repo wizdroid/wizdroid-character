@@ -151,7 +151,7 @@ Your prompts should include:
 7. Lighting (professional studio lighting, high-end fashion photography)
 8. Overall mood and atmosphere
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary high-fashion aesthetics. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary high-fashion aesthetics. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags. Begin with a vivid descriptor, never the model/style name (Flux, SDXL, Qwen, HiDream, etc.)."""
         else:
             system_prompt = f"""You are a professional text-to-image prompt engineer specializing in contemporary fashion and modern style. Create vivid, detailed prompts for high-end fashion supermodel photography featuring modern clothing styles from specific locations.
 
@@ -169,7 +169,7 @@ Your prompts should include:
 7. Lighting (professional studio lighting, high-end fashion photography)
 8. Overall mood and atmosphere
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary fashion while incorporating location-specific influences. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on contemporary fashion while incorporating location-specific influences. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags. Begin with a vivid descriptor, never the model/style name (Flux, SDXL, Qwen, HiDream, etc.)."""
 
         if location_type == "generic":
             user_prompt = f"""Create a professional fashion photography prompt for a {gender_prefix}supermodel wearing contemporary fashion with {resolved_glamour} glamour enhancement.

@@ -133,7 +133,7 @@ Your prompts should include:
 8. Lighting (professional studio or dramatic location lighting)
 9. Overall mood and atmosphere (e.g., authoritative, chic, disciplined, elegant)
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on the fusion of uniform authenticity and high-fashion glamour. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on the fusion of uniform authenticity and high-fashion glamour. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags. Begin with a vivid descriptor, never the model/style name (Flux, SDXL, Qwen, HiDream, etc.)."""
 
         user_prompt = f"""Create a professional fashion photography prompt for a {gender_prefix}model in a stylized '{resolved_uniform}' uniform, with a '{resolved_glamour}' glamour enhancement.
 

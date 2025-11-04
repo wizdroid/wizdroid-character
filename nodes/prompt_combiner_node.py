@@ -111,7 +111,7 @@ class PromptCombinerNode:
             "  * Eliminates redundancy and contradictions",
             "  * Maintains artistic coherence",
             "  * Preserves important details from each prompt",
-            "Begin output with a descriptive adjective or noun; never start with 'Here', 'Here's', 'This prompt', or similar",
+            "Begin output with a descriptive adjective or noun; never start with 'Here', 'Here's', 'This prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or similar",
             "Exclude: negative prompt content, markdown, explanations, prefaces, or statements like 'Here is a prompt'",
             "Remove any reasoning or planning text; do not include '<think>' or similar tags",
             "Output only the final combined prompt text:"

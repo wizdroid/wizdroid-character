@@ -171,14 +171,14 @@ class FantasySceneBuilder:
                 "You are a dark fantasy and horror prompt engineer for text-to-image AI. Create vivid, atmospheric prompts "
                 f"that evoke haunting scenes with characters or creatures. Keep output under {token_limit} tokens. "
                 "Use sensory details, texture descriptions, and atmospheric elements. Balance subject description with environment. "
-                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
+                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags. Do not begin the prompt with the model/style name (Flux, SDXL, Qwen, HiDream, etc.)."
             )
         else:
             system_prompt = (
                 "You are a fantasy scene prompt engineer for text-to-image AI. Create vivid, atmospheric prompts "
                 f"that evoke otherworldly scenes. Keep output under {token_limit} tokens. Use sensory details, "
                 "texture descriptions, and atmospheric elements. Focus on environment and mood, not characters. "
-                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
+                "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags. Do not begin the prompt with the model/style name (Flux, SDXL, Qwen, HiDream, etc.)."
             )
 
         # Build attribute list, filtering out None values

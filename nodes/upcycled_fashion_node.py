@@ -134,7 +134,7 @@ Your prompts should include:
 7. Lighting (studio lighting emphasizing material textures)
 8. Overall aesthetic (sustainable luxury, innovative design)
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on creative upcycling while maintaining high-fashion aesthetic. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."""
+CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on creative upcycling while maintaining high-fashion aesthetic. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags. Begin with a vivid descriptor, never the model/style name (Flux, SDXL, Qwen, HiDream, etc.)."""
 
         user_prompt = f"""Create a professional upcycled fashion photography prompt for a {gender_prefix}supermodel wearing designer garments made from {resolved_material} with {resolved_glamour} glamour enhancement.
 

@@ -124,18 +124,16 @@ class PromptCombinerNode:
         if not generate_url.endswith("/api/generate"):
             generate_url = generate_url.rstrip("/") + "/api/generate"
 
-        payload = {
-            "model": ollama_model,
-            "prompt": user_prompt,
-            "system": system_prompt,
-            "stream": False,
-            "options": {
-                "num_predict": token_limit + 50,
-                "temperature": 0.7,
-            }
-        }
-
-        print(f"[PromptCombiner] Combining {len(input_prompts)} prompts")
+            payload = {
+                "model": ollama_model,
+                "prompt": user_prompt,
+                "system": system_prompt,
+                "stream": False,
+                "options": {
+                    "num_predict": token_limit + 150,
+                    "temperature": 0.7,
+                }
+            }        print(f"[PromptCombiner] Combining {len(input_prompts)} prompts")
         print(f"[PromptCombiner] Prompt style: {style_label} (max {token_limit} tokens)")
         print(f"[PromptCombiner] Using model: {ollama_model}")
         for i, prompt in enumerate(input_prompts, 1):

@@ -270,10 +270,14 @@ class CharacterPromptBuilder:
                 "model": ollama_model,
                 "prompt": f"{user_prompt}",
                 "system": system_prompt,
-                "stream": False
+                "stream": False,
+                "options": {
+                    "num_predict": token_limit + 100,
+                    "temperature": 0.7,
+                }
             }
             
-            response = requests.post(generate_url, json=payload, timeout=60)
+            response = requests.post(generate_url, json=payload, timeout=120)
             response.raise_for_status()
             result = response.json()
             return result.get("response", "[Empty response from Ollama]").strip()

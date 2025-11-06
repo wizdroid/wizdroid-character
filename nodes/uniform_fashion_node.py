@@ -2,7 +2,7 @@ import json
 import random
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -49,9 +49,7 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
 
 
 class UniformFashionNode:
-    """
-    ComfyUI node to generate professional fashion prompts for characters in stylized uniforms.
-    """
+    """Generate luxe editorial prompts for capsule-based uniform concepts."""
 
     CATEGORY = "Wizdroid/character"
     RETURN_TYPES = ("STRING", "STRING")
@@ -69,14 +67,21 @@ class UniformFashionNode:
         style_options = [style_key for style_key in prompt_styles.keys()]
         glamour_options = glamour_options_data["glamour_options"]
 
+        collections = uniform_options["collections"]
+        collection_labels = [collection["label"] for collection in collections]
+        silhouette_directions = uniform_options["silhouette_directions"]
+
         return {
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
                 "prompt_style": (style_options, {"default": "SDXL"}),
-                "uniform_style": (_with_random(uniform_options["uniform_styles"], allow_none=False), {"default": RANDOM_LABEL}),
+                "uniform_collection": (_with_random(collection_labels, allow_none=False), {"default": RANDOM_LABEL}),
+                "silhouette_direction": (_with_random(silhouette_directions, allow_none=False), {"default": RANDOM_LABEL}),
                 "glamour_enhancement": (_with_random(glamour_options, allow_none=False), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
+                "include_environment": ("BOOLEAN", {"default": True}),
+                "include_follow_up": ("BOOLEAN", {"default": True}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
             },
             "optional": {
@@ -89,72 +94,89 @@ class UniformFashionNode:
         ollama_url: str,
         ollama_model: str,
         prompt_style: str,
-        uniform_style: str,
+        uniform_collection: str,
+        silhouette_direction: str,
         glamour_enhancement: str,
         gender: str,
+        include_environment: bool,
+        include_follow_up: bool,
         custom_text: str,
         seed: int = 0,
-    ) -> Tuple[str]:
+    ) -> Tuple[str, str]:
         character_options = _load_json("character_options.json")
         uniform_options = _load_json("uniform_options.json")
         prompt_styles = _load_json("prompt_styles.json")
         glamour_options_data = _load_json("glamour_options.json")
 
+        collections = uniform_options["collections"]
+        collection_map = {collection["label"]: collection for collection in collections}
+        collection_labels = [collection["label"] for collection in collections]
+        silhouette_directions = uniform_options["silhouette_directions"]
         glamour_options = glamour_options_data["glamour_options"]
 
         rng = random.Random(seed)
 
-        resolved_uniform = _choose(uniform_style, uniform_options["uniform_styles"], rng)
+        resolved_collection_label = _choose(uniform_collection, collection_labels, rng)
+        resolved_silhouette = _choose(silhouette_direction, silhouette_directions, rng)
         resolved_glamour = _choose(glamour_enhancement, glamour_options, rng)
         resolved_gender = _choose(gender, character_options["gender"], rng)
 
+        if resolved_collection_label is None:
+            resolved_collection_label = collection_labels[0]
+
+        collection = collection_map[resolved_collection_label]
+
         gender_prefix = f"{resolved_gender} " if resolved_gender else ""
 
-        # Get style configuration
         style_config = prompt_styles.get(prompt_style, prompt_styles["SDXL"])
         style_label = style_config["label"]
         style_guidance = style_config["guidance"]
         token_limit = style_config["token_limit"]
 
-        system_prompt = f"""You are a professional text-to-image prompt engineer specializing in stylized uniform fashion. Create vivid, detailed prompts for high-end fashion photography featuring characters in professional or academic uniforms, enhanced with a glamorous, editorial aesthetic.
+        capsule_lines = [
+            f"Service context: {collection['service_context']}",
+            f"Signature garments: {', '.join(collection['signature_garments'])}",
+            f"Material palette: {', '.join(collection['material_palette'])}",
+            f"Insignia highlights: {', '.join(collection['insignia_details'])}",
+            f"Glamour accents: {', '.join(collection['glamour_accents'])}",
+            f"Accessory focus: {', '.join(collection['accessory_focus'])}",
+            f"Beauty direction: {', '.join(collection['beauty_direction'])}",
+            f"Silhouette direction: {resolved_silhouette}",
+            f"Glamour enhancement: {resolved_glamour}",
+        ]
 
-TARGET MODEL: {style_label}
-FORMATTING STYLE: {style_guidance}
-TOKEN LIMIT: {token_limit} tokens maximum
+        if include_environment:
+            capsule_lines.append(f"Environment staging: {', '.join(collection['environment_staging'])}")
 
-Your prompts should include:
-1. Subject description ({gender_prefix}model)
-2. Uniform details (specific garments, materials, colors, insignia)
-3. Glamour enhancement (how the uniform is stylized for a fashion context)
-4. Accessories and props (relevant to the uniform but styled for fashion)
-5. Makeup and hair styling (professional and complementary)
-6. Pose (confident, powerful, editorial)
-7. Background/setting (abstract or relevant, but with a high-fashion feel)
-8. Lighting (professional studio or dramatic location lighting)
-9. Overall mood and atmosphere (e.g., authoritative, chic, disciplined, elegant)
+        uniform_brief = "\n".join(capsule_lines)
 
-CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on the fusion of uniform authenticity and high-fashion glamour. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags. Begin with a vivid descriptor, never the model/style name (Flux, SDXL, Qwen, HiDream, etc.)."""
+        system_prompt = f"""You are a professional prompt engineer crafting luxury editorial descriptions for high-fashion uniform capsules. Keep responses under {token_limit} tokens.
 
-        user_prompt = f"""Create a professional fashion photography prompt for a {gender_prefix}model in a stylized '{resolved_uniform}' uniform, with a '{resolved_glamour}' glamour enhancement.
+RULES:
+- Start with an evocative descriptor, never a model or style name such as Flux, SDXL, Qwen, HiDream.
+- Highlight uniform authenticity while explaining couture-level tailoring and styling.
+- Cover outfit construction, insignia, accessories, pose, lighting, and environment when supplied.
+- Maintain respectful, aspirational language; avoid caricature or camp unless explicitly requested.
+- Output only the final prompt—no lists, markdown, or meta commentary.
+- Never include reasoning traces, deliberation markers, or any '<think>' text."""
 
-Requirements:
-- Base the outfit on a '{resolved_uniform}' uniform.
-- Apply a '{resolved_glamour}' styling approach to elevate it to high fashion.
-- Use professional studio or dramatic location lighting.
-- The pose should be confident and editorial.
-- Detail the specific garments, fabrics, and insignia of the uniform, reinterpreted for a fashion context.
-- Include fashion-forward accessories and props that complement the uniform's theme.
-- Makeup and hair should be polished and professional.
-- The background should be either abstract or a stylized version of a relevant environment.
-- The overall aesthetic should be a fusion of authentic uniform details and high-fashion glamour.
-
-IMPORTANT: Format this prompt EXACTLY according to {style_label} style: {style_guidance}
-Keep it under {token_limit} tokens.
-
-Generate the prompt now:"""
+        user_prompt_lines = [
+            f"Design a {prompt_style} fashion image prompt for a {gender_prefix}model wearing the '{resolved_collection_label}' uniform capsule.",
+            "Uniform capsule brief:",
+            uniform_brief,
+            "\nSynthesis instructions:",
+            "- Translate the brief into a runway-ready ensemble with confident editorial pose.",
+            "- Showcase materials, insignia, and glamour accents while preserving service credibility.",
+            "- Integrate the selected silhouette direction and glamour enhancement.",
+            "- Describe lighting and setting to reinforce the professional narrative.",
+            "- Exclude negative prompts, markdown syntax, or explanatory commentary.",
+        ]
 
         if custom_text.strip():
-            user_prompt = f"{user_prompt}\n\nAdditional custom requirements: {custom_text.strip()}"
+            user_prompt_lines.append(f"Additional user notes: {custom_text.strip()}")
+
+        user_prompt_lines.append(f"\nFormat: {style_guidance}\nToken limit: {token_limit} tokens maximum")
+        user_prompt = "\n".join(user_prompt_lines)
 
         generate_url = ollama_url
         if not generate_url.endswith("/api/generate"):
@@ -166,24 +188,27 @@ Generate the prompt now:"""
             "system": system_prompt,
             "stream": False,
             "options": {
-                "num_predict": token_limit + 50,
-                "temperature": 0.8,
+                "num_predict": token_limit + 90,
+                "temperature": 0.76,
             }
         }
 
-        print(f"[UniformFashionNode] Generating prompt for '{resolved_uniform}' uniform")
-        print(f"[UniformFashionNode] Glamour enhancement: {resolved_glamour}")
-        print(f"[UniformFashionNode] Gender: {resolved_gender or 'unspecified'}")
-        print(f"[UniformFashionNode] Prompt style: {style_label} (max {token_limit} tokens)")
-        print(f"[UniformFashionNode] Using model: {ollama_model}")
+        print(f"[UniformFashion] Generating prompt for capsule: {resolved_collection_label}")
+        print(f"[UniformFashion] Silhouette: {resolved_silhouette}")
+        print(f"[UniformFashion] Glamour: {resolved_glamour}")
+        print(f"[UniformFashion] Gender: {resolved_gender or 'unspecified'}")
+        print(f"[UniformFashion] Prompt style: {style_label} (max {token_limit} tokens)")
+        print(f"[UniformFashion] Model: {ollama_model}")
 
         response = self._invoke_ollama(generate_url, payload)
 
         if not response or response.startswith("[ERROR"):
-            error_msg = f"Failed to generate prompt: {response}"
+            error_msg = f"Failed to generate uniform prompt: {response}"
             return (error_msg, error_msg)
 
-        return (response, response)
+        follow_up = "\n".join(collection.get("follow_up", [])) if include_follow_up else ""
+        preview = response if not follow_up else f"{response}\n\nUniform follow-up refinements:\n{follow_up}"
+        return (response, preview)
 
     @staticmethod
     def _invoke_ollama(ollama_url: str, payload: Dict) -> Optional[str]:

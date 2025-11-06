@@ -1,24 +1,387 @@
 {
-  "uniform_styles": [
-    "medical scrubs couture",
-    "chef whites modern",
-    "hospitality concierge uniform",
-    "flight attendant chic uniform",
-    "military dress uniform",
-    "tactical field gear",
-    "naval officer uniform",
-    "school blazer uniform",
-    "japanese seifuku uniform",
-    "sports varsity jacket",
-    "police officer formal",
-    "firefighter dress uniform",
-    "pilot aviator uniform",
-    "racing driver suit",
-    "construction worker high-vis",
-    "lab coat scientist",
-    "judge robe ceremonial",
-    "marching band uniform",
-    "equestrian riding gear",
-    "ballet dancer rehearsal wear"
+  "collections": [
+    {
+      "id": "stellar_cabin_concierge",
+      "label": "Stellar Cabin Concierge",
+      "service_context": "Premium international airline service uniform blending mid-century jet age romance with contemporary aerospace luxury.",
+      "signature_garments": [
+        "sculpted wing-collar jacket with aerodynamic seams",
+        "pencil skirt with inset flight-map piping",
+        "convertible cape scarf",
+        "precision-tailored blouse"
+      ],
+      "material_palette": [
+        "ultra-fine wool suiting",
+        "silk sateen",
+        "memory-foam shoulder padding",
+        "micro-perforated stretch panels"
+      ],
+      "insignia_details": [
+        "embroidered constellations",
+        "chrome wing brooch",
+        "runway-stripe belt hardware"
+      ],
+      "glamour_accents": [
+        "foil-lined lapel facing",
+        "iridescent button pods",
+        "jetway light reflective edging"
+      ],
+      "accessory_focus": [
+        "flight log clutch",
+        "sleek pillbox hat",
+        "aviation headset-inspired earrings"
+      ],
+      "beauty_direction": [
+        "sunset smokey eye",
+        "polished chignon",
+        "glossed coral lip"
+      ],
+      "environment_staging": [
+        "glass jet bridge under golden hour",
+        "first-class lounge with panoramic runway view",
+        "deco-inspired terminal with light trails"
+      ],
+      "follow_up": [
+        "Amplify chrome reflections",
+        "Experiment with backlit runway haze",
+        "Introduce holographic boarding pass prop"
+      ]
+    },
+    {
+      "id": "precision_medical_response",
+      "label": "Precision Medical Response",
+      "service_context": "Emergency medical specialist uniform modernized for high-profile hospital campaigns and wellness tech editorials.",
+      "signature_garments": [
+        "tailored utility jumpsuit",
+        "detachable triage cape",
+        "bio-monitor waist belt",
+        "anti-microbial gloves"
+      ],
+      "material_palette": [
+        "moisture-wicking ripstop",
+        "graphene-infused mesh",
+        "reflective piping",
+        "sterile white neoprene"
+      ],
+      "insignia_details": [
+        "cross-spectrum medical emblem",
+        "paramedic chevron bands",
+        "biometric ID badge"
+      ],
+      "glamour_accents": [
+        "sterling scalpels repurposed as brooch",
+        "ultraviolet seam glow",
+        "pearlescent zipper shields"
+      ],
+      "accessory_focus": [
+        "triage tablet holster",
+        "sterile medkit clutch",
+        "oxygen-inspired cuff bracelet"
+      ],
+      "beauty_direction": [
+        "cool-toned contour",
+        "sleek braid ponytail",
+        "antiseptic gloss lip"
+      ],
+      "environment_staging": [
+        "futurist trauma bay with dynamic lighting",
+        "helipad landing zone at dusk",
+        "sterile white cube with holographic vitals"
+      ],
+      "follow_up": [
+        "Add volumetric medical holograms",
+        "Highlight reflective piping",
+        "Emphasize decisive stance"
+      ]
+    },
+    {
+      "id": "grand_brigade_culinaire",
+      "label": "Grand Brigade Culinaire",
+      "service_context": "Michelin culinary brigade uniform celebrating classical French kitchens elevated with couture precision.",
+      "signature_garments": [
+        "double-breasted chef jacket with bullion embroidery",
+        "tailored high-waist trousers",
+        "structured apron train",
+        "knife-roll utility sash"
+      ],
+      "material_palette": [
+        "Egyptian cotton twill",
+        "heat-shield denim",
+        "butter-soft leather",
+        "copper-thread quilting"
+      ],
+      "insignia_details": [
+        "embroidered toque motif",
+        "copper spoon epaulettes",
+        "brigade rank ribbon"
+      ],
+      "glamour_accents": [
+        "burnished copper piping",
+        "flame-kissed gradient dye",
+        "crystal sugar dust along hems"
+      ],
+      "accessory_focus": [
+        "artisan whisk baton",
+        "recipe folio clutch",
+        "butcher-block platform heels"
+      ],
+      "beauty_direction": [
+        "cocoa eyeliner",
+        "sleek low bun",
+        "meringue gloss"
+      ],
+      "environment_staging": [
+        "open kitchen runway with copper light",
+        "smoke-filled tasting room",
+        "herb garden atrium"
+      ],
+      "follow_up": [
+        "Introduce steam halo lighting",
+        "Detail sugar glass accessories",
+        "Add flame reflection highlights"
+      ]
+    },
+    {
+      "id": "naval_dress_command",
+      "label": "Naval Dress Command",
+      "service_context": "Formal naval officer uniform reimagined for evening gala premieres and maritime diplomatic events.",
+      "signature_garments": [
+        "double-breasted parade coat",
+        "tailored deck trousers",
+        "braided aiguillette",
+        "decorated officer sash"
+      ],
+      "material_palette": [
+        "midnight wool suiting",
+        "gold bullion braid",
+        "polished patent leather",
+        "naval silk lining"
+      ],
+      "insignia_details": [
+        "nautical star medals",
+        "anchor cufflinks",
+        "signal flag ribbon bar"
+      ],
+      "glamour_accents": [
+        "mother-of-pearl buttons",
+        "starlight crystal shoulder boards",
+        "luminescent rope piping"
+      ],
+      "accessory_focus": [
+        "spyglass clutch",
+        "dress sword reinterpretation",
+        "captain's cap with metallic brim"
+      ],
+      "beauty_direction": [
+        "nautical navy smoky eye",
+        "sleek undercut or polished waves",
+        "sail white lip tint"
+      ],
+      "environment_staging": [
+        "moonlit deck runway",
+        "maritime museum rotunda",
+        "glass observatory overlooking harbor"
+      ],
+      "follow_up": [
+        "Emphasize signal flag lighting",
+        "Highlight metallic braid texture",
+        "Add sea mist ambiance"
+      ]
+    },
+    {
+      "id": "heritage_constabulary_chic",
+      "label": "Heritage Constabulary Chic",
+      "service_context": "Ceremonial police dress uniform translated into modern civic fashion editorials.",
+      "signature_garments": [
+        "structured patrol coat with diagonal sash",
+        "tailored breeches with equestrian seams",
+        "braided duty belt",
+        "caped epaulette overlay"
+      ],
+      "material_palette": [
+        "wool cavalry twill",
+        "brushed leather",
+        "lacquered patent",
+        "pewter braiding"
+      ],
+      "insignia_details": [
+        "crest medallion",
+        "rank chevron embroidery",
+        "service commendation pins"
+      ],
+      "glamour_accents": [
+        "smoked chrome visor",
+        "gloss-finish gloves",
+        "spotlight reflective stripes"
+      ],
+      "accessory_focus": [
+        "baton-inspired clutch",
+        "ceremonial whistle necklace",
+        "shield motif earrings"
+      ],
+      "beauty_direction": [
+        "steel eyeliner",
+        "tight high bun or sharp fade",
+        "matte badge-red lip"
+      ],
+      "environment_staging": [
+        "city hall steps with dramatic uplighting",
+        "historic courtroom gallery",
+        "rain-glossed avenue with reflections"
+      ],
+      "follow_up": [
+        "Layer cinematic rain effects",
+        "Highlight badge reflections",
+        "Introduce civic architecture framing"
+      ]
+    },
+    {
+      "id": "luxury_hospitality_maitre",
+      "label": "Luxury Hospitality Maître",
+      "service_context": "Five-star hospitality uniform celebrating concierge excellence and upscale evening service.",
+      "signature_garments": [
+        "velvet tailcoat with satin lapel",
+        "waistcoat with hand-beaded lapis buttons",
+        "silk cravat",
+        "tailored cigarette trousers"
+      ],
+      "material_palette": [
+        "midnight velvet",
+        "shot silk",
+        "cashmere blend",
+        "beaded satin"
+      ],
+      "insignia_details": [
+        "clefs d'or key brooch",
+        "hotel crest pocket square",
+        "guest journey pin"
+      ],
+      "glamour_accents": [
+        "champagne crystal cufflinks",
+        "fiber-optic collar trim",
+        "pearlescent gloves"
+      ],
+      "accessory_focus": [
+        "reservation ledger clutch",
+        "silver bell ring",
+        "concierge key sash"
+      ],
+      "beauty_direction": [
+        "candlelit highlight",
+        "sleek side part",
+        "pomegranate gloss"
+      ],
+      "environment_staging": [
+        "grand hotel lobby with chandelier glow",
+        "private dining salon",
+        "art deco elevator bank"
+      ],
+      "follow_up": [
+        "Accentuate chandelier reflections",
+        "Introduce guest ledger prop",
+        "Play with warm ambient lighting"
+      ]
+    },
+    {
+      "id": "aerospace_command_suite",
+      "label": "Aerospace Command Suite",
+      "service_context": "Space agency command uniform blending mission control tailoring with exploratory futurism.",
+      "signature_garments": [
+        "gravity seam blazer",
+        "mission patch bodice",
+        "orbital pleat trousers",
+        "winged shoulder harness"
+      ],
+      "material_palette": [
+        "phase-change fabric",
+        "graphite knit",
+        "carbon fiber weave",
+        "luminous neoprene"
+      ],
+      "insignia_details": [
+        "mission badge cluster",
+        "constellation epaulettes",
+        "trajectory piping"
+      ],
+      "glamour_accents": [
+        "meteor dust foiling",
+        "fiber optic seam glow",
+        "galaxy gradient lining"
+      ],
+      "accessory_focus": [
+        "star chart tablet",
+        "floating mission dossier",
+        "orbital ring bracelets"
+      ],
+      "beauty_direction": [
+        "cosmic eyeliner",
+        "gravity-defying updo",
+        "starlight lip sheen"
+      ],
+      "environment_staging": [
+        "mission control runway",
+        "observation deck with planet projection",
+        "lunar module-inspired studio"
+      ],
+      "follow_up": [
+        "Add holo schematic overlays",
+        "Highlight fiber optic seams",
+        "Introduce zero-g pose variant"
+      ]
+    },
+    {
+      "id": "academy_regalia_reimagined",
+      "label": "Academy Regalia Reimagined",
+      "service_context": "Prestigious academic procession uniform reinvented for ceremonial red carpet moments.",
+      "signature_garments": [
+        "floor-length academic robe with cascading pleats",
+        "velvet hood reinterpretation",
+        "sash with embroidered seals",
+        "gilded mortarboard crown"
+      ],
+      "material_palette": [
+        "silk velvet",
+        "merino felt",
+        "brushed gold thread",
+        "midnight satin"
+      ],
+      "insignia_details": [
+        "embroidered crest panel",
+        "discipline color blocking",
+        "laurel clasp"
+      ],
+      "glamour_accents": [
+        "sequined gradient lining",
+        "fiber optic tassel",
+        "crystal-trim sleeves"
+      ],
+      "accessory_focus": [
+        "illuminated diploma scroll clutch",
+        "seal ring",
+        "ornate academic scepter"
+      ],
+      "beauty_direction": [
+        "library bronze eye",
+        "sleek waves or locs",
+        "ink berry lip"
+      ],
+      "environment_staging": [
+        "neo-gothic hall with stained glass",
+        "floating library installation",
+        "ceremonial stage with spotlight columns"
+      ],
+      "follow_up": [
+        "Emphasize tassel light trail",
+        "Highlight crest embroidery",
+        "Add parchment light overlays"
+      ]
+    }
+  ],
+  "silhouette_directions": [
+    "precision tailoring",
+    "structured power stance",
+    "runway gala reinterpretation",
+    "functional athleisure hybrid",
+    "ceremonial pageantry"
   ]
 }

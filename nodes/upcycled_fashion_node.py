@@ -105,6 +105,7 @@ class UpcycledFashionNode:
 
         rng = random.Random(seed)
 
+        # Each entry already pairs garment, material, styling, and makeup for coherent looks
         resolved_material = _choose(upcycled_material, upcycled_materials["upcycled_materials"], rng)
         resolved_glamour = _choose(glamour_enhancement, glamour_options, rng)
         resolved_gender = _choose(gender, character_options["gender"], rng)
@@ -136,24 +137,24 @@ Your prompts should include:
 
 CRITICAL: Follow the formatting style EXACTLY as specified for {style_label}. Keep within {token_limit} tokens. Focus on creative upcycling while maintaining high-fashion aesthetic. Output only the prompt, no explanations or meta-commentary. Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags. Begin with a vivid descriptor, never the model/style name (Flux, SDXL, Qwen, HiDream, etc.)."""
 
-        user_prompt = f"""Create a professional upcycled fashion photography prompt for a {gender_prefix}supermodel wearing designer garments made from {resolved_material} with {resolved_glamour} glamour enhancement.
+        user_prompt = f"""Create a professional upcycled fashion photography prompt for a {gender_prefix}supermodel showcasing the following sustainable couture concept.
 
-Requirements:
-- Transform {resolved_material} into high-end designer fashion
-- Enhance the glamour with {resolved_glamour} styling approach
-- Professional studio lighting setup highlighting material textures
-- Glamorous pose suitable for high-fashion editorial
-- Detailed description of innovative design and material transformation
-- Creative accessories and jewelry complementing the upcycled aesthetic
-- Professional makeup and hair styling that enhances the sustainable luxury vibe
-- Sophisticated background that showcases the upcycled design
-- High-end fashion photography aesthetic with sustainable innovation focus
-- Confident, powerful supermodel presence
+    Primary concept: {resolved_material}
+    Glamour direction: {resolved_glamour}
 
-IMPORTANT: Format this prompt EXACTLY according to {style_label} style: {style_guidance}
-Keep it under {token_limit} tokens.
+    Requirements:
+    - Translate the concept details into an elevated runway-ready garment
+    - Describe the couture construction, texture play, and silhouette innovation
+    - Align makeup and hair styling with the provided concept aesthetic
+    - Specify statement accessories or props that reinforce the sustainable narrative
+    - Set the scene and lighting to spotlight material transformation and luxury finish
+    - Maintain a confident, editorial pose with museum-quality composition
+    - Ensure overall tone celebrates avant-garde eco-conscious fashion
 
-Generate the prompt now:"""
+    IMPORTANT: Format this prompt EXACTLY according to {style_label} style: {style_guidance}
+    Keep it under {token_limit} tokens.
+
+    Generate the prompt now:"""
 
         # Add custom text if provided
         if custom_text.strip():

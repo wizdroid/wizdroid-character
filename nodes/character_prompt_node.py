@@ -56,6 +56,8 @@ class CharacterPromptBuilder:
     def INPUT_TYPES(cls):
         option_map = _load_json("character_options.json")
         prompt_styles = _load_json("prompt_styles.json")
+        region_options = _load_json("regions.json")
+        country_options = _load_json("countries.json")
         ollama_models = cls._collect_ollama_models()
 
         return {
@@ -78,6 +80,8 @@ class CharacterPromptBuilder:
                 "makeup_style": (_with_random(option_map["makeup_style"]), {"default": RANDOM_LABEL}),
                 "fashion_style": (_with_random(option_map["fashion_style"]), {"default": RANDOM_LABEL}),
                 "background_style": (_with_random(option_map["background_style"]), {"default": RANDOM_LABEL}),
+                "region": (_with_random(region_options["regions"]), {"default": RANDOM_LABEL}),
+                "country": (_with_random(country_options["countries"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
             },
             "optional": {
@@ -105,11 +109,15 @@ class CharacterPromptBuilder:
         makeup_style: str,
         fashion_style: str,
         background_style: str,
+        region: str,
+        country: str,
         custom_text: str,
         seed: int = 0,
     ):
         option_map = _load_json("character_options.json")
         prompt_styles = _load_json("prompt_styles.json")
+        region_options = _load_json("regions.json")
+        country_options = _load_json("countries.json")
         rng = random.Random(seed)
         followup = self._pick_followup_questions(rng)
 
@@ -128,7 +136,13 @@ class CharacterPromptBuilder:
             "makeup_style": _choose(makeup_style, option_map["makeup_style"], rng),
             "fashion_style": _choose(fashion_style, option_map["fashion_style"], rng),
             "background_style": _choose(background_style, option_map["background_style"], rng),
+            "region": _choose(region, region_options["regions"], rng),
+            "country": _choose(country, country_options["countries"], rng),
         }
+
+        resolved_region = resolved.get("region")
+        if resolved_region and country == RANDOM_LABEL:
+            resolved["country"] = f"choose a culturally authentic country within {resolved_region}"
 
         style_meta = prompt_styles[prompt_style]
         llm_response = self._invoke_llm(
@@ -188,6 +202,7 @@ class CharacterPromptBuilder:
                 "ALWAYS start prompts with 'Retain the facial features from the original image.' Then describe outfit, pose, setting changes. "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or any meta preface. "
                 "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
+                "Ensure the character's cultural identity aligns with any provided 'region' or 'country' selections. "
                 "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
                 "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
                 "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
@@ -199,6 +214,7 @@ class CharacterPromptBuilder:
                 "ALWAYS describe clothing details (garment type, color, fabric) and pose (body position, stance). "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or any meta preface. "
                 "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
+                "Ensure the character's cultural identity aligns with any provided 'region' or 'country' selections. "
                 "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
                 "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
                 "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
@@ -223,7 +239,8 @@ class CharacterPromptBuilder:
         
         lines.append(
             "\nAttribute glossary: 'fashion_style' defines the outfit concept (clothing pieces, accessories, textures); "
-            "'makeup_style' guides cosmetics; 'background_style' sets the environment; 'pose_style' directs body language."
+            "'makeup_style' guides cosmetics; 'background_style' sets the environment; 'pose_style' directs body language; "
+            "'region' establishes cultural/geographic origin; 'country' specifies national identity when provided."
         )
 
         if custom_text:

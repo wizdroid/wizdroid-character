@@ -58,6 +58,7 @@ class CharacterPromptBuilder:
         prompt_styles = _load_json("prompt_styles.json")
         region_options = _load_json("regions.json")
         country_options = _load_json("countries.json")
+        culture_options = _load_json("cultures.json")
         ollama_models = cls._collect_ollama_models()
 
         return {
@@ -82,6 +83,7 @@ class CharacterPromptBuilder:
                 "background_style": (_with_random(option_map["background_style"]), {"default": RANDOM_LABEL}),
                 "region": (_with_random(region_options["regions"]), {"default": RANDOM_LABEL}),
                 "country": (_with_random(country_options["countries"]), {"default": RANDOM_LABEL}),
+                "culture": (_with_random(culture_options["cultures"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
             },
             "optional": {
@@ -111,6 +113,7 @@ class CharacterPromptBuilder:
         background_style: str,
         region: str,
         country: str,
+        culture: str,
         custom_text: str,
         seed: int = 0,
     ):
@@ -118,6 +121,7 @@ class CharacterPromptBuilder:
         prompt_styles = _load_json("prompt_styles.json")
         region_options = _load_json("regions.json")
         country_options = _load_json("countries.json")
+        culture_options = _load_json("cultures.json")
         rng = random.Random(seed)
         followup = self._pick_followup_questions(rng)
 
@@ -138,6 +142,7 @@ class CharacterPromptBuilder:
             "background_style": _choose(background_style, option_map["background_style"], rng),
             "region": _choose(region, region_options["regions"], rng),
             "country": _choose(country, country_options["countries"], rng),
+            "culture": _choose(culture, culture_options["cultures"], rng),
         }
 
         resolved_region = resolved.get("region")
@@ -203,6 +208,7 @@ class CharacterPromptBuilder:
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or any meta preface. "
                 "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
                 "Ensure the character's cultural identity aligns with any provided 'region' or 'country' selections. "
+                "Use 'culture' selection to guide traditional or culturally-specific outfit choices and styling. "
                 "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
                 "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
                 "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
@@ -215,6 +221,7 @@ class CharacterPromptBuilder:
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or any meta preface. "
                 "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
                 "Ensure the character's cultural identity aligns with any provided 'region' or 'country' selections. "
+                "Use 'culture' selection to guide traditional or culturally-specific outfit choices and styling. "
                 "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
                 "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
                 "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
@@ -240,7 +247,8 @@ class CharacterPromptBuilder:
         lines.append(
             "\nAttribute glossary: 'fashion_style' defines the outfit concept (clothing pieces, accessories, textures); "
             "'makeup_style' guides cosmetics; 'background_style' sets the environment; 'pose_style' directs body language; "
-            "'region' establishes cultural/geographic origin; 'country' specifies national identity when provided."
+            "'region' establishes cultural/geographic origin; 'country' specifies national identity when provided; "
+            "'culture' guides traditional or culturally-specific outfit choices and styling."
         )
 
         if custom_text:

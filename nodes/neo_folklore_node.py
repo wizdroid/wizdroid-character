@@ -269,5 +269,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidNeoFolkloreCapsule": "Neo-Folklore Capsule (Wizdroid)",
+    "WizdroidNeoFolkloreCapsule": "Neo-Folklore Capsule",
 }

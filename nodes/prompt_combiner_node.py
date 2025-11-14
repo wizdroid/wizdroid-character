@@ -1,7 +1,7 @@
 import json
 import random
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -17,6 +17,22 @@ def _load_json(name: str) -> Dict:
     path = DATA_DIR / name
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def _normalize_token_limit(value: Any) -> Optional[int]:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return None
+        try:
+            return int(stripped)
+        except ValueError:
+            return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    return None
 
 
 class PromptCombinerNode:
@@ -64,6 +80,7 @@ class PromptCombinerNode:
         input_prompt_4: str = "",
         input_prompt_5: str = "",
         custom_instructions: str = "",
+        token_limit_override: str = "0",
     ) -> Tuple[str]:
         prompt_styles = _load_json("prompt_styles.json")
 
@@ -85,7 +102,7 @@ class PromptCombinerNode:
         # Build the prompt instruction for the LLM
         system_prompt = (
             "You are a text-to-image prompt engineer specializing in combining multiple prompts into coherent, unified descriptions. "
-            f"Create concise prompts under {token_limit} tokens that merge the provided prompts into one cohesive description. "
+            "Create concise prompts that merge the provided prompts into one cohesive description. "
             "Maintain the artistic style and key elements from all input prompts while eliminating redundancy. "
             "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', or any meta preface. "
             "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
@@ -105,7 +122,6 @@ class PromptCombinerNode:
 
         lines.extend([
             f"\nFormat: {style_guidance}",
-            f"Token limit: {token_limit} tokens maximum",
             "CRITICAL - Create one unified prompt that:",
             "  * Merges all key elements from input prompts",
             "  * Eliminates redundancy and contradictions",
@@ -130,13 +146,12 @@ class PromptCombinerNode:
             "system": system_prompt,
             "stream": False,
             "options": {
-                "num_predict": token_limit + 150,
                 "temperature": 0.7,
             }
         }
 
         print(f"[PromptCombiner] Combining {len(input_prompts)} prompts")
-        print(f"[PromptCombiner] Prompt style: {style_label} (max {token_limit} tokens)")
+        print(f"[PromptCombiner] Prompt style: {style_label}")
         print(f"[PromptCombiner] Using model: {ollama_model}")
         for i, prompt in enumerate(input_prompts, 1):
             print(f"[PromptCombiner] Input {i}: {prompt[:50]}...")

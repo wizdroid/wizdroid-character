@@ -1,8 +1,7 @@
 import json
 import random
-from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -16,11 +15,21 @@ NONE_LABEL = "none"
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 
-@lru_cache(maxsize=None)
-def _load_json(name: str) -> Dict:
+_JSON_CACHE: Dict[str, Tuple[int, Any]] = {}
+
+
+def _load_json(name: str) -> Any:
     path = DATA_DIR / name
+    mtime = int(path.stat().st_mtime_ns)
+    cached = _JSON_CACHE.get(name)
+    if cached and cached[0] == mtime:
+        return cached[1]
+
     with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+        payload = json.load(handle)
+
+    _JSON_CACHE[name] = (mtime, payload)
+    return payload
 
 
 def _with_random(options: List[str]) -> Tuple[str, ...]:
@@ -30,6 +39,23 @@ def _with_random(options: List[str]) -> Tuple[str, ...]:
             continue
         values.append(option)
     return tuple(values)
+
+
+def _normalize_token_limit(value: Any) -> Optional[int]:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return None
+        try:
+            return int(stripped)
+        except ValueError:
+            return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    return None
+
 
 
 def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
@@ -48,8 +74,8 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
 
 class CharacterPromptBuilder:
     CATEGORY = "Wizdroid/character"
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("prompt", "negative_prompt", "follow_up", "preview")
+    RETURN_TYPES = ("STRING", "STRING", "STRING")
+    RETURN_NAMES = ("prompt", "negative_prompt", "preview")
     FUNCTION = "build_prompt"
 
     @classmethod
@@ -59,10 +85,15 @@ class CharacterPromptBuilder:
         region_options = _load_json("regions.json")
         country_options = _load_json("countries.json")
         culture_options = _load_json("cultures.json")
+        upcycled_values = option_map.get("upcycled_materials") or [NONE_LABEL]
+        lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
+        camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
+        color_palettes = option_map.get("color_palette") or [NONE_LABEL]
         ollama_models = cls._collect_ollama_models()
 
         return {
             "required": {
+                "character_name": ("STRING", {"default": ""}),
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
                 "prompt_style": (tuple(prompt_styles.keys()), {"default": "SDXL"}),
@@ -80,7 +111,11 @@ class CharacterPromptBuilder:
                 "pose_style": (_with_random(option_map["pose_style"]), {"default": RANDOM_LABEL}),
                 "makeup_style": (_with_random(option_map["makeup_style"]), {"default": RANDOM_LABEL}),
                 "fashion_style": (_with_random(option_map["fashion_style"]), {"default": RANDOM_LABEL}),
+                "upcycled_fashion": (_with_random(upcycled_values), {"default": NONE_LABEL}),
                 "background_style": (_with_random(option_map["background_style"]), {"default": RANDOM_LABEL}),
+                "lighting_style": (_with_random(lighting_styles), {"default": RANDOM_LABEL}),
+                "camera_lens": (_with_random(camera_lenses), {"default": RANDOM_LABEL}),
+                "color_palette": (_with_random(color_palettes), {"default": RANDOM_LABEL}),
                 "region": (_with_random(region_options["regions"]), {"default": RANDOM_LABEL}),
                 "country": (_with_random(country_options["countries"]), {"default": RANDOM_LABEL}),
                 "culture": (_with_random(culture_options["cultures"]), {"default": RANDOM_LABEL}),
@@ -93,6 +128,7 @@ class CharacterPromptBuilder:
 
     def build_prompt(
         self,
+        character_name: str,
         ollama_url: str,
         ollama_model: str,
         prompt_style: str,
@@ -111,6 +147,10 @@ class CharacterPromptBuilder:
         makeup_style: str,
         fashion_style: str,
         background_style: str,
+        lighting_style: str,
+        camera_lens: str,
+        color_palette: str,
+        upcycled_fashion: str,
         region: str,
         country: str,
         culture: str,
@@ -123,9 +163,13 @@ class CharacterPromptBuilder:
         country_options = _load_json("countries.json")
         culture_options = _load_json("cultures.json")
         rng = random.Random(seed)
-        followup = self._pick_followup_questions(rng)
+        upcycled_values = option_map.get("upcycled_materials") or [NONE_LABEL]
+        lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
+        camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
+        color_palettes = option_map.get("color_palette") or [NONE_LABEL]
 
         resolved = {
+            "character_name": character_name.strip() or None,
             "image_category": _choose(image_category, option_map["image_category"], rng),
             "gender": _choose(gender, option_map["gender"], rng),
             "age_group": _choose(age_group, option_map["age_group"], rng),
@@ -139,6 +183,10 @@ class CharacterPromptBuilder:
             "pose_style": _choose(pose_style, option_map["pose_style"], rng),
             "makeup_style": _choose(makeup_style, option_map["makeup_style"], rng),
             "fashion_style": _choose(fashion_style, option_map["fashion_style"], rng),
+            "lighting_style": _choose(lighting_style, lighting_styles, rng),
+            "camera_lens": _choose(camera_lens, camera_lenses, rng),
+            "color_palette": _choose(color_palette, color_palettes, rng),
+            "upcycled_fashion": _choose(upcycled_fashion, upcycled_values, rng),
             "background_style": _choose(background_style, option_map["background_style"], rng),
             "region": _choose(region, region_options["regions"], rng),
             "country": _choose(country, country_options["countries"], rng),
@@ -161,7 +209,9 @@ class CharacterPromptBuilder:
         )
 
         negative_prompt = style_meta.get("negative_prompt", "")
-        return llm_response, negative_prompt, "\n".join(followup), llm_response
+        suffix = custom_text.strip()
+        final_prompt = llm_response if not suffix else f"{llm_response}\n\n{suffix}"
+        return final_prompt, negative_prompt, final_prompt
 
     @staticmethod
     def _collect_ollama_models(ollama_url: str = DEFAULT_OLLAMA_URL) -> List[str]:
@@ -198,17 +248,16 @@ class CharacterPromptBuilder:
         """
         Invoke Ollama LLM using HTTP API (proper method) instead of subprocess.
         """
-        token_limit = style_meta.get('token_limit', 200)
-        
         if retain_face:
             system_prompt = (
                 "You are a text-to-image prompt engineer for face-preserving image editing models (Flux Kontext, Qwen Image Edit). "
-                f"Create concise prompts under {token_limit} tokens that preserve the original face while modifying other aspects. "
+                "Create concise prompts that preserve the original face while modifying other aspects. "
                 "ALWAYS start prompts with 'Retain the facial features from the original image.' Then describe outfit, pose, setting changes. "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or any meta preface. "
                 "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
                 "Ensure the character's cultural identity aligns with any provided 'region' or 'country' selections. "
                 "Use 'culture' selection to guide traditional or culturally-specific outfit choices and styling. "
+                "If 'upcycled_fashion' is provided, weave that sustainable couture concept into garment construction, textures, and detailing. "
                 "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
                 "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
                 "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
@@ -216,12 +265,13 @@ class CharacterPromptBuilder:
         else:
             system_prompt = (
                 "You are a text-to-image prompt engineer. Create concise, vivid prompts that honor all specified attributes. "
-                f"Keep output under {token_limit} tokens. Be specific and descriptive but avoid excessive verbosity. "
+                "Be specific and descriptive but avoid excessive verbosity. "
                 "ALWAYS describe clothing details (garment type, color, fabric) and pose (body position, stance). "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or any meta preface. "
                 "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
                 "Ensure the character's cultural identity aligns with any provided 'region' or 'country' selections. "
                 "Use 'culture' selection to guide traditional or culturally-specific outfit choices and styling. "
+                "If 'upcycled_fashion' is provided, weave that sustainable couture concept into garment construction, textures, and detailing. "
                 "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
                 "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
                 "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
@@ -247,8 +297,11 @@ class CharacterPromptBuilder:
         lines.append(
             "\nAttribute glossary: 'fashion_style' defines the outfit concept (clothing pieces, accessories, textures); "
             "'makeup_style' guides cosmetics; 'background_style' sets the environment; 'pose_style' directs body language; "
+            "'lighting_style' sets illumination mood; 'camera_lens' informs framing and depth; "
+            "'color_palette' locks overall chroma direction; "
             "'region' establishes cultural/geographic origin; 'country' specifies national identity when provided; "
-            "'culture' guides traditional or culturally-specific outfit choices and styling."
+            "'culture' guides traditional or culturally-specific outfit choices and styling; "
+            "'upcycled_fashion' highlights sustainable couture concepts and material innovations when present."
         )
 
         if custom_text:
@@ -257,7 +310,6 @@ class CharacterPromptBuilder:
         if retain_face:
             lines.extend([
                 f"\nFormat: {style_meta.get('guidance', 'Single paragraph with comma-separated descriptors')}",
-                f"Token limit: {token_limit} tokens maximum",
                 "CRITICAL - Start with: 'Retain the facial features from the original image.'",
                 "Then describe:",
                 "  * New outfit/clothing: specific garment types, colors, fabrics, style details",
@@ -272,7 +324,6 @@ class CharacterPromptBuilder:
         else:
             lines.extend([
                 f"\nFormat: {style_meta.get('guidance', 'Single paragraph with comma-separated descriptors')}",
-                f"Token limit: {token_limit} tokens maximum",
                 "CRITICAL - You MUST describe:",
                 "  * Outfit/clothing: specific garment types, colors, fabrics, style details",
                 "  * Pose: exact body position, limb placement, gesture, stance",
@@ -297,7 +348,6 @@ class CharacterPromptBuilder:
                 "system": system_prompt,
                 "stream": False,
                 "options": {
-                    "num_predict": token_limit + 100,
                     "temperature": 0.7,
                 }
             }
@@ -314,16 +364,6 @@ class CharacterPromptBuilder:
         except Exception as e:
             print(f"[CharacterPromptBuilder] Error invoking LLM: {e}")
             return f"[Error: {str(e)}]"
-
-    @staticmethod
-    def _pick_followup_questions(rng: random.Random) -> List[str]:
-        payload = _load_json("followup_questions.json")
-        bag: List[str] = []
-        for values in payload.values():
-            bag.extend(values)
-        rng.shuffle(bag)
-        return bag[:3] if bag else []
-
 
 NODE_CLASS_MAPPINGS = {
     "CharacterPromptBuilder": CharacterPromptBuilder,

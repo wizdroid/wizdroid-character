@@ -1,32 +1,29 @@
 # Wizdroid Character Nodes for ComfyUI
 
-A comprehensive collection of custom nodes for ComfyUI that provide AI-powered prompt generation tools using Ollama. These nodes help create detailed, professional prompts for text-to-image generation across various domains including character creation, fashion, fantasy scenes, and image analysis.
+_Version: 2025.11.01_
+
+A streamlined collection of custom nodes for ComfyUI that provide AI-powered prompt generation tools using Ollama. These nodes focus on detailed character creation, cultural storytelling, image analysis, and remix workflows.
 
 ## Features
 
 ### Character Prompt Builder
 - **Purpose**: Generates detailed character prompts for image generation with extensive customization options
-- **Attributes**: Gender, age group, body type, hair color/style, eye color, facial expressions, poses, makeup, fashion styles, and backgrounds
+- **Attributes**: Character name, gender, age group, body type, hair color/style, eye color, facial expressions, poses, makeup, fashion styles, upcycled fashion materials, and backgrounds
 - **Integration**: Ollama LLM integration for intelligent prompt crafting
-- **Output**: Positive prompt, negative prompt, and follow-up questions for refinement
+- **Controls**: LLM token-limit dropdown (128–4096 tokens in 128-token steps; applies only to the Ollama model) plus workflow seed control
+- **Output**: Positive prompt, negative prompt, and a preview string (matches the positive prompt)
 
-### Fantasy Scene Builder
-- **Purpose**: Creates atmospheric fantasy and horror scene prompts
-- **Elements**: Fantasy themes, subjects, environments, lighting, visual styles, textures, compositions, and special effects
-- **Integration**: Ollama LLM for generating vivid, immersive scene descriptions
-- **Output**: Scene prompt and negative prompt
+### Character Edit Node
+- **Purpose**: Takes an existing prompt and nudges it toward refined directions (fashion, lighting, mood, etc.)
+- **Tools**: Section-by-section emphasis controls with Ollama-powered rewrites
+- **Controls**: Shares the same LLM token dropdown (128–4096 tokens) to keep Ollama generations on budget
+- **Output**: Revamped prompt plus diff-style summary for reference
 
-### Upcycled Fashion Node
-- **Purpose**: Generates professional prompts for sustainable fashion featuring everyday objects transformed into glamorous designer wear
-- **Materials**: 50+ upcycled materials including plastic bags, bubble wrap, tarpaulin, garbage bags, latex, and more
-- **Integration**: Ollama LLM for creative upcycling prompt generation
-- **Output**: High-fashion photography prompts showcasing sustainable design innovation
-
-### Fashion Supermodel Node
-- **Purpose**: Generates professional fashion photography prompts featuring contemporary fashion styles from countries or regions
-- **Features**: 28 glamour enhancement options, choice between specific countries or broader regional areas (with "none" option)
-- **Integration**: Ollama LLM for modern location-inspired fashion prompt creation
-- **Output**: Detailed fashion photography prompt with location-specific style focus
+### Prompt Combiner Node
+- **Purpose**: Merge multiple prompt fragments into a cohesive description
+- **Features**: Adjustable weights, connective phrasing, and automated deduplication
+- **Controls**: Uses the same Ollama token dropdown to enforce consistent LLM verbosity across merged prompts
+- **Output**: Blended prompt ready for downstream nodes
 
 ### Photo Aspect Extractor
 - **Purpose**: Analyzes images using vision models to extract specific aspects
@@ -34,11 +31,7 @@ A comprehensive collection of custom nodes for ComfyUI that provide AI-powered p
 - **Integration**: Ollama vision models (LLaVA, Florence, etc.) for image analysis
 - **Output**: Extracted aspect descriptions for prompt engineering
 
-### Pose Extraction Node
-- **Purpose**: Extracts detailed pose descriptions from character images
-- **Features**: Analyzes body position, stance, gestures, camera angles, and framing
-- **Integration**: Ollama vision models for precise pose analysis
-- **Output**: Pose-focused prompts for consistent character positioning
+> Tip: Every LLM-driving node now exposes a `token_limit_override` dropdown (128–4096 tokens, default 128). It only governs Ollama’s response length, not your downstream image generator, so you can standardize prompt verbosity without touching `prompt_styles.json`.
 
 ## Installation
 
@@ -60,24 +53,22 @@ A comprehensive collection of custom nodes for ComfyUI that provide AI-powered p
 ## Configuration
 
 The nodes use JSON configuration files in the `data/` directory:
-- `character_options.json`: Character attributes and options
+- `character_options.json`: Character attributes, upcycled materials, and styling options
 - `countries.json`: Specific countries for fashion inspiration
 - `regions.json`: Broader regional areas for fashion inspiration
-- `fantasy_options.json`: Fantasy scene elements
 - `prompt_styles.json`: Output format styles for different AI models
-- `glamour_options.json`: Glamour enhancement styles
-- `upcycled_materials.json`: Everyday materials for upcycled fashion
-- `followup_questions.json`: Refinement questions for prompts
+   - Includes presets for Flux, SD/SDXL, SDXL-Turbo, Juggernaut, RealVis, HiDream, and Qwen editing formats
+Note: `fantasy_options.json` and the Fantasy Scene node have been removed from this package. If you previously relied on fantasy scene generation, please migrate any workflows to the Character Prompt Builder or add a custom node. Former `glamour_options` have been merged into the `pose_style` list inside `character_options.json`, and the unused `followup_questions.json` catalog has been retired.
 
 ## Usage
 
-After installation, the nodes will appear in ComfyUI under the "Wizdroid/character" and "Wizdroid/fantasy" categories.
+After installation, the nodes will appear in ComfyUI under the "Wizdroid/character" category.
 
 ### Common Workflow
-1. Use **Character Prompt Builder** or **Fashion Supermodel Node** to generate base prompts
-2. Use **Photo Aspect Extractor** or **Pose Extraction Node** to analyze reference images
-3. Combine extracted elements with generated prompts for refined results
-4. Use **Fantasy Scene Builder** for atmospheric scene creation
+1. Use **Character Prompt Builder** to generate richly detailed prompts
+2. Use **Photo Aspect Extractor** (or your preferred external pose tool) to analyze reference images
+3. Combine extracted elements with generated prompts for refined results via **Prompt Combiner**
+4. Iterate with **Character Edit Node** to explore alternate directions
 
 ## Requirements
 

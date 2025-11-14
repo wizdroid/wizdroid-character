@@ -2,7 +2,7 @@ import json
 import random
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import requests
@@ -44,6 +44,9 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
     if selection == NONE_LABEL or selection is None:
         return None
     return selection
+
+
+
 
 
 class CharacterEditNode:
@@ -109,13 +112,13 @@ class CharacterEditNode:
         style_config = prompt_styles.get(prompt_style, prompt_styles["SDXL"])
         style_label = style_config["label"]
         style_guidance = style_config["guidance"]
-        token_limit = style_config["token_limit"]
+        # use style presets; token budget is managed externally by model/service
 
         # Build the prompt instruction for the LLM
         if retain_face:
             system_prompt = (
                 "You are a text-to-image prompt engineer for face-preserving image editing models (Flux Kontext, Qwen Image Edit). "
-                f"Create concise prompts under {token_limit} tokens that preserve the original face while modifying other aspects. "
+                "Create concise prompts that preserve the original face while modifying other aspects. "
                 "ALWAYS start prompts with 'Retain the facial features from the original image.' Then describe angle, pose, and positioning changes. "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or any meta preface. "
                 "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
@@ -125,7 +128,7 @@ class CharacterEditNode:
         else:
             system_prompt = (
                 "You are a text-to-image prompt engineer for image editing models (Flux Kontext, Qwen Image Edit). "
-                f"Create concise prompts under {token_limit} tokens for editing character images. "
+                "Create concise prompts for editing character images. "
                 "Focus on face angles, camera angles, and poses. Be specific and descriptive but avoid excessive verbosity. "
                 "Your first word must be a vivid descriptor (adjective or noun), never 'Here', 'This', 'Prompt', the model/style name (Flux, SDXL, Qwen, HiDream, etc.), or any meta preface. "
                 "Do not include introductions, explanations, or meta commentary—output only the usable prompt sentence(s). "
@@ -161,7 +164,6 @@ class CharacterEditNode:
         if retain_face:
             lines.extend([
                 f"\nFormat: {style_guidance}",
-                f"Token limit: {token_limit} tokens maximum",
                 "CRITICAL - Start with: 'Retain the facial features from the original image.'",
                 "Then describe:",
                 "  * New face angle and head positioning",
@@ -177,7 +179,6 @@ class CharacterEditNode:
         else:
             lines.extend([
                 f"\nFormat: {style_guidance}",
-                f"Token limit: {token_limit} tokens maximum",
                 "CRITICAL - Describe:",
                 "  * Face angle and head positioning",
                 "  * Camera angle and perspective",
@@ -202,7 +203,6 @@ class CharacterEditNode:
             "system": system_prompt,
             "stream": False,
             "options": {
-                "num_predict": token_limit + 50,
                 "temperature": 0.8,
             }
         }
@@ -213,7 +213,7 @@ class CharacterEditNode:
         print(f"[CharacterEdit] Target camera angle: {resolved_camera_angle}")
         print(f"[CharacterEdit] Target pose: {resolved_pose}")
         print(f"[CharacterEdit] Gender: {resolved_gender}")
-        print(f"[CharacterEdit] Prompt style: {style_label} (max {token_limit} tokens)")
+        print(f"[CharacterEdit] Prompt style: {style_label}")
         print(f"[CharacterEdit] Using model: {ollama_model}")
 
         response = self._invoke_ollama(generate_url, payload)

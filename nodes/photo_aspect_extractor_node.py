@@ -239,9 +239,7 @@ class PhotoAspectExtractorNode:
                 "extraction_mode": (["clothes", "pose", "style", "background", "expression", "lighting", "hair", "makeup", "accessories", "camera", "composition", "color_palette", "full_description"], {"default": "clothes"}),
                 "retain_face": ("BOOLEAN", {"default": False}),
                 "character_image": ("IMAGE",),
-                "custom_prompt_1": ("STRING", {"default": "Transfer the clothing from the person in the second image onto the person from the first image, while matching the pose of the person in the third image. Preserve the identity and facial features of the person in the first image.", "multiline": True}),
-                "custom_prompt_2": ("STRING", {"default": "", "multiline": True}),
-                "custom_prompt_3": ("STRING", {"default": "", "multiline": True}),
+                "custom_prompt": ("STRING", {"default": "", "multiline": True}),
             }
         }
 
@@ -252,9 +250,7 @@ class PhotoAspectExtractorNode:
         extraction_mode: str,
         retain_face: bool,
         character_image,
-        custom_prompt_1: str = "",
-        custom_prompt_2: str = "",
-        custom_prompt_3: str = "",
+        custom_prompt: str = "",
     ) -> Tuple[str]:
         # Get mode configuration
         mode_config = self.EXTRACTION_MODES.get(extraction_mode, self.EXTRACTION_MODES["clothes"])
@@ -371,12 +367,8 @@ Requirements:
         
         # Concatenate custom prompts at the beginning
         custom_parts = []
-        if custom_prompt_1.strip():
-            custom_parts.append(custom_prompt_1.strip())
-        if custom_prompt_2.strip():
-            custom_parts.append(custom_prompt_2.strip())
-        if custom_prompt_3.strip():
-            custom_parts.append(custom_prompt_3.strip())
+        if custom_prompt.strip():
+            custom_parts.append(custom_prompt.strip())
         
         if custom_parts:
             custom_prefix = ", ".join(custom_parts)

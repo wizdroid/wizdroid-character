@@ -1,32 +1,50 @@
 {
+  "Flux": {
+    "guidance": "Concise paragraph (2-4 sentences) emphasizing mood, motion, and composition. Include camera cues.",
+    "label": "Flux",
+    "negative_prompt": "flat lighting, static, dull colors, artifacting",
+    "token_limit": 120
+  },
+  "HiDream": {
+    "guidance": "Whimsical paragraph (3-4 sentences) with dreamlike qualities, textures, and fantastical details.",
+    "label": "HiDream",
+    "negative_prompt": "mundane, low detail, flat shadows, inconsistent perspective",
+    "token_limit": 130
+  },
+  "Qwen": {
+    "guidance": "Semicolon-separated clauses: appearance; outfit; pose; environment; lighting; camera.",
+    "label": "Qwen",
+    "negative_prompt": "noise, bad hands, unbalanced composition, low detail",
+    "token_limit": 100
+  },
   "SD": {
-    "label": "Stable Diffusion 1.x",
     "guidance": "Single line, comma-separated tags. Order: subject, outfit, pose, environment, lighting, camera, style.",
+    "label": "Stable Diffusion 1.x",
     "negative_prompt": "blurry, low quality, distorted anatomy, extra limbs, cropped, watermark",
     "token_limit": 75
   },
   "SDXL": {
-    "label": "Stable Diffusion XL",
     "guidance": "Single detailed paragraph (3-5 sentences). Start with subject description, add styling/outfit, environment, lighting, camera angle.",
+    "label": "Stable Diffusion XL",
     "negative_prompt": "grainy, lowres, oversaturated, deformed, bad proportions, text artifacts",
     "token_limit": 150
   },
-  "Flux": {
-    "label": "Flux",
-    "guidance": "Concise paragraph (2-4 sentences) emphasizing mood, motion, and composition. Include camera cues.",
-    "negative_prompt": "flat lighting, static, dull colors, artifacting",
-    "token_limit": 120
+  "SDXL-Turbo": {
+    "guidance": "Two brisk imperative sentences. Line 1: subject + outfit + action. Line 2: environment + lighting + camera cue.",
+    "label": "SDXL Turbo",
+    "negative_prompt": "motion blur, mushy textures, low contrast, clip errors, warped limbs",
+    "token_limit": 80
   },
-  "Qwen": {
-    "label": "Qwen",
-    "guidance": "Semicolon-separated clauses: appearance; outfit; pose; environment; lighting; camera.",
-    "negative_prompt": "noise, bad hands, unbalanced composition, low detail",
-    "token_limit": 100
+  "Juggernaut": {
+    "guidance": "Photorealistic paragraph highlighting skin texture, fabric detail, lens type, and lighting falloff. Mention post-processing look.",
+    "label": "Juggernaut XL",
+    "negative_prompt": "plastic skin, cartoonish, dull eyes, blown highlights, harsh artifacts",
+    "token_limit": 140
   },
-  "HiDream": {
-    "label": "HiDream",
-    "guidance": "Whimsical paragraph (3-4 sentences) with dreamlike qualities, textures, and fantastical details.",
-    "negative_prompt": "mundane, low detail, flat shadows, inconsistent perspective",
+  "RealVis": {
+    "guidance": "Structured tri-sentence format: (1) subject + wardrobe; (2) environment + atmosphere; (3) camera metadata + color grading.",
+    "label": "RealVis XL",
+    "negative_prompt": "uncanny valley, smeared textures, chromatic noise, awkward pose",
     "token_limit": 130
   }
 }

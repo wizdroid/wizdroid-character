@@ -1,6 +1,5 @@
 {
   "countries": [
-    "none",
     "Afghanistan",
     "Albania",
     "Algeria",
@@ -76,6 +75,7 @@
     "New Zealand",
     "Nicaragua",
     "Nigeria",
+    "none",
     "Norway",
     "Pakistan",
     "Palestine",

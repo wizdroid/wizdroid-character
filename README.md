@@ -11,12 +11,16 @@ A streamlined collection of custom nodes for ComfyUI that provide AI-powered pro
 - **Attributes**: Character name, gender, age group, body type, hair color/style, eye color, facial expressions, poses, makeup, fashion styles, upcycled fashion materials, and backgrounds
 - **Integration**: Ollama LLM integration for intelligent prompt crafting
 - **Controls**: LLM token-limit dropdown (128–4096 tokens in 128-token steps; applies only to the Ollama model) plus workflow seed control
+- **Camera lens**: `camera_lens` uses concise focal-length or lens-type names (24mm, 50mm, 85mm, 70-200mm, fisheye, anamorphic, medium format, etc.), without attached descriptions.
+- **Color palettes**: `color_palette` contains practical photoshoot palettes (black and white, warm neutrals, muted earth tones, teal & orange, high-contrast, studio white) rather than creative/abstract names.
+- **Pose controls**: `pose_content_rating` toggle (SFW / NSFW / Mixed) paired with SFW and NSFW pose catalogs for safer randomization
 - **Output**: Positive prompt, negative prompt, and a preview string (matches the positive prompt)
 
 ### Character Edit Node
 - **Purpose**: Takes an existing prompt and nudges it toward refined directions (fashion, lighting, mood, etc.)
 - **Tools**: Section-by-section emphasis controls with Ollama-powered rewrites
 - **Controls**: Shares the same LLM token dropdown (128–4096 tokens) to keep Ollama generations on budget
+- **Pose controls**: Select whether edits should draw from the SFW or NSFW pose pool before randomization
 - **Output**: Revamped prompt plus diff-style summary for reference
 
 ### Prompt Combiner Node
@@ -58,7 +62,7 @@ The nodes use JSON configuration files in the `data/` directory:
 - `regions.json`: Broader regional areas for fashion inspiration
 - `prompt_styles.json`: Output format styles for different AI models
    - Includes presets for Flux, SD/SDXL, SDXL-Turbo, Juggernaut, RealVis, HiDream, and Qwen editing formats
-Note: `fantasy_options.json` and the Fantasy Scene node have been removed from this package. If you previously relied on fantasy scene generation, please migrate any workflows to the Character Prompt Builder or add a custom node. Former `glamour_options` have been merged into the `pose_style` list inside `character_options.json`, and the unused `followup_questions.json` catalog has been retired.
+Note: `fantasy_options.json` and the Fantasy Scene node have been removed from this package. If you previously relied on fantasy scene generation, please migrate any workflows to the Character Prompt Builder or add a custom node. Former `glamour_options` live inside the `pose_style.sfw` / `pose_style.nsfw` blocks in `character_options.json`, and the unused `followup_questions.json` catalog has been retired.
 
 ## Usage
 

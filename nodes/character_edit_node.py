@@ -252,15 +252,16 @@ class CharacterEditNode:
             }
         }
 
-        print(f"[CharacterEdit] Generating edit prompt")
-        print(f"[CharacterEdit] Retain face: {retain_face}")
-        print(f"[CharacterEdit] Target face angle: {resolved_face_angle}")
-        print(f"[CharacterEdit] Target camera angle: {resolved_camera_angle}")
-        print(f"[CharacterEdit] Pose rating: {pose_content_rating}")
-        print(f"[CharacterEdit] Target pose: {resolved_pose}")
-        print(f"[CharacterEdit] Gender: {resolved_gender}")
-        print(f"[CharacterEdit] Prompt style: {style_label}")
-        print(f"[CharacterEdit] Using model: {ollama_model}")
+        logger = logging.getLogger(__name__)
+        logger.debug(f"[CharacterEdit] Generating edit prompt")
+        logger.debug(f"[CharacterEdit] Retain face: {retain_face}")
+        logger.debug(f"[CharacterEdit] Target face angle: {resolved_face_angle}")
+        logger.debug(f"[CharacterEdit] Target camera angle: {resolved_camera_angle}")
+        logger.debug(f"[CharacterEdit] Pose rating: {pose_content_rating}")
+        logger.debug(f"[CharacterEdit] Target pose: {resolved_pose}")
+        logger.debug(f"[CharacterEdit] Gender: {resolved_gender}")
+        logger.debug(f"[CharacterEdit] Prompt style: {style_label}")
+        logger.debug(f"[CharacterEdit] Using model: {ollama_model}")
 
         response = self._invoke_ollama(generate_url, payload)
 
@@ -275,29 +276,29 @@ class CharacterEditNode:
         if requests is None:
             raise RuntimeError("'requests' is required for Ollama integration. Install optional dependencies.")
         try:
-            print(f"[CharacterEdit] Sending request to {ollama_url}")
-            print(f"[CharacterEdit] Model: {payload.get('model')}")
+            logging.getLogger(__name__).debug(f"[CharacterEdit] Sending request to {ollama_url}")
+            logging.getLogger(__name__).debug(f"[CharacterEdit] Model: {payload.get('model')}")
 
             response = requests.post(ollama_url, json=payload, timeout=120)
 
-            print(f"[CharacterEdit] Response status: {response.status_code}")
+            logging.getLogger(__name__).debug(f"[CharacterEdit] Response status: {response.status_code}")
 
             response.raise_for_status()
             data = response.json()
 
             result = (data.get("response") or "").strip()
-            print(f"[CharacterEdit] Received response ({len(result)} chars): {result[:100]}...")
+            logging.getLogger(__name__).debug(f"[CharacterEdit] Received response ({len(result)} chars): {result[:100]}...")
 
             if not result:
-                print("[CharacterEdit] WARNING: Empty response from Ollama")
+                logging.getLogger(__name__).warning("[CharacterEdit] WARNING: Empty response from Ollama")
                 return "[Empty response from LLM]"
 
             return result
         except requests.exceptions.HTTPError as exc:
             error_msg = f"[CharacterEdit] HTTP error: {exc}"
-            print(error_msg)
+            logging.getLogger(__name__).error(error_msg)
             if hasattr(exc.response, 'text'):
-                print(f"[CharacterEdit] Response body: {exc.response.text[:500]}")
+                logging.getLogger(__name__).error(f"[CharacterEdit] Response body: {exc.response.text[:500]}")
             return f"[ERROR: {exc}]"
         except requests.exceptions.ConnectionError as exc:
             error_msg = f"[CharacterEdit] Connection error: {exc}"

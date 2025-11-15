@@ -407,7 +407,7 @@ class CharacterPromptBuilder:
         except requests.exceptions.Timeout:
             return "[Ollama request timed out]"
         except Exception as e:
-            print(f"[CharacterPromptBuilder] Error invoking LLM: {e}")
+            logging.getLogger(__name__).exception(f"[CharacterPromptBuilder] Error invoking LLM: {e}")
             return f"[Error: {str(e)}]"
 
 NODE_CLASS_MAPPINGS = {

@@ -193,7 +193,7 @@ class PromptCombinerNode:
             error_msg = f"[PromptCombiner] HTTP error: {exc}"
             logging.getLogger(__name__).error(error_msg)
             if hasattr(exc.response, 'text'):
-                print(f"[PromptCombiner] Response body: {exc.response.text[:500]}")
+                logging.getLogger(__name__).exception(f"[PromptCombiner] Response body: {exc.response.text[:500]}")
             return f"[ERROR: {exc}]"
         except requests.exceptions.ConnectionError as exc:
             error_msg = f"[PromptCombiner] Connection error: {exc}"

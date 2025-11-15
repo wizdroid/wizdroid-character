@@ -270,9 +270,9 @@ class PhotoAspectExtractorNode:
 
         character_b64 = _image_to_base64(character_image)
 
-        print(f"[PhotoAspectExtractor] Image conversion results:")
-        print(f"  - Character: {len(character_b64) if character_b64 else 0} chars")
-        print(f"  - Extraction mode: {extraction_mode}")
+        logging.getLogger(__name__).debug("[PhotoAspectExtractor] Image conversion results:")
+        logging.getLogger(__name__).debug(f"  - Character: {len(character_b64) if character_b64 else 0} chars")
+        logging.getLogger(__name__).debug(f"  - Extraction mode: {extraction_mode}")
         print(f"  - Retain face: {retain_face}")
 
         if not character_b64:

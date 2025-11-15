@@ -3,6 +3,7 @@ import random
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+import logging
 
 try:
     import requests
@@ -13,6 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 RANDOM_LABEL = "Random"
 NONE_LABEL = "none"
+POSE_RATING_CHOICES = ("SFW only", "NSFW only", "Mixed")
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 
@@ -46,6 +48,44 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
     return selection
 
 
+def _split_pose_groups(payload: Any) -> Tuple[List[str], List[str]]:
+    if isinstance(payload, dict):
+        sfw = list(payload.get("sfw", []) or [])
+        nsfw = list(payload.get("nsfw", []) or [])
+    elif isinstance(payload, list):
+        sfw = list(payload)
+        nsfw = []
+    else:
+        sfw = []
+        nsfw = []
+    return sfw, nsfw
+
+
+def _pose_pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
+    if rating == "SFW only":
+        return sfw
+    if rating == "NSFW only":
+        return nsfw
+    return sfw + nsfw
+
+
+def _choose_pose(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
+    combined = sfw + nsfw
+    if value == RANDOM_LABEL:
+        pool = [opt for opt in _pose_pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
+        if not pool:
+            pool = [opt for opt in combined if opt != NONE_LABEL]
+        if not pool:
+            return None
+        selection = rng.choice(pool)
+    else:
+        selection = value
+
+    if selection == NONE_LABEL or selection is None:
+        return None
+    return selection
+
+
 
 
 
@@ -67,6 +107,8 @@ class CharacterEditNode:
         ollama_models = cls._collect_ollama_models()
 
         style_options = [style_key for style_key in prompt_styles.keys()]
+        pose_sfw, pose_nsfw = _split_pose_groups(character_options.get("pose_style"))
+        pose_choices = pose_sfw + pose_nsfw
 
         return {
             "required": {
@@ -76,7 +118,8 @@ class CharacterEditNode:
                 "retain_face": ("BOOLEAN", {"default": True}),
                 "target_face_angle": (_with_random(character_options["face_angle"]), {"default": RANDOM_LABEL}),
                 "target_camera_angle": (_with_random(character_options["camera_angle"]), {"default": RANDOM_LABEL}),
-                "target_pose": (_with_random(character_options["pose_style"]), {"default": RANDOM_LABEL}),
+                "pose_content_rating": (POSE_RATING_CHOICES, {"default": "SFW only"}),
+                "target_pose": (_with_random(pose_choices), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
             },
@@ -93,6 +136,7 @@ class CharacterEditNode:
         retain_face: bool,
         target_face_angle: str,
         target_camera_angle: str,
+        pose_content_rating: str,
         target_pose: str,
         gender: str,
         custom_text: str,
@@ -102,10 +146,11 @@ class CharacterEditNode:
         prompt_styles = _load_json("prompt_styles.json")
 
         rng = random.Random(seed)
+        pose_sfw, pose_nsfw = _split_pose_groups(character_options.get("pose_style"))
 
         resolved_face_angle = _choose(target_face_angle, character_options["face_angle"], rng)
         resolved_camera_angle = _choose(target_camera_angle, character_options["camera_angle"], rng)
-        resolved_pose = _choose(target_pose, character_options["pose_style"], rng)
+        resolved_pose = _choose_pose(target_pose, pose_sfw, pose_nsfw, pose_content_rating, rng)
         resolved_gender = _choose(gender, character_options["gender"], rng)
 
         # Get style configuration
@@ -211,6 +256,7 @@ class CharacterEditNode:
         print(f"[CharacterEdit] Retain face: {retain_face}")
         print(f"[CharacterEdit] Target face angle: {resolved_face_angle}")
         print(f"[CharacterEdit] Target camera angle: {resolved_camera_angle}")
+        print(f"[CharacterEdit] Pose rating: {pose_content_rating}")
         print(f"[CharacterEdit] Target pose: {resolved_pose}")
         print(f"[CharacterEdit] Gender: {resolved_gender}")
         print(f"[CharacterEdit] Prompt style: {style_label}")
@@ -255,15 +301,15 @@ class CharacterEditNode:
             return f"[ERROR: {exc}]"
         except requests.exceptions.ConnectionError as exc:
             error_msg = f"[CharacterEdit] Connection error: {exc}"
-            print(error_msg)
+            logging.getLogger(__name__).warning(error_msg)
             return f"[ERROR: Cannot connect to Ollama at {ollama_url}]"
         except requests.exceptions.Timeout as exc:
             error_msg = f"[CharacterEdit] Timeout error: {exc}"
-            print(error_msg)
+            logging.getLogger(__name__).warning(error_msg)
             return "[ERROR: Request timed out]"
         except Exception as exc:
             error_msg = f"[CharacterEdit] Error invoking Ollama: {exc}"
-            print(error_msg)
+            logging.getLogger(__name__).exception(error_msg)
             return f"[ERROR: {str(exc)}]"
 
     @staticmethod
@@ -286,7 +332,7 @@ class CharacterEditNode:
         except requests.exceptions.Timeout:
             return ["ollama_timeout"]
         except Exception as exc:
-            print(f"[CharacterEdit] Error fetching Ollama models: {exc}")
+            logging.getLogger(__name__).exception(f"[CharacterEdit] Error fetching Ollama models: {exc}")
             return ["ollama_error"]
 
 

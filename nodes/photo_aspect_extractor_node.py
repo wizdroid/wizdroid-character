@@ -5,6 +5,7 @@ import random
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+import logging
 
 try:
     import torch
@@ -501,17 +502,17 @@ Requirements:
                 text=True,
             )
         except FileNotFoundError:
-            print("[PhotoAspectExtractor] Ollama executable not found; cannot pull florence model")
+            logging.getLogger(__name__).warning("[PhotoAspectExtractor] Ollama executable not found; cannot pull florence model")
             return False
 
         if completed.returncode != 0:
-            print(
-                "[PhotoAspectExtractor] Failed to pull florence model: "
-                f"{completed.stderr.strip() or 'unknown error'}"
+            logging.getLogger(__name__).warning(
+                "[PhotoAspectExtractor] Failed to pull florence model: %s",
+                completed.stderr.strip() or "unknown error",
             )
             return False
 
-        print("[PhotoAspectExtractor] Successfully pulled florence model")
+        logging.getLogger(__name__).info("[PhotoAspectExtractor] Successfully pulled florence model")
         return True
 
 

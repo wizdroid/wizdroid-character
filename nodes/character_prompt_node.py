@@ -2,6 +2,7 @@ import json
 import random
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+import logging
 
 try:
     import requests
@@ -12,6 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 RANDOM_LABEL = "Random"
 NONE_LABEL = "none"
+POSE_RATING_CHOICES = ("SFW only", "NSFW only", "Mixed")
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 
@@ -72,6 +74,44 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
     return selection
 
 
+def _split_pose_groups(payload: Any) -> Tuple[List[str], List[str]]:
+    if isinstance(payload, dict):
+        sfw = list(payload.get("sfw", []) or [])
+        nsfw = list(payload.get("nsfw", []) or [])
+    elif isinstance(payload, list):
+        sfw = list(payload)
+        nsfw = []
+    else:
+        sfw = []
+        nsfw = []
+    return sfw, nsfw
+
+
+def _pose_pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
+    if rating == "SFW only":
+        return sfw
+    if rating == "NSFW only":
+        return nsfw
+    return sfw + nsfw
+
+
+def _choose_pose(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
+    combined = sfw + nsfw
+    if value == RANDOM_LABEL:
+        pool = [opt for opt in _pose_pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
+        if not pool:
+            pool = [opt for opt in combined if opt != NONE_LABEL]
+        if not pool:
+            return None
+        selection = rng.choice(pool)
+    else:
+        selection = value
+
+    if selection == NONE_LABEL or selection is None:
+        return None
+    return selection
+
+
 class CharacterPromptBuilder:
     CATEGORY = "Wizdroid/character"
     RETURN_TYPES = ("STRING", "STRING", "STRING")
@@ -89,6 +129,8 @@ class CharacterPromptBuilder:
         lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
         color_palettes = option_map.get("color_palette") or [NONE_LABEL]
+        pose_sfw, pose_nsfw = _split_pose_groups(option_map.get("pose_style"))
+        pose_options = pose_sfw + pose_nsfw
         ollama_models = cls._collect_ollama_models()
 
         return {
@@ -108,7 +150,8 @@ class CharacterPromptBuilder:
                 "facial_expression": (_with_random(option_map["facial_expression"]), {"default": RANDOM_LABEL}),
                 "face_angle": (_with_random(option_map["face_angle"]), {"default": RANDOM_LABEL}),
                 "camera_angle": (_with_random(option_map["camera_angle"]), {"default": RANDOM_LABEL}),
-                "pose_style": (_with_random(option_map["pose_style"]), {"default": RANDOM_LABEL}),
+                "pose_content_rating": (POSE_RATING_CHOICES, {"default": "SFW only"}),
+                "pose_style": (_with_random(pose_options), {"default": RANDOM_LABEL}),
                 "makeup_style": (_with_random(option_map["makeup_style"]), {"default": RANDOM_LABEL}),
                 "fashion_style": (_with_random(option_map["fashion_style"]), {"default": RANDOM_LABEL}),
                 "upcycled_fashion": (_with_random(upcycled_values), {"default": NONE_LABEL}),
@@ -143,6 +186,7 @@ class CharacterPromptBuilder:
         facial_expression: str,
         face_angle: str,
         camera_angle: str,
+        pose_content_rating: str,
         pose_style: str,
         makeup_style: str,
         fashion_style: str,
@@ -167,6 +211,7 @@ class CharacterPromptBuilder:
         lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
         color_palettes = option_map.get("color_palette") or [NONE_LABEL]
+        pose_sfw, pose_nsfw = _split_pose_groups(option_map.get("pose_style"))
 
         resolved = {
             "character_name": character_name.strip() or None,
@@ -180,7 +225,7 @@ class CharacterPromptBuilder:
             "facial_expression": _choose(facial_expression, option_map["facial_expression"], rng),
             "face_angle": _choose(face_angle, option_map["face_angle"], rng),
             "camera_angle": _choose(camera_angle, option_map["camera_angle"], rng),
-            "pose_style": _choose(pose_style, option_map["pose_style"], rng),
+            "pose_style": _choose_pose(pose_style, pose_sfw, pose_nsfw, pose_content_rating, rng),
             "makeup_style": _choose(makeup_style, option_map["makeup_style"], rng),
             "fashion_style": _choose(fashion_style, option_map["fashion_style"], rng),
             "lighting_style": _choose(lighting_style, lighting_styles, rng),
@@ -221,26 +266,26 @@ class CharacterPromptBuilder:
         """
         try:
             if requests is None:
-                print("[CharacterPromptBuilder] 'requests' library not installed")
+                logging.getLogger(__name__).warning("[CharacterPromptBuilder] 'requests' library not installed")
                 return ["install_requests_library"]
             
             # Query the /api/tags endpoint to get available models
             tags_url = f"{ollama_url}/api/tags"
-            print(f"[CharacterPromptBuilder] Querying Ollama at: {tags_url}")
+            logging.getLogger(__name__).debug(f"[CharacterPromptBuilder] Querying Ollama at: {tags_url}")
             response = requests.get(tags_url, timeout=5)
             response.raise_for_status()
             models_data = response.json()
             models = [model["name"] for model in models_data.get("models", [])]
-            print(f"[CharacterPromptBuilder] Found {len(models)} Ollama models: {models}")
+            logging.getLogger(__name__).debug(f"[CharacterPromptBuilder] Found {len(models)} Ollama models: {models}")
             return models if models else ["no_models_found"]
         except requests.exceptions.ConnectionError as e:
-            print(f"[CharacterPromptBuilder] Cannot connect to Ollama at {ollama_url}: {e}")
+            logging.getLogger(__name__).warning(f"[CharacterPromptBuilder] Cannot connect to Ollama at {ollama_url}: {e}")
             return ["ollama_not_running"]
         except requests.exceptions.Timeout as e:
-            print(f"[CharacterPromptBuilder] Ollama request timeout: {e}")
+            logging.getLogger(__name__).warning(f"[CharacterPromptBuilder] Ollama request timeout: {e}")
             return ["ollama_timeout"]
         except Exception as e:
-            print(f"[CharacterPromptBuilder] Error fetching Ollama models: {type(e).__name__}: {e}")
+            logging.getLogger(__name__).exception(f"[CharacterPromptBuilder] Error fetching Ollama models: {type(e).__name__}: {e}")
             return ["ollama_error"]
 
     @staticmethod

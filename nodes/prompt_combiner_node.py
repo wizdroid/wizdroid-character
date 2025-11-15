@@ -2,6 +2,7 @@ import json
 import random
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+import logging
 
 try:
     import requests
@@ -150,11 +151,12 @@ class PromptCombinerNode:
             }
         }
 
-        print(f"[PromptCombiner] Combining {len(input_prompts)} prompts")
-        print(f"[PromptCombiner] Prompt style: {style_label}")
-        print(f"[PromptCombiner] Using model: {ollama_model}")
+        logger = logging.getLogger(__name__)
+        logger.debug(f"[PromptCombiner] Combining {len(input_prompts)} prompts")
+        logger.debug(f"[PromptCombiner] Prompt style: {style_label}")
+        logger.debug(f"[PromptCombiner] Using model: {ollama_model}")
         for i, prompt in enumerate(input_prompts, 1):
-            print(f"[PromptCombiner] Input {i}: {prompt[:50]}...")
+            logger.debug(f"[PromptCombiner] Input {i}: {prompt[:50]}...")
 
         response = self._invoke_ollama(generate_url, payload)
 
@@ -169,41 +171,41 @@ class PromptCombinerNode:
         if requests is None:
             raise RuntimeError("'requests' is required for Ollama integration. Install optional dependencies.")
         try:
-            print(f"[PromptCombiner] Sending request to {ollama_url}")
-            print(f"[PromptCombiner] Model: {payload.get('model')}")
+            logging.getLogger(__name__).debug(f"[PromptCombiner] Sending request to {ollama_url}")
+            logging.getLogger(__name__).debug(f"[PromptCombiner] Model: {payload.get('model')}")
 
             response = requests.post(ollama_url, json=payload, timeout=120)
 
-            print(f"[PromptCombiner] Response status: {response.status_code}")
+            logging.getLogger(__name__).debug(f"[PromptCombiner] Response status: {response.status_code}")
 
             response.raise_for_status()
             data = response.json()
 
             result = (data.get("response") or "").strip()
-            print(f"[PromptCombiner] Received response ({len(result)} chars): {result[:100]}...")
+            logging.getLogger(__name__).debug(f"[PromptCombiner] Received response ({len(result)} chars): {result[:100]}...")
 
             if not result:
-                print("[PromptCombiner] WARNING: Empty response from Ollama")
+                logging.getLogger(__name__).warning("[PromptCombiner] WARNING: Empty response from Ollama")
                 return "[Empty response from LLM]"
 
             return result
         except requests.exceptions.HTTPError as exc:
             error_msg = f"[PromptCombiner] HTTP error: {exc}"
-            print(error_msg)
+            logging.getLogger(__name__).error(error_msg)
             if hasattr(exc.response, 'text'):
                 print(f"[PromptCombiner] Response body: {exc.response.text[:500]}")
             return f"[ERROR: {exc}]"
         except requests.exceptions.ConnectionError as exc:
             error_msg = f"[PromptCombiner] Connection error: {exc}"
-            print(error_msg)
+            logging.getLogger(__name__).error(error_msg)
             return f"[ERROR: Cannot connect to Ollama at {ollama_url}]"
         except requests.exceptions.Timeout as exc:
             error_msg = f"[PromptCombiner] Timeout error: {exc}"
-            print(error_msg)
+            logging.getLogger(__name__).error(error_msg)
             return "[ERROR: Request timed out]"
         except Exception as exc:
             error_msg = f"[PromptCombiner] Error invoking Ollama: {exc}"
-            print(error_msg)
+            logging.getLogger(__name__).error(error_msg)
             return f"[ERROR: {str(exc)}]"
 
     @staticmethod
@@ -226,7 +228,7 @@ class PromptCombinerNode:
         except requests.exceptions.Timeout:
             return ["ollama_timeout"]
         except Exception as exc:
-            print(f"[PromptCombiner] Error fetching Ollama models: {exc}")
+            logging.getLogger(__name__).exception(f"[PromptCombiner] Error fetching Ollama models: {exc}")
             return ["ollama_error"]
 
 

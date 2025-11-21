@@ -35,6 +35,12 @@ A streamlined collection of custom nodes for ComfyUI that provide AI-powered pro
 - **Integration**: Ollama vision models (LLaVA, Florence, etc.) for image analysis
 - **Output**: Extracted aspect descriptions for prompt engineering
 
+### LoRA Dataset Export ✨
+- **Purpose**: Creates Kohya-compatible datasets (`images/`, `captions.jsonl`, metadata) from local image folders or comma-separated paths
+- **Prompting**: Offers manual captions, character-builder prompts, or Ollama vision analysis with the exact same model dropdown the Photo Aspect Extractor exposes (auto-discovers vision models via Ollama’s `/api/tags`)
+- **Image Prep**: Optional resize toggle (`none`, `longest_1024`, `longest_512`) to keep inputs consistent before training
+- **Output**: Returns dataset folder path plus captions file for downstream validation/training nodes
+
 > Tip: Every LLM-driving node now exposes a `token_limit_override` dropdown (128–4096 tokens, default 128). It only governs Ollama’s response length, not your downstream image generator, so you can standardize prompt verbosity without touching `prompt_styles.json`.
 
 ## Installation

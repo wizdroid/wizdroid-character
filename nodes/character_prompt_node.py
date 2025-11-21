@@ -125,6 +125,11 @@ class CharacterPromptBuilder:
         region_options = _load_json("regions.json")
         country_options = _load_json("countries.json")
         culture_options = _load_json("cultures.json")
+        race_options = option_map.get("race") or [NONE_LABEL]
+        race_values = option_map.get("race") or [NONE_LABEL]
+        fashion_outfit_options = option_map.get("fashion_outfit") or [NONE_LABEL]
+        fashion_style_options = option_map.get("fashion_style") or [NONE_LABEL]
+        footwear_options = option_map.get("footwear_style") or [NONE_LABEL]
         upcycled_values = option_map.get("upcycled_materials") or [NONE_LABEL]
         lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
@@ -142,6 +147,7 @@ class CharacterPromptBuilder:
                 "retain_face": ("BOOLEAN", {"default": False}),
                 "image_category": (_with_random(option_map["image_category"]), {"default": RANDOM_LABEL}),
                 "gender": (_with_random(option_map["gender"]), {"default": RANDOM_LABEL}),
+                "race": (_with_random(race_options), {"default": NONE_LABEL}),
                 "age_group": (_with_random(option_map["age_group"]), {"default": RANDOM_LABEL}),
                 "body_type": (_with_random(option_map["body_type"]), {"default": RANDOM_LABEL}),
                 "hair_color": (_with_random(option_map["hair_color"]), {"default": RANDOM_LABEL}),
@@ -153,7 +159,9 @@ class CharacterPromptBuilder:
                 "pose_content_rating": (POSE_RATING_CHOICES, {"default": "SFW only"}),
                 "pose_style": (_with_random(pose_options), {"default": RANDOM_LABEL}),
                 "makeup_style": (_with_random(option_map["makeup_style"]), {"default": RANDOM_LABEL}),
-                "fashion_style": (_with_random(option_map["fashion_style"]), {"default": RANDOM_LABEL}),
+                "fashion_outfit": (_with_random(fashion_outfit_options), {"default": RANDOM_LABEL}),
+                "fashion_style": (_with_random(fashion_style_options), {"default": RANDOM_LABEL}),
+                "footwear_style": (_with_random(footwear_options), {"default": RANDOM_LABEL}),
                 "upcycled_fashion": (_with_random(upcycled_values), {"default": NONE_LABEL}),
                 "background_style": (_with_random(option_map["background_style"]), {"default": RANDOM_LABEL}),
                 "lighting_style": (_with_random(lighting_styles), {"default": RANDOM_LABEL}),
@@ -162,7 +170,8 @@ class CharacterPromptBuilder:
                 "region": (_with_random(region_options["regions"]), {"default": RANDOM_LABEL}),
                 "country": (_with_random(country_options["countries"]), {"default": RANDOM_LABEL}),
                 "culture": (_with_random(culture_options["cultures"]), {"default": RANDOM_LABEL}),
-                "custom_text": ("STRING", {"multiline": True, "default": ""}),
+                "custom_text_llm": ("STRING", {"multiline": True, "default": ""}),
+                "custom_text_append": ("STRING", {"multiline": True, "default": ""}),
             },
             "optional": {
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "widget": "seed"}),
@@ -178,6 +187,7 @@ class CharacterPromptBuilder:
         retain_face: bool,
         image_category: str,
         gender: str,
+        race: str,
         age_group: str,
         body_type: str,
         hair_color: str,
@@ -189,7 +199,9 @@ class CharacterPromptBuilder:
         pose_content_rating: str,
         pose_style: str,
         makeup_style: str,
+        fashion_outfit: str,
         fashion_style: str,
+        footwear_style: str,
         background_style: str,
         lighting_style: str,
         camera_lens: str,
@@ -198,7 +210,8 @@ class CharacterPromptBuilder:
         region: str,
         country: str,
         culture: str,
-        custom_text: str,
+        custom_text_llm: str,
+        custom_text_append: str,
         seed: int = 0,
     ):
         option_map = _load_json("character_options.json")
@@ -207,7 +220,11 @@ class CharacterPromptBuilder:
         country_options = _load_json("countries.json")
         culture_options = _load_json("cultures.json")
         rng = random.Random(seed)
+        race_values = option_map.get("race") or [NONE_LABEL]
         upcycled_values = option_map.get("upcycled_materials") or [NONE_LABEL]
+        fashion_outfit_values = option_map.get("fashion_outfit") or [NONE_LABEL]
+        fashion_style_values = option_map.get("fashion_style") or [NONE_LABEL]
+        footwear_values = option_map.get("footwear_style") or [NONE_LABEL]
         lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
         color_palettes = option_map.get("color_palette") or [NONE_LABEL]
@@ -217,6 +234,7 @@ class CharacterPromptBuilder:
             "character_name": character_name.strip() or None,
             "image_category": _choose(image_category, option_map["image_category"], rng),
             "gender": _choose(gender, option_map["gender"], rng),
+            "race": _choose(race, race_values, rng),
             "age_group": _choose(age_group, option_map["age_group"], rng),
             "body_type": _choose(body_type, option_map["body_type"], rng),
             "hair_color": _choose(hair_color, option_map["hair_color"], rng),
@@ -227,7 +245,9 @@ class CharacterPromptBuilder:
             "camera_angle": _choose(camera_angle, option_map["camera_angle"], rng),
             "pose_style": _choose_pose(pose_style, pose_sfw, pose_nsfw, pose_content_rating, rng),
             "makeup_style": _choose(makeup_style, option_map["makeup_style"], rng),
-            "fashion_style": _choose(fashion_style, option_map["fashion_style"], rng),
+            "fashion_outfit": _choose(fashion_outfit, fashion_outfit_values, rng),
+            "fashion_style": _choose(fashion_style, fashion_style_values, rng),
+            "footwear_style": _choose(footwear_style, footwear_values, rng),
             "lighting_style": _choose(lighting_style, lighting_styles, rng),
             "camera_lens": _choose(camera_lens, camera_lenses, rng),
             "color_palette": _choose(color_palette, color_palettes, rng),
@@ -250,12 +270,23 @@ class CharacterPromptBuilder:
             retain_face=retain_face,
             style_meta=style_meta,
             selections=resolved,
-            custom_text=custom_text.strip(),
+            custom_text=custom_text_llm.strip(),
         )
 
         negative_prompt = style_meta.get("negative_prompt", "")
-        suffix = custom_text.strip()
-        final_prompt = llm_response if not suffix else f"{llm_response}\n\n{suffix}"
+        final_prompt = (llm_response or "").strip()
+        append_text = custom_text_append.strip()
+
+        if append_text:
+            if final_prompt:
+                base = final_prompt.rstrip()
+                if base.endswith(","):
+                    final_prompt = f"{base} {append_text}"
+                else:
+                    final_prompt = f"{base}, {append_text}"
+            else:
+                final_prompt = append_text
+
         return final_prompt, negative_prompt, final_prompt
 
     @staticmethod
@@ -303,7 +334,7 @@ class CharacterPromptBuilder:
                 "Ensure the character's cultural identity aligns with any provided 'region' or 'country' selections. "
                 "Use 'culture' selection to guide traditional or culturally-specific outfit choices and styling. "
                 "If 'upcycled_fashion' is provided, weave that sustainable couture concept into garment construction, textures, and detailing. "
-                "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
+                "Treat 'fashion_outfit' as the blueprint for garment pairings and silhouettes, 'fashion_style' as the overall aesthetic vibe, materials, and mood, and 'footwear_style' as the precise shoe choice and detailing. "
                 "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
                 "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
             )
@@ -317,7 +348,7 @@ class CharacterPromptBuilder:
                 "Ensure the character's cultural identity aligns with any provided 'region' or 'country' selections. "
                 "Use 'culture' selection to guide traditional or culturally-specific outfit choices and styling. "
                 "If 'upcycled_fashion' is provided, weave that sustainable couture concept into garment construction, textures, and detailing. "
-                "Treat 'fashion_style' as the definitive reference for wardrobe aesthetic, garment silhouettes, accessories, and fabrics. "
+                "Treat 'fashion_outfit' as the blueprint for garment pairings and silhouettes, 'fashion_style' as the overall aesthetic vibe, materials, and mood, and 'footwear_style' as the precise shoe choice and detailing. "
                 "Use 'makeup_style' for cosmetic direction and 'background_style' for scene context. "
                 "Never include reasoning traces, deliberation markers, or text enclosed in '<think>' or similar tags."
             )
@@ -340,7 +371,7 @@ class CharacterPromptBuilder:
             ]
         
         lines.append(
-            "\nAttribute glossary: 'fashion_style' defines the outfit concept (clothing pieces, accessories, textures); "
+            "\nAttribute glossary: 'fashion_outfit' defines the garment combination (silhouettes, pairings, accessories), 'fashion_style' sets the aesthetic vibe/fabrication/finishing, and 'footwear_style' locks the shoe design; "
             "'makeup_style' guides cosmetics; 'background_style' sets the environment; 'pose_style' directs body language; "
             "'lighting_style' sets illumination mood; 'camera_lens' informs framing and depth; "
             "'color_palette' locks overall chroma direction; "

@@ -48,7 +48,7 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
     return selection
 
 
-def _split_pose_groups(payload: Any) -> Tuple[List[str], List[str]]:
+def _split_groups(payload: Any) -> Tuple[List[str], List[str]]:
     if isinstance(payload, dict):
         sfw = list(payload.get("sfw", []) or [])
         nsfw = list(payload.get("nsfw", []) or [])
@@ -61,7 +61,7 @@ def _split_pose_groups(payload: Any) -> Tuple[List[str], List[str]]:
     return sfw, nsfw
 
 
-def _pose_pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
+def _pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
     if rating == "SFW only":
         return sfw
     if rating == "NSFW only":
@@ -69,10 +69,10 @@ def _pose_pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[
     return sfw + nsfw
 
 
-def _choose_pose(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
+def _choose_for_rating(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
     combined = sfw + nsfw
     if value == RANDOM_LABEL:
-        pool = [opt for opt in _pose_pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
+        pool = [opt for opt in _pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
         if not pool:
             pool = [opt for opt in combined if opt != NONE_LABEL]
         if not pool:
@@ -107,7 +107,7 @@ class CharacterEditNode:
         ollama_models = cls._collect_ollama_models()
 
         style_options = [style_key for style_key in prompt_styles.keys()]
-        pose_sfw, pose_nsfw = _split_pose_groups(character_options.get("pose_style"))
+        pose_sfw, pose_nsfw = _split_groups(character_options.get("pose_style"))
         pose_choices = pose_sfw + pose_nsfw
 
         return {
@@ -146,11 +146,11 @@ class CharacterEditNode:
         prompt_styles = _load_json("prompt_styles.json")
 
         rng = random.Random(seed)
-        pose_sfw, pose_nsfw = _split_pose_groups(character_options.get("pose_style"))
+        pose_sfw, pose_nsfw = _split_groups(character_options.get("pose_style"))
 
         resolved_face_angle = _choose(target_face_angle, character_options["face_angle"], rng)
         resolved_camera_angle = _choose(target_camera_angle, character_options["camera_angle"], rng)
-        resolved_pose = _choose_pose(target_pose, pose_sfw, pose_nsfw, pose_content_rating, rng)
+        resolved_pose = _choose_for_rating(target_pose, pose_sfw, pose_nsfw, pose_content_rating, rng)
         resolved_gender = _choose(gender, character_options["gender"], rng)
 
         # Get style configuration

@@ -74,7 +74,11 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
     return selection
 
 
-def _split_pose_groups(payload: Any) -> Tuple[List[str], List[str]]:
+def _split_groups(payload: Any) -> Tuple[List[str], List[str]]:
+    """Return two lists (sfw, nsfw) whether payload is a dict or a list.
+    Accepts both the older list format (returns list as SFW) and the new dict format
+    with 'sfw' and 'nsfw' keys.
+    """
     if isinstance(payload, dict):
         sfw = list(payload.get("sfw", []) or [])
         nsfw = list(payload.get("nsfw", []) or [])
@@ -87,7 +91,7 @@ def _split_pose_groups(payload: Any) -> Tuple[List[str], List[str]]:
     return sfw, nsfw
 
 
-def _pose_pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
+def _pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
     if rating == "SFW only":
         return sfw
     if rating == "NSFW only":
@@ -95,10 +99,10 @@ def _pose_pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[
     return sfw + nsfw
 
 
-def _choose_pose(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
+def _choose_for_rating(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
     combined = sfw + nsfw
     if value == RANDOM_LABEL:
-        pool = [opt for opt in _pose_pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
+        pool = [opt for opt in _pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
         if not pool:
             pool = [opt for opt in combined if opt != NONE_LABEL]
         if not pool:
@@ -110,6 +114,20 @@ def _choose_pose(value: Optional[str], sfw: List[str], nsfw: List[str], rating: 
     if selection == NONE_LABEL or selection is None:
         return None
     return selection
+
+
+def _get_background_groups(payload: Any) -> Dict[str, List[str]]:
+    groups = {
+        "studio_controlled": [],
+        "public_exotic_real": [],
+        "imaginative_surreal": [],
+    }
+    if isinstance(payload, dict):
+        for key in groups:
+            groups[key] = list(payload.get(key, []) or [])
+    elif isinstance(payload, list):
+        groups["studio_controlled"] = list(payload)
+    return groups
 
 
 class CharacterPromptBuilder:
@@ -134,8 +152,15 @@ class CharacterPromptBuilder:
         lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
         color_palettes = option_map.get("color_palette") or [NONE_LABEL]
-        pose_sfw, pose_nsfw = _split_pose_groups(option_map.get("pose_style"))
+        pose_sfw, pose_nsfw = _split_groups(option_map.get("pose_style"))
         pose_options = pose_sfw + pose_nsfw
+        # image categories split into SFW/NSFW for UI and selection logic
+        image_sfw, image_nsfw = _split_groups(option_map.get("image_category"))
+        image_options = image_sfw + image_nsfw
+        background_groups = _get_background_groups(option_map.get("background_style"))
+        studio_backgrounds = background_groups["studio_controlled"] or [NONE_LABEL]
+        real_backgrounds = background_groups["public_exotic_real"] or [NONE_LABEL]
+        imaginative_backgrounds = background_groups["imaginative_surreal"] or [NONE_LABEL]
         ollama_models = cls._collect_ollama_models()
 
         return {
@@ -145,7 +170,8 @@ class CharacterPromptBuilder:
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
                 "prompt_style": (tuple(prompt_styles.keys()), {"default": "SDXL"}),
                 "retain_face": ("BOOLEAN", {"default": False}),
-                "image_category": (_with_random(option_map["image_category"]), {"default": RANDOM_LABEL}),
+                "image_category": (_with_random(image_options), {"default": RANDOM_LABEL}),
+                "image_content_rating": (POSE_RATING_CHOICES, {"default": "SFW only"}),
                 "gender": (_with_random(option_map["gender"]), {"default": RANDOM_LABEL}),
                 "race": (_with_random(race_options), {"default": NONE_LABEL}),
                 "age_group": (_with_random(option_map["age_group"]), {"default": RANDOM_LABEL}),
@@ -163,7 +189,9 @@ class CharacterPromptBuilder:
                 "fashion_style": (_with_random(fashion_style_options), {"default": RANDOM_LABEL}),
                 "footwear_style": (_with_random(footwear_options), {"default": RANDOM_LABEL}),
                 "upcycled_fashion": (_with_random(upcycled_values), {"default": NONE_LABEL}),
-                "background_style": (_with_random(option_map["background_style"]), {"default": RANDOM_LABEL}),
+                "background_stage_style": (_with_random(studio_backgrounds), {"default": RANDOM_LABEL}),
+                "background_location_style": (_with_random(real_backgrounds), {"default": NONE_LABEL}),
+                "background_imaginative_style": (_with_random(imaginative_backgrounds), {"default": NONE_LABEL}),
                 "lighting_style": (_with_random(lighting_styles), {"default": RANDOM_LABEL}),
                 "camera_lens": (_with_random(camera_lenses), {"default": RANDOM_LABEL}),
                 "color_palette": (_with_random(color_palettes), {"default": RANDOM_LABEL}),
@@ -186,6 +214,7 @@ class CharacterPromptBuilder:
         prompt_style: str,
         retain_face: bool,
         image_category: str,
+        image_content_rating: str,
         gender: str,
         race: str,
         age_group: str,
@@ -202,7 +231,9 @@ class CharacterPromptBuilder:
         fashion_outfit: str,
         fashion_style: str,
         footwear_style: str,
-        background_style: str,
+        background_stage_style: str,
+        background_location_style: str,
+        background_imaginative_style: str,
         lighting_style: str,
         camera_lens: str,
         color_palette: str,
@@ -228,11 +259,16 @@ class CharacterPromptBuilder:
         lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
         color_palettes = option_map.get("color_palette") or [NONE_LABEL]
-        pose_sfw, pose_nsfw = _split_pose_groups(option_map.get("pose_style"))
+        pose_sfw, pose_nsfw = _split_groups(option_map.get("pose_style"))
+        image_sfw, image_nsfw = _split_groups(option_map.get("image_category"))
+        background_groups = _get_background_groups(option_map.get("background_style"))
+        studio_backgrounds = background_groups["studio_controlled"] or [NONE_LABEL]
+        real_backgrounds = background_groups["public_exotic_real"] or [NONE_LABEL]
+        imaginative_backgrounds = background_groups["imaginative_surreal"] or [NONE_LABEL]
 
         resolved = {
             "character_name": character_name.strip() or None,
-            "image_category": _choose(image_category, option_map["image_category"], rng),
+            "image_category": _choose_for_rating(image_category, image_sfw, image_nsfw, image_content_rating, rng),
             "gender": _choose(gender, option_map["gender"], rng),
             "race": _choose(race, race_values, rng),
             "age_group": _choose(age_group, option_map["age_group"], rng),
@@ -243,16 +279,18 @@ class CharacterPromptBuilder:
             "facial_expression": _choose(facial_expression, option_map["facial_expression"], rng),
             "face_angle": _choose(face_angle, option_map["face_angle"], rng),
             "camera_angle": _choose(camera_angle, option_map["camera_angle"], rng),
-            "pose_style": _choose_pose(pose_style, pose_sfw, pose_nsfw, pose_content_rating, rng),
+            "pose_style": _choose_for_rating(pose_style, pose_sfw, pose_nsfw, pose_content_rating, rng),
             "makeup_style": _choose(makeup_style, option_map["makeup_style"], rng),
             "fashion_outfit": _choose(fashion_outfit, fashion_outfit_values, rng),
             "fashion_style": _choose(fashion_style, fashion_style_values, rng),
             "footwear_style": _choose(footwear_style, footwear_values, rng),
+            "background_stage_style": _choose(background_stage_style, studio_backgrounds, rng),
+            "background_location_style": _choose(background_location_style, real_backgrounds, rng),
+            "background_imaginative_style": _choose(background_imaginative_style, imaginative_backgrounds, rng),
             "lighting_style": _choose(lighting_style, lighting_styles, rng),
             "camera_lens": _choose(camera_lens, camera_lenses, rng),
             "color_palette": _choose(color_palette, color_palettes, rng),
             "upcycled_fashion": _choose(upcycled_fashion, upcycled_values, rng),
-            "background_style": _choose(background_style, option_map["background_style"], rng),
             "region": _choose(region, region_options["regions"], rng),
             "country": _choose(country, country_options["countries"], rng),
             "culture": _choose(culture, culture_options["cultures"], rng),
@@ -261,6 +299,14 @@ class CharacterPromptBuilder:
         resolved_region = resolved.get("region")
         if resolved_region and country == RANDOM_LABEL:
             resolved["country"] = f"choose a culturally authentic country within {resolved_region}"
+
+        if not resolved.get("background_style"):
+            fallback = (
+                resolved.get("background_stage_style")
+                or resolved.get("background_location_style")
+                or resolved.get("background_imaginative_style")
+            )
+            resolved["background_style"] = fallback
 
         style_meta = prompt_styles[prompt_style]
         llm_response = self._invoke_llm(

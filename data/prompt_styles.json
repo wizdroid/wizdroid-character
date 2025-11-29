@@ -1,9 +1,15 @@
 {
   "Flux": {
-    "guidance": "Concise paragraph (2-4 sentences) emphasizing mood, motion, and composition. Include camera cues.",
-    "label": "Flux",
-    "negative_prompt": "flat lighting, static, dull colors, artifacting",
-    "token_limit": 120
+    "guidance": "Natural language paragraph (2-4 sentences). Focus on texture, lighting, and atmosphere. Describe the subject, then the environment. End with technical camera details.",
+    "label": "Flux.1",
+    "negative_prompt": "flat lighting, static, dull colors, artifacting, blur",
+    "token_limit": 255
+  },
+  "SD3": {
+    "guidance": "Natural, conversational paragraph. Focus on prompt adherence and spatial relationships. Describe subject, action, and setting clearly. Mention text elements if any.",
+    "label": "Stable Diffusion 3",
+    "negative_prompt": "deformed, distorted, disfigured, bad anatomy, bad eyes",
+    "token_limit": 255
   },
   "HiDream": {
     "guidance": "Whimsical paragraph (3-4 sentences) with dreamlike qualities, textures, and fantastical details.",
@@ -24,7 +30,7 @@
     "token_limit": 75
   },
   "SDXL": {
-    "guidance": "Single detailed paragraph (3-5 sentences). Start with subject description, add styling/outfit, environment, lighting, camera angle.",
+    "guidance": "Detailed descriptive paragraph (3-5 sentences). Structure: Subject visual details -> Outfit/Fashion -> Pose/Action -> Environment/Background -> Lighting/Atmosphere -> Camera/Film stock.",
     "label": "Stable Diffusion XL",
     "negative_prompt": "grainy, lowres, oversaturated, deformed, bad proportions, text artifacts",
     "token_limit": 150

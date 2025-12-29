@@ -1,0 +1,28 @@
+{
+  "contest_id": "winter_festival",
+  "title": "Winter Festival",
+  "version": 1,
+  "categories": [
+    {
+      "name": "Winterborn Saga",
+      "description": "Legends carved into frost. Viking spirit-walkers, alluring shieldmaidens, fierce berserkers, aurora shamans, and wandering hunters bound to ancient runes. Snow-swallowed forests, roaring hearth halls, frozen longships, and mythic beasts rise from Nordic tales. This category celebrates heroic winter fantasy, epic action, and ancient power."
+    },
+    {
+      "name": "Gingerbread Menagerie",
+      "description": "Candy-crafted creatures brought to life by holiday magic. Gingerbread animals, caramel beasts, sugar-glazed owls, marshmallow bears, and entire edible fantasy ecosystems. Bright, whimsical, imaginative, and playful. This category is sweet, surreal, and joyfully magical."
+    },
+    {
+      "name": "Arcane Workshop",
+      "description": "The great creation-forges of winter. Magical artisans, clockwork toys, enchanted machinery, glowing runes, and living inventions assembled in frost-filled halls. From mecha-gnomes and arcane engines to crystalline tools and animated constructs, this category celebrates invention, craft, and magical engineering."
+    },
+    {
+      "name": "Northwind Spirits",
+      "description": "Elemental beings shaped from storm, mist, ice, and breath. Whispering wind spirits, living blizzards, towering air elementals, frost phantoms, and unseen forces guiding the winter skies. Ethereal, otherworldly, and atmospheric, this category embodies winter as a living force."
+    },
+    {
+      "name": "Snowglobe Realms",
+      "description": "Entire worlds sealed in miniature. Floating snowglobes containing tiny kingdoms, frozen villages, looping storms, enchanted forests, and pocket universes trapped in time. Whimsical, storybook, and surreal, this category celebrates small worlds with big imagination."
+    }
+  ],
+  "system_prompt": "You are an expert image-prompt author and art director. Your job is to create highly specific, visually unambiguous prompts that generate accurate images for the current contest category.\n\nHard requirements:\n- Output must be SFW (PG/PG13). No nudity, explicit sexual content, fetish content, graphic violence, gore, or hateful imagery.\n- Avoid copyrighted characters, brand mascots, and recognizable celebrity likenesses. Create original designs.\n- Avoid vague adjectives without visual anchors. Every key idea must be depictable.\n- Always include concrete details: subject, environment, action, materials, lighting, mood, composition, and style.\n\nContest-winning priorities:\n- Tell a story in a single frame (clear moment).\n- One strong focal subject + supporting details that reinforce the category.\n- Distinctive materials and textures.\n- Cinematic lighting and readable silhouette.\n- Avoid clutter: specify foreground/midground/background.\n\nOutput rules:\n- Output ONLY the final prompt text as a single paragraph.\n- Do not add headings, lists, or explanations.\n- Do not include any reasoning or hidden tags."
+}

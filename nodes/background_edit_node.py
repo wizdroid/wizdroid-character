@@ -1,16 +1,12 @@
 import json
 import random
 import logging
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-try:
-    import requests
-except ImportError:  # pragma: no cover
-    requests = None
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
+from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.data_files import load_json
+from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.system_prompts import load_system_prompt_text
 RANDOM_LABEL = "Random"
 NONE_LABEL = "none"
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
@@ -91,9 +87,7 @@ FOCAL_CHOICES = (
 
 
 def _load_json(name: str) -> Any:
-    path = DATA_DIR / name
-    with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+    return load_json(name)
 
 
 def _with_random(options: List[str]) -> Tuple[str, ...]:
@@ -169,12 +163,13 @@ class BackgroundEditNode:
         lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
 
-        ollama_models = cls._collect_ollama_models()
+        ollama_models = collect_models(DEFAULT_OLLAMA_URL)
 
         return {
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
                 "prompt_style": (tuple(prompt_styles.keys()), {"default": "SDXL"}),
                 "studio_background": (_with_random(studio_backgrounds), {"default": RANDOM_LABEL}),
                 "real_background": (_with_random(real_backgrounds), {"default": NONE_LABEL}),
@@ -201,6 +196,7 @@ class BackgroundEditNode:
         self,
         ollama_url: str,
         ollama_model: str,
+        content_rating: str,
         prompt_style: str,
         studio_background: str,
         real_background: str,
@@ -273,15 +269,7 @@ class BackgroundEditNode:
 
         attribute_blob = ", ".join(attr_parts)
 
-        system_prompt = (
-            "You are a concept artist prompt engineer specializing in environment-only imagery."
-            " Create imaginative backgrounds with zero humans or humanoid figures."
-            " Monsters and creatures are allowed only if specified; describe them as part of the setting."
-            " Output two paragraphs separated by a newline:"
-            " (1) Final background prompt for image generation (single paragraph)."
-            " (2) Character styling inspiration derived from the environment (one sentence)."
-            " Do not include markdown, bullet points, negative prompts, or meta commentary."
-        )
+        system_prompt = load_system_prompt_text("system_prompts/background_edit_system.txt", content_rating)
 
         user_prompt = (
             f"Create a {prompt_style} surreal background without any humans."
@@ -289,60 +277,32 @@ class BackgroundEditNode:
             " Keep emphasis on atmosphere, lighting, geography, architecture, and creature presence."
         )
 
-        payload = {
-            "model": ollama_model,
-            "prompt": user_prompt,
-            "system": system_prompt,
-            "stream": False,
-            "options": {
+        ok, raw = generate_text(
+            ollama_url=ollama_url,
+            model=ollama_model,
+            prompt=user_prompt,
+            system=system_prompt,
+            options={
                 "temperature": 0.85,
+                "num_predict": 512,
             },
-        }
+            timeout=120,
+        )
 
-        generate_url = ollama_url
-        if not generate_url.endswith("/api/generate"):
-            generate_url = generate_url.rstrip("/") + "/api/generate"
+        if not ok:
+            return (f"[Error: {raw}]", "")
 
-        try:
-            if requests is None:
-                return ("[Please install 'requests' library: pip install requests]", "")
+        if "\n" in raw:
+            bg_prompt, style_hint = raw.split("\n", 1)
+        else:
+            bg_prompt, style_hint = raw, ""
 
-            response = requests.post(generate_url, json=payload, timeout=120)
-            response.raise_for_status()
-            raw = response.json().get("response", "").strip()
+        if content_rating != "NSFW allowed":
+            err = enforce_sfw(bg_prompt)
+            if err:
+                return ("[Blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed'.]", "")
 
-            if "\n" in raw:
-                bg_prompt, style_hint = raw.split("\n", 1)
-            else:
-                bg_prompt, style_hint = raw, ""
-
-            return bg_prompt.strip(), style_hint.strip()
-        except requests.exceptions.ConnectionError:
-            return ("[Ollama server not running. Please start Ollama.]", "")
-        except requests.exceptions.Timeout:
-            return ("[Ollama request timed out]", "")
-        except Exception as exc:
-            logging.getLogger(__name__).exception(f"[BackgroundEditNode] Error invoking LLM: {exc}")
-            return (f"[Error: {exc}]", "")
-
-    @staticmethod
-    def _collect_ollama_models(ollama_url: str = DEFAULT_OLLAMA_URL) -> List[str]:
-        if requests is None:
-            return ["install_requests_library"]
-        try:
-            tags_url = f"{ollama_url}/api/tags"
-            response = requests.get(tags_url, timeout=5)
-            response.raise_for_status()
-            models_data = response.json()
-            models = [model["name"] for model in models_data.get("models", [])]
-            return models if models else ["no_models_found"]
-        except requests.exceptions.ConnectionError:
-            return ["ollama_not_running"]
-        except requests.exceptions.Timeout:
-            return ["ollama_timeout"]
-        except Exception as exc:
-            logging.getLogger(__name__).exception(f"[BackgroundEditNode] Error fetching Ollama models: {exc}")
-            return ["ollama_error"]
+        return bg_prompt.strip(), style_hint.strip()
 
 
 NODE_CLASS_MAPPINGS = {

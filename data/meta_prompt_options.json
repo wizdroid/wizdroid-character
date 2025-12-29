@@ -1,87 +1,498 @@
 {
   "futuristic_settings": [
-    "cyberpunk megacity drenched in neon rain",
-    "solarpunk floating garden arcology",
-    "orbital ring marketplace above the clouds",
-    "deep-space research habitat with zero-gravity chambers",
-    "submerged bioluminescent metropolis",
-    "martian colony biodome under dusty twilight",
-    "quantum computing shrine within crystalline caverns",
-    "AI-governed utopian plaza with holographic flora",
-    "mech hangar cathedral lit by warning strobes",
-    "drone-filled desert caravan of modular homes"
+    {
+      "name": "Cyberpunk Megacity",
+      "description": "Dense neon high-rises, perpetual rain, holographic ads, crowded alleyways buzzing with augmented citizens."
+    },
+    {
+      "name": "Solarpunk Floating Arcology",
+      "description": "Lush sky gardens, solar sails, wind turbines, glass skybridges linking biophilic towers in bright daylight."
+    },
+    {
+      "name": "Orbital Ring Marketplace",
+      "description": "Massive ring station above clouds, microgravity stalls, panoramic planet views, shuttles docking along the rim."
+    },
+    {
+      "name": "Zero-G Research Habitat",
+      "description": "Laboratories in microgravity, tethered scientists, floating equipment, stark white modules with luminous panels."
+    },
+    {
+      "name": "Submerged Bioluminescent Metropolis",
+      "description": "Glass-domed underwater city, glowing plankton streets, manta-shaped transports, deep-sea blues and greens."
+    },
+    {
+      "name": "Martian Colony Biodome",
+      "description": "Red-dust horizon, geodesic domes, hydroponic farms, pressure suits, twilight skies with twin moons."
+    },
+    {
+      "name": "Quantum Computing Shrine",
+      "description": "Crystalline caverns housing qubit arrays, shimmering light corridors, monks tending humming cores."
+    },
+    {
+      "name": "AI-Governed Utopian Plaza",
+      "description": "Holographic flora, transparent walkways, autonomous helpers, serene crowds under adaptive climate canopies."
+    },
+    {
+      "name": "Mech Hangar Cathedral",
+      "description": "Vaulted steel halls, towering mechs on gantries, warning strobes, crews welding beneath stained glass LEDs."
+    },
+    {
+      "name": "Desert Drone Caravan",
+      "description": "Mobile modular homes in sandy expanse, escort drones overhead, solar canopies, mirage heat haze."
+    }
   ],
   "ancient_eras": [
-    "Ancient Roman Empire",
-    "Ancient Greek City-State",
-    "Ancient Egypt",
-    "Feudal Japan (Sengoku Period)",
-    "Imperial China (Han/Tang Dynasty)",
-    "Medieval Europe",
-    "Viking Age Scandinavia",
-    "Pre-Columbian Aztec/Maya",
-    "Ancient India (Maurya/Gupta)",
-    "Persian Empire",
-    "Mesopotamian Sumer/Babylon",
-    "Bronze Age Mediterranean",
-    "Iron Age Celtic",
-    "Golden Age of Islam",
-    "Victorian Era Industrial",
-    "Wild West Frontier",
-    "Roaring 20s Art Deco"
+    {
+      "name": "Ancient Roman Empire",
+      "description": "Marble forums, legion standards, togas and laurel wreaths, aqueducts arching across sunlit hills."
+    },
+    {
+      "name": "Ancient Greek City-State",
+      "description": "Whitewashed temples, columned agoras, hoplite armor, olive groves and coastal amphitheaters."
+    },
+    {
+      "name": "Ancient Egypt",
+      "description": "Pyramids and obelisks, hieroglyphic walls, gold jewelry, linen robes along the Nile."
+    },
+    {
+      "name": "Feudal Japan (Sengoku)",
+      "description": "Samurai armor, shoji houses, mountain castles, cherry blossoms over misty rice fields."
+    },
+    {
+      "name": "Imperial China (Han/Tang)",
+      "description": "Silk robes, dragon motifs, scholar gardens, lantern-lit markets, sweeping tiled rooftops."
+    },
+    {
+      "name": "Medieval Europe",
+      "description": "Stone keeps, chainmail, timber villages, banners over cobbled courtyards, candlelit halls."
+    },
+    {
+      "name": "Viking Age Scandinavia",
+      "description": "Longships, runestones, fur cloaks, wooden stave churches, fjord mists and northern lights."
+    },
+    {
+      "name": "Pre-Columbian Aztec/Maya",
+      "description": "Stepped pyramids, jade masks, intricate glyphs, jungle plazas with incense and vivid textiles."
+    },
+    {
+      "name": "Ancient India (Maurya/Gupta)",
+      "description": "Carved stone stupas, lotus motifs, ornate jewelry, scholars under banyan trees, incense-scented courts."
+    },
+    {
+      "name": "Persian Empire",
+      "description": "Grand palaces, relief carvings, lamassu guardians, royal processions, lush gardens and tiled halls."
+    },
+    {
+      "name": "Mesopotamian Sumer/Babylon",
+      "description": "Ziggurats, baked clay bricks, cuneiform tablets, river barges, braided beards and woven robes."
+    },
+    {
+      "name": "Bronze Age Mediterranean",
+      "description": "Bronze helms and shields, coastal trade ships, frescoed palaces, vibrant dyes and pottery."
+    },
+    {
+      "name": "Iron Age Celtic",
+      "description": "Hillforts, spiral metalwork, tartan cloaks, stone circles, warriors with torcs and round shields."
+    },
+    {
+      "name": "Golden Age of Islam",
+      "description": "Courtyard libraries, star-patterned tiles, astrolabes, scholars debating under colonnades, calligraphy."
+    },
+    {
+      "name": "Victorian Era Industrial",
+      "description": "Steam trains, soot-streaked brick factories, gas lamps, waistcoats and top hats, wrought iron arches."
+    },
+    {
+      "name": "Wild West Frontier",
+      "description": "Dusty main streets, wooden saloons, cowboy gear, railheads, sun-baked mesas and open sky."
+    },
+    {
+      "name": "Roaring 20s Art Deco",
+      "description": "Jazz-age city nightlife, geometric gold accents, flapper dresses, chrome elevators, sleek skyscrapers."
+    }
   ],
   "mythological_elements": [
-    "Norse Mythology (Runes, Yggdrasil, Valkyries)",
-    "Greek Mythology (Olympians, Heroes, Monsters)",
-    "Egyptian Mythology (Gods, Hieroglyphs, Afterlife)",
-    "Japanese Yokai & Shinto Spirits",
-    "Chinese Mythology (Dragons, Phoenixes, Immortals)",
-    "Hindu Mythology (Devas, Asuras, Avatars)",
-    "Celtic Folklore (Fae, Druids, Nature Spirits)",
-    "West African Mythology (Orishas, Spirits)",
-    "Aztec/Mayan Mythology (Serpent Gods, Jaguar Warriors)",
-    "Polynesian Mythology (Ocean Spirits, Maui)",
-    "Slavic Folklore (Baba Yaga, Leshy)",
-    "Lovecraftian Cosmic Horror",
-    "Biblical/Angelic Imagery",
-    "Grimm's Fairy Tales",
-    "Arthurian Legend",
-    "Cybernetic/Techno-Mythology"
+    {
+      "name": "Norse Mythology",
+      "description": "Runes, Yggdrasil, ravens and wolves, Valkyries, storm-forged weapons and frost giants."
+    },
+    {
+      "name": "Greek Mythology",
+      "description": "Olympian gods, marble temples, heroic demigods, monsters like hydras and gorgons, laurel and lightning."
+    },
+    {
+      "name": "Egyptian Mythology",
+      "description": "Anubis and Ra, hieroglyphic spells, scarabs, solar barges, afterlife judgment halls, desert dusk."
+    },
+    {
+      "name": "Japanese Yokai & Shinto Spirits",
+      "description": "Fox spirits, lantern festivals, shrine gates, river kami, ethereal masks and whispering forests."
+    },
+    {
+      "name": "Chinese Mythology",
+      "description": "Dragons and phoenixes, immortals on cloud peaks, jade palaces, peach blossoms and celestial courts."
+    },
+    {
+      "name": "Hindu Mythology",
+      "description": "Avatars and devas, luminous auras, lotus thrones, celestial weapons, cosmic dance and sacred rivers."
+    },
+    {
+      "name": "Celtic Folklore",
+      "description": "Fae mounds, druids, green-cloaked spirits, knotwork charms, misty moors with standing stones."
+    },
+    {
+      "name": "West African Mythology",
+      "description": "Orishas and ancestral spirits, vibrant textiles, drums and cowrie motifs, river and storm personifications."
+    },
+    {
+      "name": "Aztec/Mayan Mythology",
+      "description": "Feathered serpents, jaguar warriors, obsidian blades, sacred cenotes, sun temples carved in stone."
+    },
+    {
+      "name": "Polynesian Mythology",
+      "description": "Ocean spirits, voyaging canoes, tiki carvings, volcanic peaks, tattoos with swirling wave patterns."
+    },
+    {
+      "name": "Slavic Folklore",
+      "description": "Baba Yaga huts on chicken legs, forest Leshy, carved talismans, birch groves veiled in fog."
+    },
+    {
+      "name": "Lovecraftian Cosmic Horror",
+      "description": "Eldritch geometries, abyssal entities, inscrutable runes, creeping dread under starless skies."
+    },
+    {
+      "name": "Biblical/Angelic Imagery",
+      "description": "Winged seraphim, radiant halos, prophetic scrolls, cathedral light beams, trumpets and burning wheels."
+    },
+    {
+      "name": "Grimm's Fairy Tales",
+      "description": "Dark forests, crooked cottages, witches and wolves, red cloaks, cobblestone villages lit by lanterns."
+    },
+    {
+      "name": "Arthurian Legend",
+      "description": "Knights of the Round Table, misty Avalon, enchanted swords, heraldic banners, moody moors and castles."
+    },
+    {
+      "name": "Cybernetic/Techno-Mythology",
+      "description": "Digital pantheons, chrome totems, neon sigils, circuit halos, machine spirits woven into code."
+    }
   ],
-  "visual_styles": [
-    "Soviet Constructivist Poster",
-    "Russian Propaganda Art",
-    "Anime Cel-Shaded",
-    "Manga Inked Illustration",
-    "Western Comic Book Style",
-    "Cartoon Network Style",
-    "Studio Ghibli Style",
-    "Disney/Pixar 3D Style",
-    "Storybook Watercolor",
-    "Oil Painting (Chiaroscuro)",
-    "Impressionist Painting",
-    "Abstract Expressionism",
-    "Digital Matte Painting",
-    "Concept Art (ArtStation)",
-    "Photorealistic (8k, RAW)",
-    "35mm Film Grain",
-    "Polaroid Vintage",
-    "CCTV/Security Footage",
-    "VHS Tape Distortion",
-    "Stop-Motion/Claymation",
-    "Low-Poly 3D Render",
-    "Pixel Art (16-bit)",
-    "Vintage Pulp Magazine Cover",
-    "Art Nouveau (Mucha Style)",
-    "Art Deco (Geometric)",
-    "Bauhaus Design",
-    "Surrealist Collage",
-    "Ukiyo-e Woodblock Print",
-    "Risograph Print",
-    "Linocut/Woodcut",
-    "Charcoal Sketch",
-    "Pencil Sketch",
-    "Graffiti/Street Art",
-    "Neon Noir/Synthwave"
-  ]
+  "visual_styles": {
+    "photographic_and_cinematic": [
+      {
+        "name": "Photorealistic (8k, RAW)",
+        "description": "Photoreal capture: natural skin/fabric texture, realistic lens behavior, RAW photo detail, high dynamic range, believable lighting."
+      },
+      {
+        "name": "Photorealistic Studio Portrait",
+        "description": "High-end portrait photography look: controlled softboxes, catchlights in eyes, sharp focus on face, shallow depth of field, true-to-life skin texture."
+      },
+      {
+        "name": "Cinematic HDR Realism",
+        "description": "Filmic realism with rich dynamic range: moody key light, detailed shadows, subtle bloom, calibrated color grade, believable materials."
+      },
+      {
+        "name": "Documentary Street Photography",
+        "description": "Candid street capture: natural light, gritty textures, slight motion blur, muted colors, honest everyday framing."
+      },
+      {
+        "name": "Classic Film Noir",
+        "description": "Black-and-white noir lighting: hard key, Venetian blind shadows, deep contrast, smoke and rain atmosphere, dramatic angles."
+      },
+      {
+        "name": "35mm Film Grain",
+        "description": "Analog film look: fine grain, gentle halation, subtle color shifts, cinematic contrast, slight softness and authentic film texture."
+      },
+      {
+        "name": "Polaroid Vintage",
+        "description": "Instant film aesthetic: soft focus, faded colors, vignette, slight exposure quirks, nostalgic snapshot vibe."
+      },
+      {
+        "name": "CCTV/Security Footage",
+        "description": "Surveillance look: wide angle, timestamp overlay feel, low light noise, compression artifacts, flat or harsh lighting, utilitarian framing."
+      },
+      {
+        "name": "VHS Tape Distortion",
+        "description": "Retro VHS: scanlines, tracking noise, chroma bleed, timecode vibe, washed colors, analog glitches and warping."
+      },
+      {
+        "name": "Digital Matte Painting",
+        "description": "Cinematic environment art with realistic lighting, epic scale, atmospheric perspective, photobash-inspired texture and detail."
+      },
+      {
+        "name": "Concept Art (ArtStation)",
+        "description": "High-detail concept art: dramatic lighting, realistic materials, sharp silhouettes, production-design polish, painterly yet precise."
+      }
+    ],
+    "comic_and_cartoon": [
+      {
+        "name": "Anime Cel-Shaded",
+        "description": "Japanese animation look: clean line art, flat vibrant colors, cel shading, crisp highlights, simplified textures, expressive faces."
+      },
+      {
+        "name": "Manga Inked Illustration",
+        "description": "Black-and-white ink drawing with screentones, cross-hatching, speed lines, bold outlines, manga panel energy."
+      },
+      {
+        "name": "Webcomic Style",
+        "description": "Panel-ready webcomic look: clean readable lineart, flat or simple shading, clear silhouettes, space for text balloons, punchy expressions."
+      },
+      {
+        "name": "Webtoon / Manhwa Style",
+        "description": "Korean webtoon/manhwa look: clean lines, smooth gradient shading, glossy eyes, soft lighting, pastel or vivid palette, vertical-scroll composition cues."
+      },
+      {
+        "name": "Western Comic Book Style",
+        "description": "Bold outlines, dynamic poses, dramatic perspective, halftone dots, strong inking, punchy color separation like printed comics."
+      },
+      {
+        "name": "Cartoon Network Style",
+        "description": "Simplified shapes, thick clean outlines, flat colors, exaggerated expressions, minimal shading, TV animation character design."
+      },
+      {
+        "name": "Studio Ghibli Style",
+        "description": "Whimsical hand-drawn anime film vibe: warm painterly backgrounds, soft natural lighting, gentle colors, storybook realism."
+      },
+      {
+        "name": "Disney/Pixar 3D Style",
+        "description": "Family-friendly 3D animation look: smooth stylized forms, clean materials, soft global illumination, expressive faces, cinematic lighting."
+      },
+      {
+        "name": "American Comic (Silver Age)",
+        "description": "Vintage superhero comic vibe: flat spot colors, bold inking, halftone dots, dynamic poses, dramatic captions."
+      },
+      {
+        "name": "Franco-Belgian Bande Dessinee",
+        "description": "European comic clarity: clean lines, balanced color flats, clear panel composition, characterful yet readable stylization."
+      },
+      {
+        "name": "Ligne Claire (Tintin Style)",
+        "description": "Even line weights, minimal shading, solid color fills, crisp silhouettes, graphic readability and tidy contours."
+      },
+      {
+        "name": "Pop Art Ben-Day Dots",
+        "description": "Bold pop art poster: ben-day dot shading, thick black outlines, primary colors, speech bubble flair, graphic repetition."
+      },
+      {
+        "name": "Graphic Novel Noir Ink",
+        "description": "Heavy chiaroscuro inks, angular silhouettes, rain-slick streets, sparse color accents, moody detective comic energy."
+      },
+      {
+        "name": "Blood Moon Horror Comic",
+        "description": "Graphic novel horror: high-contrast inks, crimson accents, rain-slick alleys, sharp panel angles, visceral motion lines."
+      },
+      {
+        "name": "Stop-Motion/Claymation",
+        "description": "Handmade stop-motion: clay/plasticine texture, imperfect fingerprints, miniature sets, frame-by-frame charm, soft practical lighting."
+      }
+    ],
+    "traditional_and_fine_art": [
+      {
+        "name": "Storybook Watercolor",
+        "description": "Watercolor washes, soft edges, paper texture, gentle gradients, illustrative storybook charm with light linework."
+      },
+      {
+        "name": "Oil Painting (Chiaroscuro)",
+        "description": "Classical oil painting with dramatic light/dark contrast, rich brush strokes, deep shadows, warm highlights, museum-like realism."
+      },
+      {
+        "name": "Impressionist Painting",
+        "description": "Loose visible brush strokes, broken color, soft forms, atmospheric light, painterly texture, outdoor luminosity."
+      },
+      {
+        "name": "Abstract Expressionism",
+        "description": "Expressive abstract marks, energetic brushwork, splatters, bold color fields, emotional composition over literal detail."
+      },
+      {
+        "name": "Ink Wash (Sumi-e)",
+        "description": "East Asian ink wash: fluid brush strokes, soft gradients, ample negative space, rice paper texture, poetic minimalism."
+      },
+      {
+        "name": "Nihonga Inspired",
+        "description": "Modern Japanese painting: mineral pigments, gold/silver accents, layered washes, graceful linework, nature motifs."
+      },
+      {
+        "name": "Chinese Gongbi Brush Painting",
+        "description": "Meticulous line-driven Chinese painting: fine outlines, delicate shading, traditional flora/fauna themes, silk/paper texture."
+      },
+      {
+        "name": "Korean Minhwa Folk Art",
+        "description": "Vivid folk motifs: flattened perspective, lucky animals, decorative patterns, warm earth tones, storytelling symbolism."
+      },
+      {
+        "name": "Indian Mughal Miniature",
+        "description": "Intricate miniature painting: jewel tones, fine outlines, ornate textiles, architectural frames, detailed courtly scenes."
+      },
+      {
+        "name": "Persian Miniature Illumination",
+        "description": "Lavish manuscript style: dense ornament, ultramarine and gold, flattened perspective, floral borders, narrative vignettes."
+      },
+      {
+        "name": "Byzantine Icon Painting",
+        "description": "Gold leaf backgrounds, frontal figures, stylized folds, sacred calm expressions, tempera texture, haloed composition."
+      },
+      {
+        "name": "Celtic Illuminated Manuscript",
+        "description": "Interlaced knotwork, ornate initials, marginal beasts, parchment texture, jewel-toned inks, medieval scriptorium feel."
+      },
+      {
+        "name": "Mexican Muralism (Rivera Style)",
+        "description": "Monumental mural look: bold figurative forms, earthy saturated palette, social narrative scenes, fresco texture."
+      },
+      {
+        "name": "Celestial Myth Fresco",
+        "description": "Ancient mural vibe: cracked plaster texture, muted mineral pigments, haloed demigods, starry motifs and flowing robes."
+      },
+      {
+        "name": "Watercolor Urban Sketch",
+        "description": "Loose on-location sketch: pen outlines with quick washes, gestural perspective, lively street details, paper texture."
+      }
+    ],
+    "graphic_and_printmaking": [
+      {
+        "name": "Soviet Constructivist Poster",
+        "description": "Bold geometric shapes, strong diagonals, limited palette (red/black/cream), graphic typography, propaganda-poster composition."
+      },
+      {
+        "name": "Russian Propaganda Art",
+        "description": "Heroic poster illustration with dramatic lighting, simplified forms, patriotic color palette, high-contrast graphic look."
+      },
+      {
+        "name": "Vintage Pulp Magazine Cover",
+        "description": "Mid-century pulp cover: bold painted illustration, dramatic scene, saturated colors, stylized typography space, slightly aged print texture."
+      },
+      {
+        "name": "Art Nouveau (Mucha Style)",
+        "description": "Ornamental flowing lines, floral motifs, decorative borders, elegant poster composition, muted yet rich palette, stylized figures."
+      },
+      {
+        "name": "Art Deco (Geometric)",
+        "description": "Clean geometric shapes, symmetry, metallic accents, bold patterns, luxury poster vibe, streamlined architecture motifs."
+      },
+      {
+        "name": "Bauhaus Design",
+        "description": "Minimal functional design: primary colors, circles/triangles, grid composition, modernist typography feel, uncluttered shapes."
+      },
+      {
+        "name": "Surrealist Collage",
+        "description": "Dreamlike collage: cut-paper layers, unexpected juxtapositions, mixed-media textures, uncanny scale shifts, photomontage vibe."
+      },
+      {
+        "name": "Ukiyo-e Woodblock Print",
+        "description": "Traditional Japanese woodblock print: flat colors, bold contour lines, patterned textiles, stylized waves/clouds, paper texture."
+      },
+      {
+        "name": "Risograph Print",
+        "description": "Riso print: limited spot colors, misregistration offsets, grainy ink texture, halftone patterns, zine-like aesthetic."
+      },
+      {
+        "name": "Linocut/Woodcut",
+        "description": "Relief print look: carved high-contrast lines, rough texture, bold shapes, minimal colors, tactile ink impression."
+      },
+      {
+        "name": "Charcoal Sketch",
+        "description": "Charcoal drawing: smudged shading, soft edges, expressive strokes, paper grain, high-contrast sketch realism."
+      },
+      {
+        "name": "Pencil Sketch",
+        "description": "Graphite pencil lines, light cross-hatching, sketchbook texture, unfinished illustrative feel, subtle shading."
+      },
+      {
+        "name": "Graffiti/Street Art",
+        "description": "Urban street art: spray paint texture, bold tags, drips, stencil elements, vibrant color pops, gritty wall backdrop vibe."
+      },
+      {
+        "name": "Contemporary Mixed-Media Collage",
+        "description": "Layered cutouts, scanned textures, torn paper edges, paint splashes, type fragments, playful hybrid composition."
+      },
+      {
+        "name": "Brutalist Architectural Illustration",
+        "description": "Concrete-heavy forms: stark geometry, hard edges, muted grays, sharp shadows, utilitarian monumentality."
+      },
+      {
+        "name": "Andean Textile Inspired",
+        "description": "Geometric woven motifs: stepped diamonds, llamas/condors, vibrant stripes, hand-loomed texture, highland color harmony."
+      },
+      {
+        "name": "Aboriginal Dot Painting",
+        "description": "Pointillist patterns: concentric circles, earthy ochres, symbolic pathways, rhythmic dot clusters on dark ground."
+      },
+      {
+        "name": "Ottoman Iznik Tile Pattern",
+        "description": "Ceramic arabesques: cobalt and turquoise florals, repeating medallions, crisp white glaze, symmetrical ornamental grids."
+      },
+      {
+        "name": "Ethiopian Iconography",
+        "description": "Flat vivid color fields, almond eyes, haloed saints, patterned borders, devotional composition on wood panel texture."
+      }
+    ],
+    "stylized_and_aesthetic": [
+      {
+        "name": "Corporate Memphis (Alegria)",
+        "description": "Flat vector illustration with clean geometric shapes, stylized characters with non-traditional features (blue hair, exaggerated proportions), pastel palette with muted blues and soft pinks, low-contrast tones, minimalist design, flat shading with no gradients, soft ambient glow, clean outlines, solid colors, matte finish, lo-fi aesthetic, abstract geometric urban backgrounds, serene whimsical modern vibe."
+      },
+      {
+        "name": "Neon Noir/Synthwave",
+        "description": "Retro synthwave: neon gradients, magenta/cyan palette, glossy reflections, dark silhouettes, 80s noir mood, glowing rim light."
+      },
+      {
+        "name": "Low-Poly 3D Render",
+        "description": "Geometric low-poly forms, faceted surfaces, simple shaders, clean lighting, minimal textures, stylized 3D scene."
+      },
+      {
+        "name": "Pixel Art (16-bit)",
+        "description": "Retro 16-bit pixel art: crisp pixel clusters, limited palette, dithering, sprite-like shapes, game UI sensibility."
+      },
+      {
+        "name": "Retro Futurism (Atompunk)",
+        "description": "1950s sci-fi optimism: chrome fins, rayguns, teal and orange plastics, optimistic space age posters, mid-century typography."
+      },
+      {
+        "name": "Vaporwave Pastel",
+        "description": "Surreal pastel gradients, retro grids, marble busts, glitchy VHS overlays, nostalgic 80s digital sunset mood."
+      }
+    ],
+    "fantasy_and_horror": [
+      {
+        "name": "Dark Fantasy Painterly",
+        "description": "Moody oil-painted fantasy: dramatic chiaroscuro, battered armor, arcane sigils, stormy skies, embers and mist."
+      },
+      {
+        "name": "Grimdark Realism",
+        "description": "Gritty low-fantasy: scarred warriors, mud and rust textures, muted palette, harsh light, war-torn ruins."
+      },
+      {
+        "name": "High Fantasy Luminescent",
+        "description": "Glowing enchanted forests, crystalline magic, radiant runes, ethereal cloaks, jewel-toned palette with soft bloom."
+      },
+      {
+        "name": "Eldritch Horror Illustration",
+        "description": "Ink-heavy cosmic dread: impossible geometry, tentacular silhouettes, grainy stippling, desaturated palette with sickly greens."
+      },
+      {
+        "name": "Gothic Horror Etching",
+        "description": "Fine-line etch style: towering spires, wrought iron gates, candlelit interiors, heavy cross-hatching and deep shadows."
+      },
+      {
+        "name": "Victorian Gothic Lithograph",
+        "description": "Antique print look: foggy gaslit streets, tailored coats, ornate frames, charcoal shading, subtle sepia tone."
+      },
+      {
+        "name": "Folk Horror Woodcut",
+        "description": "Rough carved lines, rural rituals, straw masks, bonfire silhouettes, coarse ink texture and stark contrast."
+      },
+      {
+        "name": "Baroque Dark Fantasy",
+        "description": "Opulent yet ominous: gilded armor, velvet drapery, chiaroscuro lighting, cathedral-scale compositions and ornate scrollwork."
+      },
+      {
+        "name": "Bioluminescent Fae Forest",
+        "description": "Glow-dotted mushrooms, floating motes, translucent wings, mossy trunks, teal and violet night palette with soft haze."
+      },
+      {
+        "name": "Necromancer's Laboratory",
+        "description": "Dusty arcane study: bone totems, green phials, candle wax drips, chained grimoires, cold rim lighting on stone."
+      }
+    ]
+  }
 }

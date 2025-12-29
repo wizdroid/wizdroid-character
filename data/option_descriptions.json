@@ -1,0 +1,3 @@
+{
+  "_deprecated": "Moved option descriptions into data/character_options.json alongside each option (e.g. image_category entries are now {name, description}). This file is unused and intentionally contains no data to avoid duplication."
+}

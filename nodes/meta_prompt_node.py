@@ -1,89 +1,97 @@
-import json
 import random
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-try:
-    import requests  # type: ignore[import-not-found]
-except ImportError:  # pragma: no cover - optional dependency
-    requests = None
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
+from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.data_files import load_json
+from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.system_prompts import load_system_prompt_text
 RANDOM_LABEL = "Random"
 NONE_LABEL = "none"
-DEFAULT_OLLAMA_URL = "http://localhost:11434"
-
-_JSON_CACHE: Dict[str, Tuple[int, Any]] = {}
 
 
-def _safe_requests_post(url: str, json_body: Dict[str, Any], timeout: int = 60) -> Tuple[bool, str]:
-    """Send a POST request and return (ok, text_or_error).
-
-    This helper avoids raising exceptions inside the node and returns a readable
-    error message instead.
-    """
-
-    if requests is None:
-        return False, "request_error: requests library not installed"
-
-    try:
-        resp = requests.post(url, json=json_body, timeout=timeout)
-    except Exception as e:  # noqa: BLE001
-        return False, f"request_error: {type(e).__name__}: {e}"
-
-    if resp.status_code != 200:
-        return False, f"http_error: status {resp.status_code}: {resp.text[:512]}"
-
-    return True, resp.text
+def _option_name(item: Any) -> Optional[str]:
+    if isinstance(item, str):
+        name = item.strip()
+        return name or None
+    if isinstance(item, dict):
+        name = str(item.get("name") or item.get("value") or item.get("label") or "").strip()
+        return name or None
+    return None
 
 
-def _collect_ollama_models(ollama_url: str) -> List[str]:
-    """Best-effort discovery of available Ollama models.
-
-    Returns a simple list of model names or a small fallback list if discovery
-    fails. This matches the pattern used by other nodes in the package.
-    """
-
-    if requests is None:
-        return ["install_requests_library"]
-
-    try:
-        resp = requests.get(f"{ollama_url.rstrip('/')}/api/tags", timeout=5)
-        if resp.status_code != 200:
-            return ["model_not_available"]
-        data = resp.json()
-        models = [m.get("name", "unknown") for m in data.get("models", [])]
-        return models or ["no_models_found"]
-    except Exception:  # noqa: BLE001
-        return ["ollama_not_running"]
+def _option_description(item: Any) -> str:
+    if isinstance(item, dict):
+        desc = item.get("description")
+        if desc is None:
+            desc = item.get("desc")
+        return str(desc or "").strip()
+    return ""
 
 
-def _load_json(name: str) -> Any:
-    path = DATA_DIR / name
-    mtime = int(path.stat().st_mtime_ns)
-    cached = _JSON_CACHE.get(name)
-    if cached and cached[0] == mtime:
-        return cached[1]
-
-    with path.open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
-
-    _JSON_CACHE[name] = (mtime, payload)
-    return payload
+def _normalize_option_list(options: Any) -> List[str]:
+    if not isinstance(options, list):
+        return []
+    out: List[str] = []
+    for item in options:
+        name = _option_name(item)
+        if name:
+            out.append(name)
+    return out
 
 
-def _with_random(options: List[str]) -> Tuple[str, ...]:
+def _extract_descriptions(payload: Any) -> Dict[str, str]:
+    out: Dict[str, str] = {}
+    if not isinstance(payload, list):
+        return out
+    for item in payload:
+        name = _option_name(item)
+        if not name:
+            continue
+        desc = _option_description(item)
+        if desc:
+            out[name] = desc
+    return out
+
+
+def _flatten_style_payload(payload: Any) -> List[Any]:
+    """Allow visual_styles to be grouped by category while keeping downstream logic list-based."""
+
+    if isinstance(payload, dict):
+        merged: List[Any] = []
+        for group in payload.values():
+            if isinstance(group, list):
+                merged.extend(group)
+        return merged
+    if isinstance(payload, list):
+        return payload
+    return []
+
+
+def _should_echo_style_label(style_name: str) -> bool:
+    lowered = style_name.lower()
+    banned_tokens = (
+        "studio",
+        "disney",
+        "pixar",
+        "ghibli",
+        "cartoon network",
+    )
+    return not any(token in lowered for token in banned_tokens)
+
+
+def _with_random(options: Any) -> Tuple[str, ...]:
+    normalized = _normalize_option_list(options)
     values: List[str] = [RANDOM_LABEL, NONE_LABEL]
-    for option in options:
+    for option in normalized:
         if option != NONE_LABEL:
             values.append(option)
     return tuple(values)
 
 
-def _choose(value: str, options: List[str], rng: random.Random) -> Optional[str]:
+def _choose(value: str, options: Any, rng: random.Random) -> Optional[str]:
+    normalized = _normalize_option_list(options)
     if value == RANDOM_LABEL:
-        pool = [opt for opt in options if opt != NONE_LABEL]
+        pool = [opt for opt in normalized if opt != NONE_LABEL]
         choice = rng.choice(pool) if pool else None
     else:
         choice = value
@@ -92,28 +100,26 @@ def _choose(value: str, options: List[str], rng: random.Random) -> Optional[str]
     return choice
 
 
-def _get_meta_options() -> Dict[str, List[str]]:
-    region_payload = _load_json("regions.json")
-    meta_payload = _load_json("meta_prompt_options.json")
+def _get_meta_options() -> Dict[str, Any]:
+    region_payload = load_json("regions.json")
+    meta_payload = load_json("meta_prompt_options.json")
+
+    visual_payload = _flatten_style_payload(meta_payload.get("visual_styles", []))
+    futuristic_payload = meta_payload.get("futuristic_settings", [])
+    ancient_payload = meta_payload.get("ancient_eras", [])
+    mythology_payload = meta_payload.get("mythological_elements", [])
+
     return {
         "regions": list(region_payload.get("regions", [])),
-        "futuristic_settings": list(meta_payload.get("futuristic_settings", [])),
-        "ancient_eras": list(meta_payload.get("ancient_eras", [])),
-        "mythological_elements": list(meta_payload.get("mythological_elements", [])),
-        "visual_styles": list(meta_payload.get("visual_styles", [])),
+        "futuristic_settings": list(futuristic_payload),
+        "ancient_eras": list(ancient_payload),
+        "mythological_elements": list(mythology_payload),
+        "visual_styles": _normalize_option_list(visual_payload),
+        "visual_style_desc_map": _extract_descriptions(visual_payload),
+        "futuristic_desc_map": _extract_descriptions(futuristic_payload),
+        "ancient_desc_map": _extract_descriptions(ancient_payload),
+        "mythology_desc_map": _extract_descriptions(mythology_payload),
     }
-
-
-META_PROMPT_SYSTEM = """You are a prompt generator for an image AI. Your job is to take a short list of user keywords plus optional context directives and expand them into a single, vivid, well-structured prompt.
-
-Requirements:
-1. Input: The user will provide only a few words or short phrases.
-2. Output: Produce one single prompt as plain text. Do not add explanations, headings, or lists.
-3. Content: Use your imagination to add concrete visual detail: setting, mood, lighting, camera framing, clothing, materials, and background elements that fit the keywords. Keep style coherent with the implied genre and ALWAYS integrate any provided directives (regional influence, futuristic/ancient cues, mythological elements, visual style). Avoid explicit artist or franchise names.
-4. Length: The final prompt must be between 150 and 1024 tokens. If there are few keywords, expand with descriptive detail; if there are many, focus on the most important and compress wording.
-5. Tone: Write as if you are describing the image directly to the image model, using a natural flowing sentence or comma-separated phrases, not bullet points.
-
-Now wait for the user’s keywords and output only the final expanded prompt that follows these rules."""
 
 
 class MetaPromptGeneratorNode:
@@ -125,7 +131,7 @@ class MetaPromptGeneratorNode:
 
     @classmethod
     def INPUT_TYPES(cls) -> Dict[str, Dict[str, Any]]:  # noqa: N802
-        models = _collect_ollama_models(DEFAULT_OLLAMA_URL)
+        models = collect_models(DEFAULT_OLLAMA_URL)
         options = _get_meta_options()
 
         return {
@@ -148,6 +154,12 @@ class MetaPromptGeneratorNode:
                     {
                         "default": "female knight, rainy neon city, blue coat",
                         "multiline": True,
+                    },
+                ),
+                "content_rating": (
+                    CONTENT_RATING_CHOICES,
+                    {
+                        "default": "SFW only",
                     },
                 ),
                 "regional_style": (
@@ -221,6 +233,7 @@ class MetaPromptGeneratorNode:
         ollama_url: str,
         ollama_model: str,
         keywords: str,
+        content_rating: str,
         regional_style: str,
         futuristic_setting: str,
         ancient_setting: str,
@@ -249,17 +262,41 @@ class MetaPromptGeneratorNode:
             directive_parts.append(f"Regional inspiration: {selected_directives['region']}")
         if selected_directives["futuristic"]:
             directive_parts.append(f"Futuristic setting: {selected_directives['futuristic']}")
+            futur_desc = (meta_options.get("futuristic_desc_map") or {}).get(selected_directives["futuristic"], "")
+            if futur_desc:
+                directive_parts.append(f"Futuristic detail: {futur_desc}")
         if selected_directives["ancient"]:
             directive_parts.append(f"Historical inspiration: {selected_directives['ancient']}")
+            ancient_desc = (meta_options.get("ancient_desc_map") or {}).get(selected_directives["ancient"], "")
+            if ancient_desc:
+                directive_parts.append(f"Historical detail: {ancient_desc}")
         if selected_directives["mythology"]:
             directive_parts.append(f"Mythological element: {selected_directives['mythology']}")
+            myth_desc = (meta_options.get("mythology_desc_map") or {}).get(selected_directives["mythology"], "")
+            if myth_desc:
+                directive_parts.append(f"Mythology detail: {myth_desc}")
         if selected_directives["style"]:
-            directive_parts.append(f"Visual style: {selected_directives['style']}")
+            style_name = selected_directives["style"]
+            style_desc = (meta_options.get("visual_style_desc_map") or {}).get(style_name, "")
+            if _should_echo_style_label(style_name):
+                directive_parts.append(
+                    "Visual style (HARD REQUIREMENT): "
+                    f"{style_name} (include this exact phrase verbatim in the final prompt)"
+                )
+            else:
+                directive_parts.append(f"Visual style: {style_name}")
+                directive_parts.append(
+                    "Brand safety: Do NOT mention brand/franchise names; express the look using generic descriptors."
+                )
+            if style_desc:
+                directive_parts.append(f"Visual style meaning: {style_desc}")
+            directive_parts.append(
+                "Visual style enforcement: Make the style unmistakable via explicit medium + rendering cues "
+                "(linework/inking, shading, palette, texture, and composition)."
+            )
 
         temp_variation = rng.uniform(-0.1, 0.1)  # Small temperature variation
         adjusted_temperature = max(0.0, min(1.5, temperature + temp_variation))
-
-        api_url = f"{ollama_url.rstrip('/')}/api/generate"
 
         keyword_payload = keywords.strip() or "dreamlike character vignette"
         if directive_parts:
@@ -268,32 +305,33 @@ class MetaPromptGeneratorNode:
         else:
             prompt_input = keyword_payload
 
-        payload = {
-            "model": ollama_model,
-            "stream": False,
-            "options": {
+        system_prompt = load_system_prompt_text("system_prompts/meta_prompt_system.txt", content_rating)
+        ok, output = generate_text(
+            ollama_url=ollama_url,
+            model=ollama_model,
+            prompt=prompt_input,
+            system=system_prompt,
+            options={
                 "temperature": float(adjusted_temperature),
-                # Ollama uses num_predict as max tokens for completion
                 "num_predict": int(max_tokens),
+                "seed": int(seed),
             },
-            "system": META_PROMPT_SYSTEM,
-            "prompt": prompt_input,
-        }
-
-        ok, text = _safe_requests_post(api_url, payload)
+            timeout=120,
+        )
         if not ok:
-            # Return the error string as the prompt so the user can see what happened
-            return (f"MetaPrompt error: {text}",)
-
-        # Ollama /api/generate returns JSON per call when stream=False
-        try:
-            data = json.loads(text)
-            output = data.get("response", "").strip()
-        except Exception:  # noqa: BLE001
-            output = text.strip()
+            return (f"MetaPrompt error: {output}",)
 
         if not output:
             output = "MetaPrompt error: empty response from Ollama"
+
+        # Guardrail: in strict SFW mode, block outputs that look NSFW.
+        if content_rating != "NSFW allowed":
+            err = enforce_sfw(output)
+            if err:
+                return (
+                    "MetaPrompt blocked: potential NSFW content detected. "
+                    "Switch content_rating to 'NSFW allowed' or revise keywords.",
+                )
 
         return (output,)
 

@@ -1,0 +1,80 @@
+{
+  "clothes": {
+    "analysis_prompt": "Describe the clothing, outfit, garments, colors, fabrics, accessories, and styling worn by the person in this image. Be specific and detailed.",
+    "synthesis_start": "wearing",
+    "synthesis_focus": "Focus on the clothing, outfit, colors, fabrics, and accessories",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in clothing and outfit descriptions. Create concise, detailed prompts focusing on garments, colors, fabrics, and styling. Output only the prompt, no explanations."
+  },
+  "pose": {
+    "analysis_prompt": "Describe the body pose, stance, posture, limb placement, hand gestures, body position, camera angle, and framing in this image. Be specific and detailed.",
+    "synthesis_start": "in",
+    "synthesis_focus": "Focus on the body pose, stance, posture, limb placement, hand gestures, and camera angle",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in body pose and positioning descriptions. Create concise, detailed prompts focusing on stance, posture, limb placement, and camera angles. Output only the prompt, no explanations."
+  },
+  "style": {
+    "analysis_prompt": "Describe the overall artistic style, visual aesthetic, lighting quality, color grading, mood, atmosphere, and photographic/artistic techniques in this image. Be specific and detailed.",
+    "synthesis_start": "with",
+    "synthesis_focus": "Focus on the artistic style, visual aesthetic, lighting quality, color grading, and overall mood",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in artistic style and visual aesthetics. Create concise, detailed prompts focusing on style, lighting, mood, and artistic techniques. Output only the prompt, no explanations."
+  },
+  "background": {
+    "analysis_prompt": "Describe the background, environment, setting, location, scenery, architectural elements, natural features, and spatial context in this image. Be specific and detailed.",
+    "synthesis_start": "with background of",
+    "synthesis_focus": "Focus on the environment, setting, scenery, and spatial context",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in background and environment descriptions. Create concise, detailed prompts focusing on settings, locations, scenery, and spatial elements. Output only the prompt, no explanations."
+  },
+  "expression": {
+    "analysis_prompt": "Describe the facial expression, emotions, gaze direction, eye contact, mood, facial features, and emotional state conveyed in this image. Be specific and detailed.",
+    "synthesis_start": "with",
+    "synthesis_focus": "Focus on the facial expression, emotions, gaze, and mood",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in facial expressions and emotions. Create concise, detailed prompts focusing on expressions, gaze, mood, and emotional states. Output only the prompt, no explanations."
+  },
+  "lighting": {
+    "analysis_prompt": "Describe the lighting setup, light direction, quality (hard/soft), shadows, highlights, color temperature, time of day indicators, and overall illumination in this image. Be specific and detailed.",
+    "synthesis_start": "lit with",
+    "synthesis_focus": "Focus on the lighting direction, quality, shadows, highlights, and color temperature",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in lighting descriptions. Create concise, detailed prompts focusing on light sources, direction, quality, and illumination effects. Output only the prompt, no explanations."
+  },
+  "hair": {
+    "analysis_prompt": "Describe the hairstyle, hair color, length, texture, styling, hair accessories, and grooming details in this image. Be specific and detailed.",
+    "synthesis_start": "with hair",
+    "synthesis_focus": "Focus on the hairstyle, color, length, texture, and styling",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in hair and hairstyle descriptions. Create concise, detailed prompts focusing on hair characteristics, styling, and accessories. Output only the prompt, no explanations."
+  },
+  "makeup": {
+    "analysis_prompt": "Describe the makeup application, cosmetics style, colors used, techniques (eyes, lips, face, etc.), intensity, and overall beauty styling in this image. Be specific and detailed.",
+    "synthesis_start": "with makeup",
+    "synthesis_focus": "Focus on the makeup style, application, colors, and techniques",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in makeup and beauty descriptions. Create concise, detailed prompts focusing on cosmetics, application style, and beauty techniques. Output only the prompt, no explanations."
+  },
+  "accessories": {
+    "analysis_prompt": "Describe the accessories, jewelry, props, items held or worn, bags, glasses, watches, and decorative elements in this image. Be specific and detailed.",
+    "synthesis_start": "with",
+    "synthesis_focus": "Focus on the accessories, jewelry, props, and decorative items",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in accessories and props descriptions. Create concise, detailed prompts focusing on jewelry, items, and decorative elements. Output only the prompt, no explanations."
+  },
+  "camera": {
+    "analysis_prompt": "Describe the camera angle, lens type, focal length, depth of field, bokeh, perspective, framing, and photographic technique used in this image. Be specific and detailed.",
+    "synthesis_start": "shot with",
+    "synthesis_focus": "Focus on the camera angle, lens characteristics, depth of field, and photographic technique",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in camera and photography technical descriptions. Create concise, detailed prompts focusing on camera angles, lens properties, and photographic techniques. Output only the prompt, no explanations."
+  },
+  "composition": {
+    "analysis_prompt": "Describe the composition, framing, rule of thirds application, depth layers, focal point, visual balance, negative space, and overall image structure in this image. Be specific and detailed.",
+    "synthesis_start": "composed with",
+    "synthesis_focus": "Focus on the framing, composition rules, depth, focal point, and visual balance",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in composition and framing descriptions. Create concise, detailed prompts focusing on compositional elements, balance, and visual structure. Output only the prompt, no explanations."
+  },
+  "color_palette": {
+    "analysis_prompt": "Describe the color palette, dominant colors, color harmony, saturation levels, contrast, tonal range, and overall color scheme in this image. Be specific and detailed.",
+    "synthesis_start": "with colors",
+    "synthesis_focus": "Focus on the color palette, dominant hues, harmony, saturation, and contrast",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in color palette descriptions. Create concise, detailed prompts focusing on colors, harmony, saturation, and tonal relationships. Output only the prompt, no explanations."
+  },
+  "full_description": {
+    "analysis_prompt": "Provide a comprehensive description of everything visible in this image, including subjects, setting, lighting, colors, composition, mood, and any notable details. Be thorough and specific.",
+    "synthesis_start": "",
+    "synthesis_focus": "Provide a complete, detailed description of the entire scene including all subjects, environment, lighting, colors, and atmosphere",
+    "system_prompt": "You are a text-to-image prompt engineer specializing in comprehensive scene descriptions. Create detailed, vivid prompts that capture the complete essence of an image including all visual elements, mood, and context. Output only the prompt, no explanations."
+  }
+}

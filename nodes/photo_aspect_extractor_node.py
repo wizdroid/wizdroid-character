@@ -21,6 +21,10 @@ try:
 except ImportError:  # pragma: no cover
     requests = None
 
+from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.data_files import load_json
+from lib.system_prompts import apply_content_policy, load_system_prompt_text
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 RANDOM_LABEL = "Random"
@@ -44,10 +48,184 @@ VISION_KEYWORDS = {
 }
 
 
+def _sanitize_clothes_prompt(text: str) -> str:
+    """Best-effort cleanup for clothes-mode outputs.
+
+    Some vision models (incl. llava variants) tend to add identity/background/event details even
+    when instructed not to. This keeps the output focused on clothing/accessories.
+    """
+
+    raw = (text or "").strip()
+    if not raw:
+        return ""
+
+    # Trim wrapping quotes some models add.
+    if (raw.startswith("\"") and raw.endswith("\"")) or (raw.startswith("'") and raw.endswith("'")):
+        raw = raw[1:-1].strip()
+
+    # If the model included identity/context before the clothes clause, keep only from 'wearing' onward.
+    lower_raw = raw.lower()
+    if lower_raw.startswith("prompt:"):
+        raw = raw[len("prompt:") :].strip()
+        lower_raw = raw.lower()
+
+    wearing_idx = lower_raw.find("wearing")
+    if wearing_idx > 0:
+        prefix = lower_raw[:wearing_idx]
+        # Keep the prefix if it already contains clothing info (e.g., "in a black suit...").
+        if not any(hint in prefix for hint in (
+            "suit",
+            "jacket",
+            "coat",
+            "shirt",
+            "tie",
+            "pants",
+            "trousers",
+            "jeans",
+            "dress",
+            "skirt",
+            "shoes",
+            "boots",
+            "watch",
+        )):
+            raw = raw[wearing_idx:].strip()
+            lower_raw = raw.lower()
+
+    # If there's no 'wearing', anchor on the first clothing keyword to drop identity/context prefixes.
+    if "wearing" not in lower_raw:
+        earliest = None
+        for hint in (
+            "suit",
+            "jacket",
+            "coat",
+            "shirt",
+            "tie",
+            "pants",
+            "trousers",
+            "jeans",
+            "dress",
+            "skirt",
+            "shoes",
+            "boots",
+            "watch",
+        ):
+            idx = lower_raw.find(hint)
+            if idx != -1 and (earliest is None or idx < earliest):
+                earliest = idx
+        if earliest is not None and earliest > 0:
+            raw = raw[earliest:].strip()
+            lower_raw = raw.lower()
+
+    disallowed = {
+        "prompt:",
+        "background",
+        "flags",
+        "flag",
+        "event",
+        "ceremony",
+        "president",
+        "obama",
+        "biden",
+        "trump",
+        "standing",
+        "smiling",
+        "smile",
+        "camera",
+        "gaze",
+        "looking",
+        "portrait",
+        "patriotic",
+        "in front of",
+        "behind",
+        "setting",
+        "location",
+        "scene",
+        "curtain",
+        "arms crossed",
+        "formal setting",
+    }
+
+    clothing_hints = {
+        "wearing",
+        "suit",
+        "jacket",
+        "coat",
+        "shirt",
+        "t-shirt",
+        "tee",
+        "tie",
+        "pants",
+        "trousers",
+        "jeans",
+        "skirt",
+        "dress",
+        "shoes",
+        "boots",
+        "sneakers",
+        "watch",
+        "belt",
+        "gloves",
+        "hat",
+        "cap",
+        "scarf",
+        "sunglasses",
+        "fabric",
+        "leather",
+        "denim",
+    }
+
+    # Split into clauses and keep clauses that look clothing-related and not disallowed.
+    # Prefer simple, deterministic parsing over another LLM pass.
+    parts: List[str] = []
+    for chunk in raw.replace(";", ".").split("."):
+        clause = chunk.strip().strip(",")
+        if not clause:
+            continue
+        lower = clause.lower()
+        if any(bad in lower for bad in disallowed):
+            continue
+        if any(hint in lower for hint in clothing_hints):
+            parts.append(clause)
+
+    cleaned = ", ".join(parts).strip()
+    if not cleaned:
+        cleaned = raw
+
+    # Normalize leading token to match the expected prompt style.
+    lower_cleaned = cleaned.lower().lstrip()
+    if lower_cleaned.startswith("wearing "):
+        cleaned = "wearing " + cleaned[len("wearing ") :]
+    elif lower_cleaned.startswith("wearing,"):
+        cleaned = "wearing" + cleaned[len("wearing") :]
+    elif cleaned.startswith("Wearing "):
+        cleaned = "wearing " + cleaned[len("Wearing ") :]
+    else:
+        first = lower_cleaned.split(" ", 1)[0] if lower_cleaned else ""
+        if first in {"suit", "jacket", "coat", "shirt", "dress", "skirt"}:
+            cleaned = "wearing a " + cleaned.lstrip()
+        elif first in {"tie", "pants", "trousers", "jeans", "shoes", "boots", "watch"}:
+            cleaned = "wearing " + cleaned.lstrip()
+
+    return cleaned.strip().strip(",")
+
+
 def _load_json(name: str) -> Dict:
-    path = DATA_DIR / name
-    with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+    return load_json(name)
+
+
+def _get_extraction_modes() -> Dict[str, Dict[str, str]]:
+    try:
+        payload = load_json("photo_aspect_modes.json")
+    except Exception:
+        payload = {}
+    if not isinstance(payload, dict):
+        return {}
+    # Shallow validation
+    out: Dict[str, Dict[str, str]] = {}
+    for key, value in payload.items():
+        if isinstance(key, str) and isinstance(value, dict):
+            out[key] = {str(k): str(v) for k, v in value.items()}
+    return out
 def _with_random(options: List[str]) -> Tuple[str, ...]:
     return tuple([RANDOM_LABEL, NONE_LABEL] + options)
 
@@ -147,98 +325,34 @@ class PhotoAspectExtractorNode:
     RETURN_NAMES = ("extracted_prompt", "preview")
     FUNCTION = "extract_aspect"
 
-    # Extraction modes and their configurations
-    EXTRACTION_MODES = {
-        "clothes": {
-            "analysis_prompt": "Describe the clothing, outfit, garments, colors, fabrics, accessories, and styling worn by the person in this image. Be specific and detailed.",
-            "synthesis_start": "wearing",
-            "synthesis_focus": "Focus on the clothing, outfit, colors, fabrics, and accessories",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in clothing and outfit descriptions. Create concise, detailed prompts focusing on garments, colors, fabrics, and styling. Output only the prompt, no explanations."
-        },
-        "pose": {
-            "analysis_prompt": "Describe the body pose, stance, posture, limb placement, hand gestures, body position, camera angle, and framing in this image. Be specific and detailed.",
-            "synthesis_start": "in",
-            "synthesis_focus": "Focus on the body pose, stance, posture, limb placement, hand gestures, and camera angle",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in body pose and positioning descriptions. Create concise, detailed prompts focusing on stance, posture, limb placement, and camera angles. Output only the prompt, no explanations."
-        },
-        "style": {
-            "analysis_prompt": "Describe the overall artistic style, visual aesthetic, lighting quality, color grading, mood, atmosphere, and photographic/artistic techniques in this image. Be specific and detailed.",
-            "synthesis_start": "with",
-            "synthesis_focus": "Focus on the artistic style, visual aesthetic, lighting quality, color grading, and overall mood",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in artistic style and visual aesthetics. Create concise, detailed prompts focusing on style, lighting, mood, and artistic techniques. Output only the prompt, no explanations."
-        },
-        "background": {
-            "analysis_prompt": "Describe the background, environment, setting, location, scenery, architectural elements, natural features, and spatial context in this image. Be specific and detailed.",
-            "synthesis_start": "with background of",
-            "synthesis_focus": "Focus on the environment, setting, scenery, and spatial context",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in background and environment descriptions. Create concise, detailed prompts focusing on settings, locations, scenery, and spatial elements. Output only the prompt, no explanations."
-        },
-        "expression": {
-            "analysis_prompt": "Describe the facial expression, emotions, gaze direction, eye contact, mood, facial features, and emotional state conveyed in this image. Be specific and detailed.",
-            "synthesis_start": "with",
-            "synthesis_focus": "Focus on the facial expression, emotions, gaze, and mood",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in facial expressions and emotions. Create concise, detailed prompts focusing on expressions, gaze, mood, and emotional states. Output only the prompt, no explanations."
-        },
-        "lighting": {
-            "analysis_prompt": "Describe the lighting setup, light direction, quality (hard/soft), shadows, highlights, color temperature, time of day indicators, and overall illumination in this image. Be specific and detailed.",
-            "synthesis_start": "lit with",
-            "synthesis_focus": "Focus on the lighting direction, quality, shadows, highlights, and color temperature",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in lighting descriptions. Create concise, detailed prompts focusing on light sources, direction, quality, and illumination effects. Output only the prompt, no explanations."
-        },
-        "hair": {
-            "analysis_prompt": "Describe the hairstyle, hair color, length, texture, styling, hair accessories, and grooming details in this image. Be specific and detailed.",
-            "synthesis_start": "with hair",
-            "synthesis_focus": "Focus on the hairstyle, color, length, texture, and styling",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in hair and hairstyle descriptions. Create concise, detailed prompts focusing on hair characteristics, styling, and accessories. Output only the prompt, no explanations."
-        },
-        "makeup": {
-            "analysis_prompt": "Describe the makeup application, cosmetics style, colors used, techniques (eyes, lips, face, etc.), intensity, and overall beauty styling in this image. Be specific and detailed.",
-            "synthesis_start": "with makeup",
-            "synthesis_focus": "Focus on the makeup style, application, colors, and techniques",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in makeup and beauty descriptions. Create concise, detailed prompts focusing on cosmetics, application style, and beauty techniques. Output only the prompt, no explanations."
-        },
-        "accessories": {
-            "analysis_prompt": "Describe the accessories, jewelry, props, items held or worn, bags, glasses, watches, and decorative elements in this image. Be specific and detailed.",
-            "synthesis_start": "with",
-            "synthesis_focus": "Focus on the accessories, jewelry, props, and decorative items",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in accessories and props descriptions. Create concise, detailed prompts focusing on jewelry, items, and decorative elements. Output only the prompt, no explanations."
-        },
-        "camera": {
-            "analysis_prompt": "Describe the camera angle, lens type, focal length, depth of field, bokeh, perspective, framing, and photographic technique used in this image. Be specific and detailed.",
-            "synthesis_start": "shot with",
-            "synthesis_focus": "Focus on the camera angle, lens characteristics, depth of field, and photographic technique",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in camera and photography technical descriptions. Create concise, detailed prompts focusing on camera angles, lens properties, and photographic techniques. Output only the prompt, no explanations."
-        },
-        "composition": {
-            "analysis_prompt": "Describe the composition, framing, rule of thirds application, depth layers, focal point, visual balance, negative space, and overall image structure in this image. Be specific and detailed.",
-            "synthesis_start": "composed with",
-            "synthesis_focus": "Focus on the framing, composition rules, depth, focal point, and visual balance",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in composition and framing descriptions. Create concise, detailed prompts focusing on compositional elements, balance, and visual structure. Output only the prompt, no explanations."
-        },
-        "color_palette": {
-            "analysis_prompt": "Describe the color palette, dominant colors, color harmony, saturation levels, contrast, tonal range, and overall color scheme in this image. Be specific and detailed.",
-            "synthesis_start": "with colors",
-            "synthesis_focus": "Focus on the color palette, dominant hues, harmony, saturation, and contrast",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in color palette descriptions. Create concise, detailed prompts focusing on colors, harmony, saturation, and tonal relationships. Output only the prompt, no explanations."
-        },
-        "full_description": {
-            "analysis_prompt": "Provide a comprehensive description of everything visible in this image, including subjects, setting, lighting, colors, composition, mood, and any notable details. Be thorough and specific.",
-            "synthesis_start": "",
-            "synthesis_focus": "Provide a complete, detailed description of the entire scene including all subjects, environment, lighting, colors, and atmosphere",
-            "system_prompt": "You are a text-to-image prompt engineer specializing in comprehensive scene descriptions. Create detailed, vivid prompts that capture the complete essence of an image including all visual elements, mood, and context. Output only the prompt, no explanations."
-        }
-    }
-
     @classmethod
     def INPUT_TYPES(cls):
         ollama_models = cls._collect_ollama_models()
+        modes = _get_extraction_modes()
+        mode_keys = sorted(modes.keys()) or [
+            "clothes",
+            "pose",
+            "style",
+            "background",
+            "expression",
+            "lighting",
+            "hair",
+            "makeup",
+            "accessories",
+            "camera",
+            "composition",
+            "color_palette",
+            "full_description",
+        ]
 
         return {
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "extraction_mode": (["clothes", "pose", "style", "background", "expression", "lighting", "hair", "makeup", "accessories", "camera", "composition", "color_palette", "full_description"], {"default": "clothes"}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
+                "extraction_mode": (mode_keys, {"default": mode_keys[0]}),
                 "retain_face": ("BOOLEAN", {"default": False}),
+                "retain_pose_and_camera": ("BOOLEAN", {"default": True}),
                 "character_image": ("IMAGE",),
                 "custom_prompt": ("STRING", {"default": "", "multiline": True}),
             }
@@ -248,25 +362,51 @@ class PhotoAspectExtractorNode:
         self,
         ollama_url: str,
         ollama_model: str,
+        content_rating: str,
         extraction_mode: str,
         retain_face: bool,
+        retain_pose_and_camera: bool,
         character_image,
         custom_prompt: str = "",
     ) -> Tuple[str]:
-        # Get mode configuration
-        mode_config = self.EXTRACTION_MODES.get(extraction_mode, self.EXTRACTION_MODES["clothes"])
+        modes = _get_extraction_modes()
+        mode_config = modes.get(extraction_mode) or modes.get("clothes") or {}
+        if not mode_config:
+            return ("[ERROR: photo_aspect_modes.json missing or invalid]", "[ERROR: photo_aspect_modes.json missing or invalid]")
 
         # Modify prompts for face preservation if enabled
-        analysis_prompt = mode_config["analysis_prompt"]
-        system_prompt = mode_config["system_prompt"]
+        analysis_prompt = mode_config.get("analysis_prompt", "Describe the image.")
+        system_prompt = mode_config.get("system_prompt", "Output only the prompt.")
 
-        if retain_face and extraction_mode in ["expression", "hair", "makeup", "full_description"]:
+        # Keep extraction tightly scoped to the selected mode.
+        # Many vision models will otherwise leak background/identity details into a focused aspect prompt.
+        if extraction_mode != "full_description":
+            if extraction_mode == "clothes":
+                analysis_prompt = (
+                    f"{analysis_prompt} IMPORTANT: Only describe clothing/outfit/accessories. "
+                    "Do NOT mention background, setting, flags, location, or the person's identity."
+                )
+            elif extraction_mode != "background":
+                analysis_prompt = (
+                    f"{analysis_prompt} IMPORTANT: Only describe the requested aspect. "
+                    "Do NOT mention unrelated details such as background/setting, identity, or other attributes."
+                )
+
+        if retain_face:
+            # Always discourage facial-feature descriptions when face retention is requested.
+            # Even in non-face modes, some vision models will mention face/eyes/gaze unless explicitly told not to.
             if extraction_mode == "full_description":
                 analysis_prompt = "Provide a comprehensive description of everything visible in this image, including subjects, setting, lighting, colors, composition, mood, and any notable details. Be thorough and specific. IMPORTANT: Do not describe specific facial features (eyes, nose, mouth, face shape) as these should be preserved from the original."
                 system_prompt = "You are a text-to-image prompt engineer specializing in comprehensive scene descriptions for face-preserving image editing. Create detailed, vivid prompts that capture the complete essence of an image including all visual elements, mood, and context, while explicitly avoiding description of facial features. Output only the prompt, no explanations."
             else:
-                analysis_prompt = mode_config["analysis_prompt"] + " IMPORTANT: Focus only on the requested aspect and avoid describing specific facial features (eyes, nose, mouth, face shape) as these should be preserved from the original."
-                system_prompt = mode_config["system_prompt"].replace("Output only the prompt, no explanations.", "IMPORTANT: Do not describe facial features (eyes, nose, mouth, face shape) as these should be preserved. Output only the prompt, no explanations.")
+                analysis_prompt = (
+                    f"{analysis_prompt} IMPORTANT: Avoid describing specific facial features (eyes, nose, mouth, face shape) "
+                    "as these should be preserved from the original."
+                )
+                system_prompt = (system_prompt or "").replace(
+                    "Output only the prompt, no explanations.",
+                    "IMPORTANT: Do not describe facial features (eyes, nose, mouth, face shape) as these should be preserved. Output only the prompt, no explanations.",
+                )
 
         character_b64 = _image_to_base64(character_image)
 
@@ -280,10 +420,15 @@ class PhotoAspectExtractorNode:
 
         # Analyze character image
         print(f"[PhotoAspectExtractor] Analyzing character image...")
+
+        analysis_system = load_system_prompt_text("system_prompts/photo_aspect_analysis_system.txt", content_rating)
         
         character_desc = self._analyze_single_image(
-            ollama_url, ollama_model, character_b64,
-            mode_config["analysis_prompt"]
+            ollama_url,
+            ollama_model,
+            character_b64,
+            analysis_prompt,
+            analysis_system,
         )
         
         if character_desc.startswith("[ERROR"):
@@ -334,18 +479,24 @@ Requirements:
 - Keep within 100 tokens
 - No meta commentary, just the description"""
             else:
+                pose_camera_line = (
+                    "- Preserve the original pose and camera angle; do not introduce new pose/camera descriptions unless the mode is pose or camera\n"
+                    if retain_pose_and_camera
+                    else ""
+                )
                 synthesis_prompt = f"""Based on the following analysis, create a concise text-to-image prompt.
 
 Analysis: {character_desc}
 
 Requirements:
-- Start with '{mode_config['synthesis_start']}'
+- Start with the exact word '{mode_config['synthesis_start']}'
 - {mode_config['synthesis_focus']}
-- Be specific and detailed
+- Only describe the requested aspect; do not add background/identity details unless the mode is background
+{pose_camera_line}- Be specific and detailed
 - Keep within 100 tokens
 - No meta commentary, just the description"""
 
-        system_prompt = mode_config["system_prompt"]
+        system_prompt = apply_content_policy(system_prompt, content_rating)
         
         # Ensure URL has the /api/generate endpoint for synthesis
         synthesis_url = ollama_url
@@ -365,28 +516,54 @@ Requirements:
 
         print(f"[PhotoAspectExtractor] Calling Ollama vision model: {ollama_model}")
         response = self._invoke_ollama(synthesis_url, payload)
+
+        if extraction_mode == "clothes" and response and not response.startswith("[ERROR"):
+            response = _sanitize_clothes_prompt(response)
         
-        # Concatenate custom prompts at the beginning
-        custom_parts = []
+        # Build final prompt prefix in a predictable order:
+        # 1) face-retention directive (if requested)
+        # 2) pose/camera retention directive (if requested)
+        # 2) any user-provided custom prompt
+        # 3) model-generated aspect prompt
+        prefix_parts: List[str] = []
+        if retain_face:
+            prefix_parts.append("Retain the facial features from the original image.")
+        if retain_pose_and_camera:
+            prefix_parts.append("Retain the original pose and camera angle from the original image.")
         if custom_prompt.strip():
-            custom_parts.append(custom_prompt.strip())
-        
-        if custom_parts:
-            custom_prefix = ", ".join(custom_parts)
-            final_prompt = f"{custom_prefix}, {response}" if response else custom_prefix
-            print(f"[PhotoAspectExtractor] Added custom prompts at beginning")
-            return (final_prompt, final_prompt)
-        
-        return (response or "", response or "")
+            prefix_parts.append(custom_prompt.strip())
+
+        out_parts: List[str] = []
+        out_parts.extend(prefix_parts)
+        if response:
+            out_parts.append(response)
+
+        out = ", ".join([p for p in out_parts if p])
+        if prefix_parts:
+            print("[PhotoAspectExtractor] Added prompt prefixes")
+
+        if content_rating != "NSFW allowed":
+            err = enforce_sfw(out)
+            if err:
+                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed'.]"
+                return (blocked, blocked)
+        return (out, out)
     
     def _analyze_single_image(
         self,
         ollama_url: str,
         ollama_model: str,
         image_b64: str,
-        prompt: str
+        prompt: str,
+        system: Optional[str] = None,
     ) -> str:
         """Analyze a single image with vision model."""
+        if system is None:
+            # Backward-compatible default for internal callers that predate the
+            # explicit 'system' parameter (e.g. LoRA dataset export tooling).
+            # Keep it safely scoped to SFW unless the caller explicitly supplies a policy.
+            system = load_system_prompt_text("system_prompts/photo_aspect_analysis_system.txt", "SFW only")
+
         # Ensure URL has the /api/generate endpoint
         if not ollama_url.endswith("/api/generate"):
             ollama_url = ollama_url.rstrip("/") + "/api/generate"
@@ -394,6 +571,7 @@ Requirements:
         payload = {
             "model": ollama_model,
             "prompt": prompt,
+            "system": system,
             "stream": False,
             "images": [image_b64],
             "options": {
@@ -408,44 +586,88 @@ Requirements:
     def _invoke_ollama(ollama_url: str, payload: Dict) -> Optional[str]:
         if requests is None:
             raise RuntimeError("'requests' is required for Ollama integration. Install optional dependencies.")
-        try:
-            print(f"[PhotoAspectExtractor] Sending request to {ollama_url}")
-            print(f"[PhotoAspectExtractor] Model: {payload.get('model')}")
-            print(f"[PhotoAspectExtractor] Images count: {len(payload.get('images', []))}")
-            
-            response = requests.post(ollama_url, json=payload, timeout=120)
-            
-            print(f"[PhotoAspectExtractor] Response status: {response.status_code}")
-            
-            response.raise_for_status()
-            data = response.json()
-            
-            result = (data.get("response") or "").strip()
-            print(f"[PhotoAspectExtractor] Received response ({len(result)} chars): {result[:100]}...")
-            
-            if not result:
+
+        last_data: Optional[Dict] = None
+        for attempt in range(2):
+            try:
+                print(f"[PhotoAspectExtractor] Sending request to {ollama_url}")
+                print(f"[PhotoAspectExtractor] Model: {payload.get('model')}")
+                print(f"[PhotoAspectExtractor] Images count: {len(payload.get('images', []))}")
+
+                response = requests.post(ollama_url, json=payload, timeout=120)
+
+                print(f"[PhotoAspectExtractor] Response status: {response.status_code}")
+
+                response.raise_for_status()
+                data = response.json()
+                last_data = data if isinstance(data, dict) else None
+
+                # Ollama may return output as either:
+                # - /api/generate: { response: "...", thinking: "..." }
+                # - /api/chat: { message: { content: "..." } }
+                msg = data.get("message") if isinstance(data, dict) else None
+                if isinstance(msg, dict):
+                    result = (msg.get("content") or "").strip()
+                else:
+                    result = ""
+
+                if not result and isinstance(data, dict):
+                    result = (data.get("response") or "").strip()
+
+                print(f"[PhotoAspectExtractor] Received response ({len(result)} chars): {result[:100]}...")
+
+                if result:
+                    return result
+
+                # Some vision models (notably qwen3-vl variants) can spend tokens in internal
+                # 'thinking' and end up with an empty 'response' when num_predict is too low.
+                # If Ollama indicates truncation, retry once with a higher token budget.
+                done_reason = (data.get("done_reason") or "") if isinstance(data, dict) else ""
+                if attempt == 0 and str(done_reason).lower() == "length":
+                    opts = payload.get("options") if isinstance(payload, dict) else None
+                    if not isinstance(opts, dict):
+                        opts = {}
+
+                    num_predict = opts.get("num_predict")
+                    if isinstance(num_predict, int) and num_predict > 0:
+                        bumped = min(max(num_predict * 2, num_predict + 200), 1024)
+                    else:
+                        bumped = 400
+
+                    payload = json.loads(json.dumps(payload))
+                    payload.setdefault("options", {})
+                    payload["options"]["num_predict"] = bumped
+                    print(
+                        "[PhotoAspectExtractor] Empty response with done_reason=length; "
+                        f"retrying once with num_predict={bumped}"
+                    )
+                    continue
+
                 print("[PhotoAspectExtractor] WARNING: Empty response from Ollama")
                 return "[Empty response from vision model]"
-            
-            return result
-        except requests.exceptions.HTTPError as exc:
-            error_msg = f"[PhotoAspectExtractor] HTTP error: {exc}"
-            print(error_msg)
-            if hasattr(exc.response, 'text'):
-                print(f"[PhotoAspectExtractor] Response body: {exc.response.text[:500]}")
-            return f"[ERROR: {exc}]"
-        except requests.exceptions.ConnectionError as exc:
-            error_msg = f"[PhotoAspectExtractor] Connection error: {exc}"
-            print(error_msg)
-            return f"[ERROR: Cannot connect to Ollama at {ollama_url}]"
-        except requests.exceptions.Timeout as exc:
-            error_msg = f"[PhotoAspectExtractor] Timeout error: {exc}"
-            print(error_msg)
-            return "[ERROR: Request timed out]"
-        except Exception as exc:
-            error_msg = f"[PhotoAspectExtractor] Error invoking Ollama: {exc}"
-            print(error_msg)
-            return f"[ERROR: {str(exc)}]"
+            except requests.exceptions.HTTPError as exc:
+                error_msg = f"[PhotoAspectExtractor] HTTP error: {exc}"
+                print(error_msg)
+                if hasattr(exc.response, "text"):
+                    print(f"[PhotoAspectExtractor] Response body: {exc.response.text[:500]}")
+                return f"[ERROR: {exc}]"
+            except requests.exceptions.ConnectionError as exc:
+                error_msg = f"[PhotoAspectExtractor] Connection error: {exc}"
+                print(error_msg)
+                return f"[ERROR: Cannot connect to Ollama at {ollama_url}]"
+            except requests.exceptions.Timeout as exc:
+                error_msg = f"[PhotoAspectExtractor] Timeout error: {exc}"
+                print(error_msg)
+                return "[ERROR: Request timed out]"
+            except Exception as exc:
+                error_msg = f"[PhotoAspectExtractor] Error invoking Ollama: {exc}"
+                print(error_msg)
+                return f"[ERROR: {str(exc)}]"
+
+        # Should be unreachable due to returns, but keep a safe fallback.
+        if last_data and isinstance(last_data, dict) and (last_data.get("thinking") or ""):
+            print("[PhotoAspectExtractor] WARNING: Model returned only 'thinking' and no response")
+        return "[Empty response from vision model]"
 
     @staticmethod
     def _collect_ollama_models(ollama_url: str = DEFAULT_OLLAMA_URL) -> List[str]:

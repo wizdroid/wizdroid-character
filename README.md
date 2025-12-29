@@ -9,6 +9,7 @@ Custom nodes for ComfyUI that generate and edit character-focused prompts using 
 - Prompt combiner for merging prompt fragments.
 - Photo aspect extractor using Ollama vision models.
 - LoRA dataset export helpers for Kohya-style training.
+- Data-driven contest prompt generator (loads contest rules from JSON in `data/`).
 
 ## Install
 
@@ -34,6 +35,16 @@ Key JSON files in `data/`:
 - `character_options.json` – character attributes, poses, fashion, backgrounds, etc.
 - `countries.json` / `regions.json` – geography for style prompts.
 - `prompt_styles.json` – prompt templates per model family.
+
+Contest config (optional):
+
+- `contest.json` – single replaceable contest definition for the `Contest Prompt Generator (Ollama)` node.
+   - Replace this file per contest theme (then restart ComfyUI).
+
+System prompts & content policy:
+
+- `system_prompts/*.txt` – system prompts used by the Ollama-backed nodes.
+- `content_policies.json` – text blocks appended to system prompts based on `content_rating`.
 
 Restart ComfyUI after editing these files.
 

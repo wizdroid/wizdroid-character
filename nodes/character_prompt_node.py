@@ -1,58 +1,101 @@
 import json
 import random
 import hashlib
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-try:
-    import requests
-except ImportError:
-    requests = None
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
+from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.data_files import load_json
+from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.system_prompts import load_system_prompt_template
 RANDOM_LABEL = "Random"
 NONE_LABEL = "none"
 POSE_RATING_CHOICES = ("SFW only", "NSFW only", "Mixed")
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
-# Caches
-_JSON_CACHE: Dict[str, Tuple[int, Any]] = {}
 _PROMPT_CACHE: Dict[str, str] = {}
 _MAX_CACHE_SIZE = 100
 
 logger = logging.getLogger(__name__)
 
 
-def _load_json(name: str) -> Any:
-    """Load JSON file with mtime-based caching."""
-    path = DATA_DIR / name
-    mtime = int(path.stat().st_mtime_ns)
-    cached = _JSON_CACHE.get(name)
-    if cached and cached[0] == mtime:
-        return cached[1]
+def _option_name(item: Any) -> Optional[str]:
+    if isinstance(item, str):
+        name = item.strip()
+        return name or None
+    if isinstance(item, dict):
+        name = str(item.get("name") or item.get("value") or item.get("label") or "").strip()
+        return name or None
+    return None
 
-    with path.open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
 
-    _JSON_CACHE[name] = (mtime, payload)
-    return payload
+def _option_description(item: Any) -> str:
+    if isinstance(item, dict):
+        desc = item.get("description")
+        if desc is None:
+            desc = item.get("desc")
+        return str(desc or "").strip()
+    return ""
+
+
+def _normalize_option_list(options: Any) -> List[str]:
+    """Normalize a list of option items into a list of option names.
+
+    Supports either:
+    - ["a", "b", ...]
+    - [{"name": "a", "description": "..."}, ...]
+    """
+
+    if not isinstance(options, list):
+        return []
+
+    out: List[str] = []
+    for item in options:
+        name = _option_name(item)
+        if name:
+            out.append(name)
+    return out
+
+
+def _extract_descriptions(payload: Any) -> Dict[str, str]:
+    """Build {option_name: description} mapping from list/dict(SFW/NSFW) payload."""
+
+    out: Dict[str, str] = {}
+    if isinstance(payload, dict):
+        groups = [payload.get("sfw") or [], payload.get("nsfw") or []]
+    elif isinstance(payload, list):
+        groups = [payload]
+    else:
+        groups = []
+
+    for group in groups:
+        if not isinstance(group, list):
+            continue
+        for item in group:
+            name = _option_name(item)
+            if not name:
+                continue
+            desc = _option_description(item)
+            if desc:
+                out[name] = desc
+    return out
 
 
 def _with_random(options: List[str]) -> Tuple[str, ...]:
     """Prepend Random and none options to a list."""
+    normalized = _normalize_option_list(options)
     values: List[str] = [RANDOM_LABEL, NONE_LABEL]
-    for option in options:
-        if option != NONE_LABEL:
+    for option in normalized:
+        if option and option != NONE_LABEL:
             values.append(option)
     return tuple(values)
 
 
-def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
+def _choose(value: Optional[str], options: List[Any], rng: random.Random) -> Optional[str]:
     """Select a value, handling Random and none cases."""
+    normalized = _normalize_option_list(options)
     if value == RANDOM_LABEL:
-        pool = [opt for opt in options if opt != NONE_LABEL]
+        pool = [opt for opt in normalized if opt != NONE_LABEL]
         selection = rng.choice(pool) if pool else None
     else:
         selection = value
@@ -62,9 +105,28 @@ def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Opt
 def _split_groups(payload: Any) -> Tuple[List[str], List[str]]:
     """Split payload into SFW and NSFW lists."""
     if isinstance(payload, dict):
-        return list(payload.get("sfw") or []), list(payload.get("nsfw") or [])
+        sfw_raw = payload.get("sfw") or []
+        nsfw_raw = payload.get("nsfw") or []
+        sfw: List[str] = []
+        nsfw: List[str] = []
+        if isinstance(sfw_raw, list):
+            for item in sfw_raw:
+                name = _option_name(item)
+                if name:
+                    sfw.append(name)
+        if isinstance(nsfw_raw, list):
+            for item in nsfw_raw:
+                name = _option_name(item)
+                if name:
+                    nsfw.append(name)
+        return sfw, nsfw
     elif isinstance(payload, list):
-        return list(payload), []
+        sfw: List[str] = []
+        for item in payload:
+            name = _option_name(item)
+            if name:
+                sfw.append(name)
+        return sfw, []
     return [], []
 
 
@@ -99,14 +161,21 @@ def _get_background_groups(payload: Any) -> Dict[str, List[str]]:
 
 def _get_option_data() -> Dict[str, Any]:
     """Load and process all option data. Single source of truth."""
-    option_map = _load_json("character_options.json")
-    prompt_styles = _load_json("prompt_styles.json")
-    region_options = _load_json("regions.json")
-    country_options = _load_json("countries.json")
-    culture_options = _load_json("cultures.json")
+    option_map = load_json("character_options.json")
+    prompt_styles = load_json("prompt_styles.json")
+    region_options = load_json("regions.json")
+    country_options = load_json("countries.json")
+    culture_options = load_json("cultures.json")
     
     pose_sfw, pose_nsfw = _split_groups(option_map.get("pose_style"))
     image_sfw, image_nsfw = _split_groups(option_map.get("image_category"))
+    image_desc_map = _extract_descriptions(option_map.get("image_category"))
+    fashion_style_desc_map = _extract_descriptions(option_map.get("fashion_style"))
+    fashion_outfit_desc_map = _extract_descriptions(option_map.get("fashion_outfit"))
+    makeup_style_desc_map = _extract_descriptions(option_map.get("makeup_style"))
+    lighting_style_desc_map = _extract_descriptions(option_map.get("lighting_style"))
+    camera_lens_desc_map = _extract_descriptions(option_map.get("camera_lens"))
+    color_palette_desc_map = _extract_descriptions(option_map.get("color_palette"))
     background_groups = _get_background_groups(option_map.get("background_style"))
     
     return {
@@ -119,6 +188,13 @@ def _get_option_data() -> Dict[str, Any]:
         "pose_nsfw": pose_nsfw,
         "image_sfw": image_sfw,
         "image_nsfw": image_nsfw,
+        "image_desc_map": image_desc_map,
+        "fashion_style_desc_map": fashion_style_desc_map,
+        "fashion_outfit_desc_map": fashion_outfit_desc_map,
+        "makeup_style_desc_map": makeup_style_desc_map,
+        "lighting_style_desc_map": lighting_style_desc_map,
+        "camera_lens_desc_map": camera_lens_desc_map,
+        "color_palette_desc_map": color_palette_desc_map,
         "background_groups": background_groups,
     }
 
@@ -142,13 +218,14 @@ class CharacterPromptBuilder:
         bg = data["background_groups"]
         
         # Fetch models dynamically
-        ollama_models = cls._collect_ollama_models()
+        ollama_models = collect_models(DEFAULT_OLLAMA_URL)
         
         return {
             "required": {
                 # === LLM Settings ===
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
                 "prompt_style": (tuple(data["prompt_styles"].keys()), {"default": "SDXL"}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 1024, "min": 50, "max": 2048, "step": 10}),
@@ -208,6 +285,7 @@ class CharacterPromptBuilder:
         self,
         ollama_url: str,
         ollama_model: str,
+        content_rating: str,
         prompt_style: str,
         temperature: float,
         max_tokens: int,
@@ -250,6 +328,14 @@ class CharacterPromptBuilder:
         bg = data["background_groups"]
         rng = random.Random(seed)
 
+        if content_rating != "NSFW allowed":
+            if pose_content_rating != "SFW only" or image_content_rating != "SFW only":
+                msg = (
+                    "[ERROR: content_rating is 'SFW only' but pose_content_rating/image_content_rating are not both 'SFW only'. "
+                    "Set both to 'SFW only' or switch content_rating to 'NSFW allowed'.]"
+                )
+                return msg, "", msg
+
         # Resolve all selections
         resolved = {
             "character_name": character_name.strip() or None,
@@ -281,6 +367,24 @@ class CharacterPromptBuilder:
             "culture": _choose(culture, data["culture_options"]["cultures"], rng),
         }
 
+        # Enforce SFW-only pool restrictions even for manual selections.
+        # (The dropdown includes both SFW and NSFW strings, so we must validate.)
+        resolved_image_category = resolved.get("image_category")
+        if image_content_rating == "SFW only" and resolved_image_category in set(data["image_nsfw"]):
+            msg = (
+                "[ERROR: image_content_rating is 'SFW only' but selected image_category is NSFW. "
+                "Choose an SFW image_category or set image_content_rating to 'Mixed'/'NSFW only' (and content_rating to 'NSFW allowed' if needed).]"
+            )
+            return msg, "", msg
+
+        resolved_pose_style = resolved.get("pose_style")
+        if pose_content_rating == "SFW only" and resolved_pose_style in set(data["pose_nsfw"]):
+            msg = (
+                "[ERROR: pose_content_rating is 'SFW only' but selected pose_style is NSFW. "
+                "Choose an SFW pose_style or set pose_content_rating to 'Mixed'/'NSFW only' (and content_rating to 'NSFW allowed' if needed).]"
+            )
+            return msg, "", msg
+
         # Smart country selection based on region
         if resolved.get("region") and country == RANDOM_LABEL:
             resolved["country"] = f"culturally authentic country within {resolved['region']}"
@@ -300,16 +404,32 @@ class CharacterPromptBuilder:
         if cache_key in _PROMPT_CACHE:
             llm_response = _PROMPT_CACHE[cache_key]
         else:
+            image_category_desc = data.get("image_desc_map", {}).get(resolved.get("image_category") or "", "")
+            fashion_style_desc = data.get("fashion_style_desc_map", {}).get(resolved.get("fashion_style") or "", "")
+            fashion_outfit_desc = data.get("fashion_outfit_desc_map", {}).get(resolved.get("fashion_outfit") or "", "")
+            makeup_style_desc = data.get("makeup_style_desc_map", {}).get(resolved.get("makeup_style") or "", "")
+            lighting_style_desc = data.get("lighting_style_desc_map", {}).get(resolved.get("lighting_style") or "", "")
+            camera_lens_desc = data.get("camera_lens_desc_map", {}).get(resolved.get("camera_lens") or "", "")
+            color_palette_desc = data.get("color_palette_desc_map", {}).get(resolved.get("color_palette") or "", "")
             llm_response = self._invoke_llm(
                 ollama_url=ollama_url,
                 ollama_model=ollama_model,
+                content_rating=content_rating,
                 prompt_style=prompt_style,
                 retain_face=retain_face,
                 style_meta=style_meta,
                 selections=resolved,
+                image_category_desc=image_category_desc,
+                fashion_style_desc=fashion_style_desc,
+                fashion_outfit_desc=fashion_outfit_desc,
+                makeup_style_desc=makeup_style_desc,
+                lighting_style_desc=lighting_style_desc,
+                camera_lens_desc=camera_lens_desc,
+                color_palette_desc=color_palette_desc,
                 custom_text=custom_text,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                seed=seed,
             )
             # Cache result (with size limit)
             if len(_PROMPT_CACHE) >= _MAX_CACHE_SIZE:
@@ -338,46 +458,58 @@ class CharacterPromptBuilder:
         elif append_text:
             final_prompt = append_text
 
-        return final_prompt, negative_prompt, final_prompt
+        if content_rating != "NSFW allowed":
+            err = enforce_sfw(final_prompt)
+            if err:
+                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed'.]"
+                return blocked, negative_prompt, blocked
 
-    @staticmethod
-    def _collect_ollama_models(ollama_url: str = DEFAULT_OLLAMA_URL) -> List[str]:
-        """Fetch available Ollama models from the API."""
-        try:
-            if requests is None:
-                logger.warning("[CharacterPromptBuilder] 'requests' library not installed")
-                return ["install_requests_library"]
-            
-            response = requests.get(f"{ollama_url}/api/tags", timeout=5)
-            response.raise_for_status()
-            models = [m["name"] for m in response.json().get("models", [])]
-            return models if models else ["no_models_found"]
-        except requests.exceptions.ConnectionError:
-            logger.warning(f"[CharacterPromptBuilder] Cannot connect to Ollama at {ollama_url}")
-            return ["ollama_not_running"]
-        except requests.exceptions.Timeout:
-            logger.warning("[CharacterPromptBuilder] Ollama request timeout")
-            return ["ollama_timeout"]
-        except Exception as e:
-            logger.exception(f"[CharacterPromptBuilder] Error fetching Ollama models: {e}")
-            return ["ollama_error"]
+        return final_prompt, negative_prompt, final_prompt
 
     @staticmethod
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
+        content_rating: str,
         prompt_style: str,
         retain_face: bool,
         style_meta: Dict,
         selections: Dict,
+        image_category_desc: str,
+        fashion_style_desc: str,
+        fashion_outfit_desc: str,
+        makeup_style_desc: str,
+        lighting_style_desc: str,
+        camera_lens_desc: str,
+        color_palette_desc: str,
         custom_text: str,
         temperature: float,
         max_tokens: int,
+        seed: int,
     ) -> str:
         """Invoke Ollama LLM with token limit enforcement."""
         
         # Extract image_category as PRIMARY style directive
         image_category = selections.get("image_category")
+        image_category_desc = (image_category_desc or "").strip()
+
+        fashion_style = selections.get("fashion_style")
+        fashion_style_desc = (fashion_style_desc or "").strip()
+
+        fashion_outfit = selections.get("fashion_outfit")
+        fashion_outfit_desc = (fashion_outfit_desc or "").strip()
+
+        makeup_style = selections.get("makeup_style")
+        makeup_style_desc = (makeup_style_desc or "").strip()
+
+        lighting_style = selections.get("lighting_style")
+        lighting_style_desc = (lighting_style_desc or "").strip()
+
+        camera_lens = selections.get("camera_lens")
+        camera_lens_desc = (camera_lens_desc or "").strip()
+
+        color_palette = selections.get("color_palette")
+        color_palette_desc = (color_palette_desc or "").strip()
         
         # Determine if this is an artistic/illustrated style vs photorealistic
         artistic_styles = {
@@ -409,29 +541,11 @@ class CharacterPromptBuilder:
         else:
             style_directive = ""
         
-        base_system = (
-            "You are a text-to-image prompt engineer. Create concise, vivid prompts. "
-            f"{style_directive} "
-            "Your first words must establish the image style/category. "
-            "Never start with 'Here', 'This', 'Prompt', or model names. "
-            "Output ONLY the final prompt text - no explanations, no markdown, no meta commentary. "
-            "Never include '<think>' tags or reasoning traces."
+        system_prompt = load_system_prompt_template(
+            "system_prompts/character_prompt_system_retain_face.txt" if retain_face else "system_prompts/character_prompt_system.txt",
+            content_rating,
+            style_directive=style_directive,
         )
-        
-        if retain_face:
-            system_prompt = (
-                f"{base_system} "
-                "This is for face-preserving image editing. "
-                "ALWAYS start with 'Retain the facial features from the original image.' "
-                "Then describe outfit, pose, and setting changes. "
-                "Do NOT describe facial features - they are preserved from original."
-            )
-        else:
-            system_prompt = (
-                f"{base_system} "
-                "ALWAYS describe: clothing (type, color, fabric), pose (body position, stance), "
-                "and technical aspects (lighting, camera angle)."
-            )
 
         # Build compact attribute list (image_category handled separately)
         attrs = ", ".join(
@@ -450,6 +564,27 @@ class CharacterPromptBuilder:
                 category_instruction = f"PRIMARY STYLE: {image_category} (artistic/illustrated - NOT a photo)\n"
             else:
                 category_instruction = f"PRIMARY STYLE: {image_category}\n"
+
+        if image_category and image_category_desc:
+            category_instruction = f"{category_instruction}STYLE MEANING: {image_category_desc}\n"
+
+        if fashion_style and fashion_style_desc:
+            category_instruction = f"{category_instruction}FASHION STYLE MEANING: {fashion_style_desc}\n"
+
+        if fashion_outfit and fashion_outfit_desc:
+            category_instruction = f"{category_instruction}OUTFIT MEANING: {fashion_outfit_desc}\n"
+
+        if makeup_style and makeup_style_desc:
+            category_instruction = f"{category_instruction}MAKEUP MEANING: {makeup_style_desc}\n"
+
+        if lighting_style and lighting_style_desc:
+            category_instruction = f"{category_instruction}LIGHTING MEANING: {lighting_style_desc}\n"
+
+        if camera_lens and camera_lens_desc:
+            category_instruction = f"{category_instruction}CAMERA/LENS MEANING: {camera_lens_desc}\n"
+
+        if color_palette and color_palette_desc:
+            category_instruction = f"{category_instruction}COLOR PALETTE MEANING: {color_palette_desc}\n"
         
         user_prompt = (
             f"Create a {prompt_style} {'face-preserving edit' if retain_face else 'image generation'} prompt.\n"
@@ -460,43 +595,36 @@ class CharacterPromptBuilder:
             f"Start with the style/category. Keep under {token_limit} tokens. Output only the prompt:"
         )
 
-        try:
-            if requests is None:
-                return "[Please install 'requests': pip install requests]"
-            
-            payload = {
-                "model": ollama_model,
-                "prompt": user_prompt,
-                "system": system_prompt,
-                "stream": False,
-                "options": {
-                    "temperature": temperature,
-                    "num_predict": token_limit * 4,  # Rough token-to-char estimate
-                }
-            }
-            
-            response = requests.post(f"{ollama_url}/api/generate", json=payload, timeout=120)
-            response.raise_for_status()
-            result = response.json().get("response", "").strip()
-            
-            # Clean up common LLM prefixes
-            prefixes_to_remove = [
-                "Here is", "Here's", "This prompt", "Prompt:", 
-                f"{style_meta.get('label', '')}:", f"{ollama_model}:"
-            ]
-            for prefix in prefixes_to_remove:
-                if result.lower().startswith(prefix.lower()):
-                    result = result[len(prefix):].lstrip(": ")
-            
-            return result or "[Empty response from Ollama]"
-            
-        except requests.exceptions.ConnectionError:
-            return "[Ollama server not running. Please start Ollama.]"
-        except requests.exceptions.Timeout:
-            return "[Ollama request timed out]"
-        except Exception as e:
-            logger.exception(f"[CharacterPromptBuilder] Error invoking LLM: {e}")
-            return f"[Error: {str(e)}]"
+        ok, result = generate_text(
+            ollama_url=ollama_url,
+            model=ollama_model,
+            prompt=user_prompt,
+            system=system_prompt,
+            options={
+                "temperature": float(temperature),
+                "num_predict": int(token_limit) * 4,
+                "seed": int(seed),
+            },
+            timeout=120,
+        )
+
+        if not ok:
+            return f"[Error: {result}]"
+
+        # Clean up common LLM prefixes
+        prefixes_to_remove = [
+            "Here is",
+            "Here's",
+            "This prompt",
+            "Prompt:",
+            f"{style_meta.get('label', '')}:",
+            f"{ollama_model}:",
+        ]
+        for prefix in prefixes_to_remove:
+            if result.lower().startswith(prefix.lower()):
+                result = result[len(prefix):].lstrip(": ")
+
+        return result or "[Empty response from Ollama]"
 
 
 NODE_CLASS_MAPPINGS = {

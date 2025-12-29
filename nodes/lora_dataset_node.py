@@ -61,6 +61,7 @@ class LoRADatasetExportNode:
             },
             "optional": {
                 "manual_prompt": ("STRING", {"default": ""}),
+                "write_caption_files": ("BOOLEAN", {"default": True}),
             },
         }
 
@@ -74,6 +75,7 @@ class LoRADatasetExportNode:
         ollama_model: str,
         resize_mode: str,
         manual_prompt: str = "",
+        write_caption_files: bool = True,
     ) -> Tuple[str]:
         """
         Create dataset directory with `images/`, `captions.jsonl`, and `metadata.yaml`.
@@ -181,6 +183,10 @@ class LoRADatasetExportNode:
                 prompt = f"{character_tag} {prompt}".strip()
 
             captions.append({"file_name": target_name, "prompt": prompt})
+
+            if write_caption_files:
+                caption_path = images_dir / f"{Path(target_name).stem}.txt"
+                caption_path.write_text(prompt, encoding="utf-8")
 
         # Write captions.jsonl
         captions_jsonl = root / "captions.jsonl"

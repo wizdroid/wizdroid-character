@@ -4,13 +4,13 @@ import hashlib
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.content_safety import enforce_sfw
 from lib.data_files import load_json
 from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
 from lib.system_prompts import load_system_prompt_template
 RANDOM_LABEL = "Random"
 NONE_LABEL = "none"
-POSE_RATING_CHOICES = ("SFW only", "NSFW only", "Mixed")
+CONTENT_RATING_CHOICES = ("SFW", "NSFW", "Mixed")
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 _PROMPT_CACHE: Dict[str, str] = {}
@@ -132,11 +132,11 @@ def _split_groups(payload: Any) -> Tuple[List[str], List[str]]:
 
 def _pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
     """Get appropriate pool based on content rating."""
-    if rating == "SFW only":
+    if rating == "SFW":
         return sfw
-    if rating == "NSFW only":
+    if rating == "NSFW":
         return nsfw
-    return sfw + nsfw
+    return sfw + nsfw  # Mixed
 
 
 def _choose_for_rating(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
@@ -225,7 +225,7 @@ class CharacterPromptBuilder:
                 # === LLM Settings ===
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (tuple(data["prompt_styles"].keys()), {"default": "SDXL"}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 1024, "min": 50, "max": 2048, "step": 10}),
@@ -247,7 +247,6 @@ class CharacterPromptBuilder:
                 # === Expression & Pose ===
                 "facial_expression": (_with_random(opt["facial_expression"]), {"default": RANDOM_LABEL}),
                 "face_angle": (_with_random(opt["face_angle"]), {"default": NONE_LABEL}),
-                "pose_content_rating": (POSE_RATING_CHOICES, {"default": "SFW only"}),
                 "pose_style": (_with_random(data["pose_sfw"] + data["pose_nsfw"]), {"default": RANDOM_LABEL}),
                 
                 # === Fashion ===
@@ -258,7 +257,6 @@ class CharacterPromptBuilder:
                 
                 # === Scene & Camera ===
                 "image_category": (_with_random(data["image_sfw"] + data["image_nsfw"]), {"default": RANDOM_LABEL}),
-                "image_content_rating": (POSE_RATING_CHOICES, {"default": "SFW only"}),
                 "background_stage_style": (_with_random(bg["studio_controlled"] or [NONE_LABEL]), {"default": NONE_LABEL}),
                 "background_location_style": (_with_random(bg["public_exotic_real"] or [NONE_LABEL]), {"default": NONE_LABEL}),
                 "background_imaginative_style": (_with_random(bg["imaginative_surreal"] or [NONE_LABEL]), {"default": NONE_LABEL}),
@@ -301,14 +299,12 @@ class CharacterPromptBuilder:
         makeup_style: str,
         facial_expression: str,
         face_angle: str,
-        pose_content_rating: str,
         pose_style: str,
         fashion_outfit: str,
         fashion_style: str,
         footwear_style: str,
         upcycled_fashion: str,
         image_category: str,
-        image_content_rating: str,
         background_stage_style: str,
         background_location_style: str,
         background_imaginative_style: str,
@@ -328,18 +324,14 @@ class CharacterPromptBuilder:
         bg = data["background_groups"]
         rng = random.Random(seed)
 
-        if content_rating != "NSFW allowed":
-            if pose_content_rating != "SFW only" or image_content_rating != "SFW only":
-                msg = (
-                    "[ERROR: content_rating is 'SFW only' but pose_content_rating/image_content_rating are not both 'SFW only'. "
-                    "Set both to 'SFW only' or switch content_rating to 'NSFW allowed'.]"
-                )
-                return msg, "", msg
+        # Map content_rating to pool selection mode
+        # SFW = SFW pools only, NSFW = NSFW pools only, Mixed = both pools
+        pool_mode = content_rating  # "SFW", "NSFW", or "Mixed"
 
         # Resolve all selections
         resolved = {
             "character_name": character_name.strip() or None,
-            "image_category": _choose_for_rating(image_category, data["image_sfw"], data["image_nsfw"], image_content_rating, rng),
+            "image_category": _choose_for_rating(image_category, data["image_sfw"], data["image_nsfw"], pool_mode, rng),
             "gender": _choose(gender, opt["gender"], rng),
             "race": _choose(race, opt.get("race") or [], rng),
             "age_group": _choose(age_group, opt["age_group"], rng),
@@ -350,7 +342,7 @@ class CharacterPromptBuilder:
             "facial_expression": _choose(facial_expression, opt["facial_expression"], rng),
             "face_angle": _choose(face_angle, opt["face_angle"], rng),
             "camera_angle": _choose(camera_angle, opt["camera_angle"], rng),
-            "pose_style": _choose_for_rating(pose_style, data["pose_sfw"], data["pose_nsfw"], pose_content_rating, rng),
+            "pose_style": _choose_for_rating(pose_style, data["pose_sfw"], data["pose_nsfw"], pool_mode, rng),
             "makeup_style": _choose(makeup_style, opt["makeup_style"], rng),
             "fashion_outfit": _choose(fashion_outfit, opt.get("fashion_outfit") or [], rng),
             "fashion_style": _choose(fashion_style, opt.get("fashion_style") or [], rng),
@@ -367,21 +359,20 @@ class CharacterPromptBuilder:
             "culture": _choose(culture, data["culture_options"]["cultures"], rng),
         }
 
-        # Enforce SFW-only pool restrictions even for manual selections.
-        # (The dropdown includes both SFW and NSFW strings, so we must validate.)
+        # Enforce pool restrictions for manual selections
         resolved_image_category = resolved.get("image_category")
-        if image_content_rating == "SFW only" and resolved_image_category in set(data["image_nsfw"]):
+        if pool_mode == "SFW" and resolved_image_category in set(data["image_nsfw"]):
             msg = (
-                "[ERROR: image_content_rating is 'SFW only' but selected image_category is NSFW. "
-                "Choose an SFW image_category or set image_content_rating to 'Mixed'/'NSFW only' (and content_rating to 'NSFW allowed' if needed).]"
+                "[ERROR: content_rating is 'SFW' but selected image_category is NSFW. "
+                "Choose an SFW image_category or set content_rating to 'Mixed' or 'NSFW'.]"
             )
             return msg, "", msg
 
         resolved_pose_style = resolved.get("pose_style")
-        if pose_content_rating == "SFW only" and resolved_pose_style in set(data["pose_nsfw"]):
+        if pool_mode == "SFW" and resolved_pose_style in set(data["pose_nsfw"]):
             msg = (
-                "[ERROR: pose_content_rating is 'SFW only' but selected pose_style is NSFW. "
-                "Choose an SFW pose_style or set pose_content_rating to 'Mixed'/'NSFW only' (and content_rating to 'NSFW allowed' if needed).]"
+                "[ERROR: content_rating is 'SFW' but selected pose_style is NSFW. "
+                "Choose an SFW pose_style or set content_rating to 'Mixed' or 'NSFW'.]"
             )
             return msg, "", msg
 
@@ -458,10 +449,10 @@ class CharacterPromptBuilder:
         elif append_text:
             final_prompt = append_text
 
-        if content_rating != "NSFW allowed":
+        if content_rating == "SFW":
             err = enforce_sfw(final_prompt)
             if err:
-                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed'.]"
+                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]"
                 return blocked, negative_prompt, blocked
 
         return final_prompt, negative_prompt, final_prompt

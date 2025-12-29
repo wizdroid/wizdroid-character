@@ -1,87 +1,13 @@
-import json
 import random
-from functools import lru_cache
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 import logging
 
-from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
-from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from lib.content_safety import enforce_sfw
+from lib.data_files import load_json
+from lib.helpers import choose, choose_for_rating, split_groups, with_random
+from lib.ollama_client import collect_models, generate_text
 from lib.system_prompts import load_system_prompt_text
-RANDOM_LABEL = "Random"
-NONE_LABEL = "none"
-POSE_RATING_CHOICES = ("SFW only", "NSFW only", "Mixed")
-DEFAULT_OLLAMA_URL = "http://localhost:11434"
-
-
-@lru_cache(maxsize=None)
-def _load_json(name: str) -> Dict:
-    from lib.data_files import load_json as _load
-
-    return _load(name)
-
-
-def _with_random(options: List[str]) -> Tuple[str, ...]:
-    values: List[str] = [RANDOM_LABEL, NONE_LABEL]
-    for option in options:
-        if option == NONE_LABEL:
-            continue
-        values.append(option)
-    return tuple(values)
-
-
-def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
-    if value == RANDOM_LABEL:
-        pool = [opt for opt in options if opt != NONE_LABEL]
-        if not pool:
-            pool = options[:]
-        selection = rng.choice(pool)
-    else:
-        selection = value
-
-    if selection == NONE_LABEL or selection is None:
-        return None
-    return selection
-
-
-def _split_groups(payload: Any) -> Tuple[List[str], List[str]]:
-    if isinstance(payload, dict):
-        sfw = list(payload.get("sfw", []) or [])
-        nsfw = list(payload.get("nsfw", []) or [])
-    elif isinstance(payload, list):
-        sfw = list(payload)
-        nsfw = []
-    else:
-        sfw = []
-        nsfw = []
-    return sfw, nsfw
-
-
-def _pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
-    if rating == "SFW only":
-        return sfw
-    if rating == "NSFW only":
-        return nsfw
-    return sfw + nsfw
-
-
-def _choose_for_rating(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
-    combined = sfw + nsfw
-    if value == RANDOM_LABEL:
-        pool = [opt for opt in _pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
-        if not pool:
-            pool = [opt for opt in combined if opt != NONE_LABEL]
-        if not pool:
-            return None
-        selection = rng.choice(pool)
-    else:
-        selection = value
-
-    if selection == NONE_LABEL or selection is None:
-        return None
-    return selection
-
-
-
 
 
 class CharacterEditNode:
@@ -97,26 +23,25 @@ class CharacterEditNode:
 
     @classmethod
     def INPUT_TYPES(cls):
-        character_options = _load_json("character_options.json")
-        prompt_styles = _load_json("prompt_styles.json")
+        character_options = load_json("character_options.json")
+        prompt_styles = load_json("prompt_styles.json")
         ollama_models = collect_models(DEFAULT_OLLAMA_URL)
 
         style_options = [style_key for style_key in prompt_styles.keys()]
-        pose_sfw, pose_nsfw = _split_groups(character_options.get("pose_style"))
+        pose_sfw, pose_nsfw = split_groups(character_options.get("pose_style"))
         pose_choices = pose_sfw + pose_nsfw
 
         return {
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (style_options, {"default": "SDXL"}),
                 "retain_face": ("BOOLEAN", {"default": True}),
-                "target_face_angle": (_with_random(character_options["face_angle"]), {"default": RANDOM_LABEL}),
-                "target_camera_angle": (_with_random(character_options["camera_angle"]), {"default": RANDOM_LABEL}),
-                "pose_content_rating": (POSE_RATING_CHOICES, {"default": "SFW only"}),
-                "target_pose": (_with_random(pose_choices), {"default": RANDOM_LABEL}),
-                "gender": (_with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
+                "target_face_angle": (with_random(character_options["face_angle"]), {"default": RANDOM_LABEL}),
+                "target_camera_angle": (with_random(character_options["camera_angle"]), {"default": RANDOM_LABEL}),
+                "target_pose": (with_random(pose_choices), {"default": RANDOM_LABEL}),
+                "gender": (with_random(character_options["gender"]), {"default": RANDOM_LABEL}),
                 "custom_text": ("STRING", {"multiline": True, "default": ""}),
             },
             "optional": {
@@ -133,36 +58,31 @@ class CharacterEditNode:
         retain_face: bool,
         target_face_angle: str,
         target_camera_angle: str,
-        pose_content_rating: str,
         target_pose: str,
         gender: str,
         custom_text: str,
         seed: int = 0,
-    ) -> Tuple[str]:
-        character_options = _load_json("character_options.json")
-        prompt_styles = _load_json("prompt_styles.json")
+    ) -> Tuple[str, str]:
+        character_options = load_json("character_options.json")
+        prompt_styles = load_json("prompt_styles.json")
 
         rng = random.Random(seed)
-        pose_sfw, pose_nsfw = _split_groups(character_options.get("pose_style"))
+        pose_sfw, pose_nsfw = split_groups(character_options.get("pose_style"))
 
-        resolved_face_angle = _choose(target_face_angle, character_options["face_angle"], rng)
-        resolved_camera_angle = _choose(target_camera_angle, character_options["camera_angle"], rng)
-        resolved_pose = _choose_for_rating(target_pose, pose_sfw, pose_nsfw, pose_content_rating, rng)
-        resolved_gender = _choose(gender, character_options["gender"], rng)
+        resolved_face_angle = choose(target_face_angle, character_options["face_angle"], rng)
+        resolved_camera_angle = choose(target_camera_angle, character_options["camera_angle"], rng)
+        resolved_pose = choose_for_rating(target_pose, pose_sfw, pose_nsfw, content_rating, rng)
+        resolved_gender = choose(gender, character_options["gender"], rng)
 
-        if content_rating != "NSFW allowed":
-            if pose_content_rating != "SFW only":
-                blocked = "[ERROR: content_rating is 'SFW only' but pose_content_rating is not SFW. Switch pose_content_rating to 'SFW only' or set content_rating to 'NSFW allowed'.]"
-                return (blocked, blocked)
-            if resolved_pose and resolved_pose in set(pose_nsfw):
-                blocked = "[ERROR: Selected pose is NSFW but content_rating is 'SFW only'. Choose an SFW pose or switch content_rating to 'NSFW allowed'.]"
-                return (blocked, blocked)
+        # Validate SFW mode doesn't use NSFW pose
+        if content_rating == "SFW" and resolved_pose and resolved_pose in set(pose_nsfw):
+            blocked = "[ERROR: Selected pose is NSFW but content_rating is 'SFW'. Choose an SFW pose or switch content_rating to 'Mixed' or 'NSFW'.]"
+            return (blocked, blocked)
 
         # Get style configuration
         style_config = prompt_styles.get(prompt_style, prompt_styles["SDXL"])
         style_label = style_config["label"]
         style_guidance = style_config["guidance"]
-        # use style presets; token budget is managed externally by model/service
 
         system_prompt = load_system_prompt_text(
             "system_prompts/character_edit_system_retain_face.txt" if retain_face else "system_prompts/character_edit_system.txt",
@@ -230,7 +150,7 @@ class CharacterEditNode:
         logger.debug(f"[CharacterEdit] Retain face: {retain_face}")
         logger.debug(f"[CharacterEdit] Target face angle: {resolved_face_angle}")
         logger.debug(f"[CharacterEdit] Target camera angle: {resolved_camera_angle}")
-        logger.debug(f"[CharacterEdit] Pose rating: {pose_content_rating}")
+        logger.debug(f"[CharacterEdit] Content rating: {content_rating}")
         logger.debug(f"[CharacterEdit] Target pose: {resolved_pose}")
         logger.debug(f"[CharacterEdit] Gender: {resolved_gender}")
         logger.debug(f"[CharacterEdit] Prompt style: {style_label}")
@@ -253,10 +173,10 @@ class CharacterEditNode:
             error_msg = f"Failed to generate prompt: {response}"
             return (error_msg, error_msg)
 
-        if content_rating != "NSFW allowed":
+        if content_rating == "SFW":
             err = enforce_sfw(response)
             if err:
-                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed'.]"
+                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]"
                 return (blocked, blocked)
 
         return (response, response)

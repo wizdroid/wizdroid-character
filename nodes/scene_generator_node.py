@@ -5,16 +5,13 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from lib.content_safety import enforce_sfw
 from lib.data_files import load_json
-from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.helpers import choose, with_random
+from lib.ollama_client import collect_models, generate_text
 from lib.system_prompts import load_system_prompt_text
 from lib.paths import DATA_DIR
-
-RANDOM_LABEL = "Random"
-NONE_LABEL = "none"
-# DEFAULT_OLLAMA_URL is imported, but we keep a local fallback if needed
-DEFAULT_URL = "http://localhost:11434"
 
 logger = logging.getLogger(__name__)
 
@@ -78,24 +75,6 @@ def _get_cached_models(url: str) -> List[str]:
                 return ["llama3:latest"] # Fallback
     return _MODELS_CACHE
 
-def _with_random(options: List[str]) -> Tuple[str, ...]:
-    """Prepend Random and none options to a list."""
-    values = [RANDOM_LABEL, NONE_LABEL]
-    # Use a set for faster lookups if list is huge, but preserve order here
-    seen = set(values)
-    for opt in options:
-        if opt not in seen:
-            values.append(opt)
-            seen.add(opt)
-    return tuple(values)
-
-def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
-    """Select a value, handling Random and none cases."""
-    if value == RANDOM_LABEL:
-        pool = [opt for opt in options if opt != NONE_LABEL]
-        return rng.choice(pool) if pool else None
-    return None if value == NONE_LABEL or value is None else value
-
 def _cache_key(data: Dict) -> str:
     """Generate cache key for scene caching."""
     return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
@@ -143,21 +122,21 @@ class SceneGeneratorNode:
                 # === LLM Settings ===
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (tuple(prompt_styles.keys()), {"default": "SDXL"}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 200, "min": 50, "max": 500, "step": 10}),
                 
                 # === Scene Selection ===
-                "scene_category": (_with_random(category_names), {"default": RANDOM_LABEL}),
-                "specific_scene": (_with_random(all_scenes), {"default": RANDOM_LABEL}),
+                "scene_category": (with_random(category_names), {"default": RANDOM_LABEL}),
+                "specific_scene": (with_random(all_scenes), {"default": RANDOM_LABEL}),
                 "custom_scene": ("STRING", {"multiline": True, "default": "", "placeholder": "Describe any scene you can imagine..."}),
                 
                 # === Scene Atmosphere ===
-                "mood": (_with_random(scene_moods), {"default": RANDOM_LABEL}),
-                "time_of_day": (_with_random(time_of_day), {"default": RANDOM_LABEL}),
-                "weather": (_with_random(weather_conditions), {"default": NONE_LABEL}),
-                "population": (_with_random(population_density), {"default": NONE_LABEL}),
+                "mood": (with_random(scene_moods), {"default": RANDOM_LABEL}),
+                "time_of_day": (with_random(time_of_day), {"default": RANDOM_LABEL}),
+                "weather": (with_random(weather_conditions), {"default": NONE_LABEL}),
+                "population": (with_random(population_density), {"default": NONE_LABEL}),
                 
                 # === Visual Style ===
                 "chaos_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
@@ -216,7 +195,7 @@ class SceneGeneratorNode:
         scene_categories = scene_data.get("scene_categories", {})
         
         # Resolve scene selection
-        resolved_category = _choose(scene_category, list(scene_categories.keys()), rng)
+        resolved_category = choose(scene_category, list(scene_categories.keys()), rng)
         
         # If specific_scene is Random, pick from the resolved category
         if specific_scene == RANDOM_LABEL:
@@ -227,17 +206,17 @@ class SceneGeneratorNode:
                 scene_pool = [s for scenes in scene_categories.values() for s in scenes]
             resolved_scene = rng.choice(scene_pool) if scene_pool else "mysterious scene"
         else:
-            resolved_scene = _choose(specific_scene, [], rng)
+            resolved_scene = choose(specific_scene, [], rng)
         
         # Custom scene overrides selection
         if custom_scene.strip():
             resolved_scene = custom_scene.strip()
         
         # Resolve atmosphere
-        resolved_mood = _choose(mood, scene_data.get("scene_moods", []), rng)
-        resolved_time = _choose(time_of_day, scene_data.get("time_of_day", []), rng)
-        resolved_weather = _choose(weather, scene_data.get("weather_conditions", []), rng)
-        resolved_population = _choose(population, scene_data.get("population_density", []), rng)
+        resolved_mood = choose(mood, scene_data.get("scene_moods", []), rng)
+        resolved_time = choose(time_of_day, scene_data.get("time_of_day", []), rng)
+        resolved_weather = choose(weather, scene_data.get("weather_conditions", []), rng)
+        resolved_population = choose(population, scene_data.get("population_density", []), rng)
         
         # Build selections dict for caching
         selections = {
@@ -365,10 +344,10 @@ class SceneGeneratorNode:
                     split_idx += 1
                 result = result[split_idx:].strip()
 
-        if content_rating != "NSFW allowed":
+        if content_rating == "SFW":
             err = enforce_sfw(result)
             if err:
-                return "[Blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed'.]"
+                return "[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]"
 
         return result or "[Empty response from Ollama]"
 

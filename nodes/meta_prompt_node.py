@@ -1,56 +1,12 @@
 import random
 from typing import Any, Dict, List, Optional, Tuple
 
-from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from lib.content_safety import enforce_sfw
 from lib.data_files import load_json
-from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.helpers import extract_descriptions, normalize_option_list, with_random, choose
+from lib.ollama_client import collect_models, generate_text
 from lib.system_prompts import load_system_prompt_text
-RANDOM_LABEL = "Random"
-NONE_LABEL = "none"
-
-
-def _option_name(item: Any) -> Optional[str]:
-    if isinstance(item, str):
-        name = item.strip()
-        return name or None
-    if isinstance(item, dict):
-        name = str(item.get("name") or item.get("value") or item.get("label") or "").strip()
-        return name or None
-    return None
-
-
-def _option_description(item: Any) -> str:
-    if isinstance(item, dict):
-        desc = item.get("description")
-        if desc is None:
-            desc = item.get("desc")
-        return str(desc or "").strip()
-    return ""
-
-
-def _normalize_option_list(options: Any) -> List[str]:
-    if not isinstance(options, list):
-        return []
-    out: List[str] = []
-    for item in options:
-        name = _option_name(item)
-        if name:
-            out.append(name)
-    return out
-
-
-def _extract_descriptions(payload: Any) -> Dict[str, str]:
-    out: Dict[str, str] = {}
-    if not isinstance(payload, list):
-        return out
-    for item in payload:
-        name = _option_name(item)
-        if not name:
-            continue
-        desc = _option_description(item)
-        if desc:
-            out[name] = desc
-    return out
 
 
 def _flatten_style_payload(payload: Any) -> List[Any]:
@@ -79,27 +35,6 @@ def _should_echo_style_label(style_name: str) -> bool:
     return not any(token in lowered for token in banned_tokens)
 
 
-def _with_random(options: Any) -> Tuple[str, ...]:
-    normalized = _normalize_option_list(options)
-    values: List[str] = [RANDOM_LABEL, NONE_LABEL]
-    for option in normalized:
-        if option != NONE_LABEL:
-            values.append(option)
-    return tuple(values)
-
-
-def _choose(value: str, options: Any, rng: random.Random) -> Optional[str]:
-    normalized = _normalize_option_list(options)
-    if value == RANDOM_LABEL:
-        pool = [opt for opt in normalized if opt != NONE_LABEL]
-        choice = rng.choice(pool) if pool else None
-    else:
-        choice = value
-    if choice in (NONE_LABEL, None):
-        return None
-    return choice
-
-
 def _get_meta_options() -> Dict[str, Any]:
     region_payload = load_json("regions.json")
     meta_payload = load_json("meta_prompt_options.json")
@@ -114,11 +49,11 @@ def _get_meta_options() -> Dict[str, Any]:
         "futuristic_settings": list(futuristic_payload),
         "ancient_eras": list(ancient_payload),
         "mythological_elements": list(mythology_payload),
-        "visual_styles": _normalize_option_list(visual_payload),
-        "visual_style_desc_map": _extract_descriptions(visual_payload),
-        "futuristic_desc_map": _extract_descriptions(futuristic_payload),
-        "ancient_desc_map": _extract_descriptions(ancient_payload),
-        "mythology_desc_map": _extract_descriptions(mythology_payload),
+        "visual_styles": normalize_option_list(visual_payload),
+        "visual_style_desc_map": extract_descriptions(visual_payload),
+        "futuristic_desc_map": extract_descriptions(futuristic_payload),
+        "ancient_desc_map": extract_descriptions(ancient_payload),
+        "mythology_desc_map": extract_descriptions(mythology_payload),
     }
 
 
@@ -159,35 +94,35 @@ class MetaPromptGeneratorNode:
                 "content_rating": (
                     CONTENT_RATING_CHOICES,
                     {
-                        "default": "SFW only",
+                        "default": "SFW",
                     },
                 ),
                 "regional_style": (
-                    _with_random(options["regions"]),
+                    with_random(options["regions"]),
                     {
                         "default": NONE_LABEL,
                     },
                 ),
                 "futuristic_setting": (
-                    _with_random(options["futuristic_settings"]),
+                    with_random(options["futuristic_settings"]),
                     {
                         "default": NONE_LABEL,
                     },
                 ),
                 "ancient_setting": (
-                    _with_random(options["ancient_eras"]),
+                    with_random(options["ancient_eras"]),
                     {
                         "default": NONE_LABEL,
                     },
                 ),
                 "mythological_element": (
-                    _with_random(options["mythological_elements"]),
+                    with_random(options["mythological_elements"]),
                     {
                         "default": NONE_LABEL,
                     },
                 ),
                 "visual_style": (
-                    _with_random(options["visual_styles"]),
+                    with_random(options["visual_styles"]),
                     {
                         "default": NONE_LABEL,
                     },
@@ -250,11 +185,11 @@ class MetaPromptGeneratorNode:
         meta_options = _get_meta_options()
 
         selected_directives = {
-            "region": _choose(regional_style, meta_options["regions"], rng),
-            "futuristic": _choose(futuristic_setting, meta_options["futuristic_settings"], rng),
-            "ancient": _choose(ancient_setting, meta_options["ancient_eras"], rng),
-            "mythology": _choose(mythological_element, meta_options["mythological_elements"], rng),
-            "style": _choose(visual_style, meta_options["visual_styles"], rng),
+            "region": choose(regional_style, meta_options["regions"], rng),
+            "futuristic": choose(futuristic_setting, meta_options["futuristic_settings"], rng),
+            "ancient": choose(ancient_setting, meta_options["ancient_eras"], rng),
+            "mythology": choose(mythological_element, meta_options["mythological_elements"], rng),
+            "style": choose(visual_style, meta_options["visual_styles"], rng),
         }
 
         directive_parts: List[str] = []
@@ -325,12 +260,12 @@ class MetaPromptGeneratorNode:
             output = "MetaPrompt error: empty response from Ollama"
 
         # Guardrail: in strict SFW mode, block outputs that look NSFW.
-        if content_rating != "NSFW allowed":
+        if content_rating == "SFW":
             err = enforce_sfw(output)
             if err:
                 return (
                     "MetaPrompt blocked: potential NSFW content detected. "
-                    "Switch content_rating to 'NSFW allowed' or revise keywords.",
+                    "Switch content_rating to 'Mixed' or 'NSFW' or revise keywords.",
                 )
 
         return (output,)

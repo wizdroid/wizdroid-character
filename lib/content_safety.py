@@ -3,8 +3,10 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+from .constants import CONTENT_RATING_CHOICES
 
-CONTENT_RATING_CHOICES = ("SFW only", "NSFW allowed")
+# Re-export for backward compatibility
+__all__ = ["CONTENT_RATING_CHOICES", "looks_nsfw", "enforce_sfw"]
 
 # Conservative blocklist: goal is to prevent accidental NSFW prompts.
 # (This is not a comprehensive safety classifier.)

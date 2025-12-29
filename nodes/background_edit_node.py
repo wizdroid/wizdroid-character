@@ -1,15 +1,13 @@
-import json
 import random
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from lib.content_safety import enforce_sfw
 from lib.data_files import load_json
-from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.helpers import choose, choose_tuple, get_background_groups, with_random, with_random_tuple
+from lib.ollama_client import collect_models, generate_text
 from lib.system_prompts import load_system_prompt_text
-RANDOM_LABEL = "Random"
-NONE_LABEL = "none"
-DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 THEME_CHOICES = (
     "astral myth",
@@ -86,65 +84,6 @@ FOCAL_CHOICES = (
 )
 
 
-def _load_json(name: str) -> Any:
-    return load_json(name)
-
-
-def _with_random(options: List[str]) -> Tuple[str, ...]:
-    values: List[str] = [RANDOM_LABEL, NONE_LABEL]
-    for option in options:
-        if option == NONE_LABEL:
-            continue
-        values.append(option)
-    return tuple(values)
-
-
-def _with_random_tuple(options: Tuple[str, ...]) -> Tuple[str, ...]:
-    return (RANDOM_LABEL, NONE_LABEL, *options)
-
-
-def _choose(value: Optional[str], options: List[str], rng: random.Random) -> Optional[str]:
-    if value == RANDOM_LABEL:
-        pool = [opt for opt in options if opt != NONE_LABEL]
-        if not pool:
-            pool = options[:]
-        selection = rng.choice(pool)
-    else:
-        selection = value
-
-    if selection == NONE_LABEL or selection is None:
-        return None
-    return selection
-
-
-def _choose_tuple(value: Optional[str], options: Tuple[str, ...], rng: random.Random) -> Optional[str]:
-    if value == RANDOM_LABEL:
-        pool = [opt for opt in options if opt not in (NONE_LABEL, RANDOM_LABEL)]
-        if not pool:
-            pool = list(options)
-        selection = rng.choice(pool)
-    else:
-        selection = value
-
-    if selection == NONE_LABEL or selection is None:
-        return None
-    return selection
-
-
-def _get_background_groups(payload: Any) -> Dict[str, List[str]]:
-    groups = {
-        "studio_controlled": [],
-        "public_exotic_real": [],
-        "imaginative_surreal": [],
-    }
-    if isinstance(payload, dict):
-        for key in groups:
-            groups[key] = list(payload.get(key, []) or [])
-    elif isinstance(payload, list):
-        groups["studio_controlled"] = list(payload)
-    return groups
-
-
 class BackgroundEditNode:
     CATEGORY = "Wizdroid/backgrounds"
     RETURN_TYPES = ("STRING", "STRING")
@@ -153,9 +92,9 @@ class BackgroundEditNode:
 
     @classmethod
     def INPUT_TYPES(cls):
-        option_map = _load_json("character_options.json")
-        prompt_styles = _load_json("prompt_styles.json")
-        background_groups = _get_background_groups(option_map.get("background_style"))
+        option_map = load_json("character_options.json")
+        prompt_styles = load_json("prompt_styles.json")
+        background_groups = get_background_groups(option_map.get("background_style"))
         studio_backgrounds = background_groups["studio_controlled"] or [NONE_LABEL]
         real_backgrounds = background_groups["public_exotic_real"] or [NONE_LABEL]
         imaginative_backgrounds = background_groups["imaginative_surreal"] or [NONE_LABEL]
@@ -169,22 +108,22 @@ class BackgroundEditNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (tuple(prompt_styles.keys()), {"default": "SDXL"}),
-                "studio_background": (_with_random(studio_backgrounds), {"default": RANDOM_LABEL}),
-                "real_background": (_with_random(real_backgrounds), {"default": NONE_LABEL}),
-                "imaginative_background": (_with_random(imaginative_backgrounds), {"default": NONE_LABEL}),
-                "theme": (_with_random_tuple(THEME_CHOICES), {"default": RANDOM_LABEL}),
-                "time_of_day": (_with_random_tuple(TIME_OF_DAY_CHOICES), {"default": RANDOM_LABEL}),
-                "weather": (_with_random_tuple(WEATHER_CHOICES), {"default": RANDOM_LABEL}),
-                "mood": (_with_random_tuple(MOOD_CHOICES), {"default": RANDOM_LABEL}),
-                "scale": (_with_random_tuple(SCALE_CHOICES), {"default": RANDOM_LABEL}),
-                "focal_element": (_with_random_tuple(FOCAL_CHOICES), {"default": RANDOM_LABEL}),
-                "architecture": (_with_random_tuple(ARCHITECTURE_CHOICES), {"default": RANDOM_LABEL}),
-                "creature_presence": (_with_random_tuple(CREATURE_CHOICES), {"default": RANDOM_LABEL}),
-                "lighting_style": (_with_random(lighting_styles), {"default": RANDOM_LABEL}),
-                "color_palette": (_with_random(color_palettes), {"default": RANDOM_LABEL}),
-                "camera_lens": (_with_random(camera_lenses), {"default": RANDOM_LABEL}),
+                "studio_background": (with_random(studio_backgrounds), {"default": RANDOM_LABEL}),
+                "real_background": (with_random(real_backgrounds), {"default": NONE_LABEL}),
+                "imaginative_background": (with_random(imaginative_backgrounds), {"default": NONE_LABEL}),
+                "theme": (with_random_tuple(THEME_CHOICES), {"default": RANDOM_LABEL}),
+                "time_of_day": (with_random_tuple(TIME_OF_DAY_CHOICES), {"default": RANDOM_LABEL}),
+                "weather": (with_random_tuple(WEATHER_CHOICES), {"default": RANDOM_LABEL}),
+                "mood": (with_random_tuple(MOOD_CHOICES), {"default": RANDOM_LABEL}),
+                "scale": (with_random_tuple(SCALE_CHOICES), {"default": RANDOM_LABEL}),
+                "focal_element": (with_random_tuple(FOCAL_CHOICES), {"default": RANDOM_LABEL}),
+                "architecture": (with_random_tuple(ARCHITECTURE_CHOICES), {"default": RANDOM_LABEL}),
+                "creature_presence": (with_random_tuple(CREATURE_CHOICES), {"default": RANDOM_LABEL}),
+                "lighting_style": (with_random(lighting_styles), {"default": RANDOM_LABEL}),
+                "color_palette": (with_random(color_palettes), {"default": RANDOM_LABEL}),
+                "camera_lens": (with_random(camera_lenses), {"default": RANDOM_LABEL}),
                 "custom_notes": ("STRING", {"multiline": True, "default": ""}),
             },
             "optional": {
@@ -215,11 +154,11 @@ class BackgroundEditNode:
         custom_notes: str,
         seed: int = 0,
     ) -> Tuple[str, str]:
-        option_map = _load_json("character_options.json")
-        prompt_styles = _load_json("prompt_styles.json")
+        option_map = load_json("character_options.json")
+        prompt_styles = load_json("prompt_styles.json")
         rng = random.Random(seed)
 
-        background_groups = _get_background_groups(option_map.get("background_style"))
+        background_groups = get_background_groups(option_map.get("background_style"))
         studio_backgrounds = background_groups["studio_controlled"] or [NONE_LABEL]
         real_backgrounds = background_groups["public_exotic_real"] or [NONE_LABEL]
         imaginative_backgrounds = background_groups["imaginative_surreal"] or [NONE_LABEL]
@@ -227,20 +166,20 @@ class BackgroundEditNode:
         color_palettes = option_map.get("color_palette") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
 
-        resolved_studio = _choose(studio_background, studio_backgrounds, rng)
-        resolved_real = _choose(real_background, real_backgrounds, rng)
-        resolved_imag = _choose(imaginative_background, imaginative_backgrounds, rng)
-        resolved_theme = _choose_tuple(theme, _with_random_tuple(THEME_CHOICES), rng)
-        resolved_time = _choose_tuple(time_of_day, _with_random_tuple(TIME_OF_DAY_CHOICES), rng)
-        resolved_weather = _choose_tuple(weather, _with_random_tuple(WEATHER_CHOICES), rng)
-        resolved_mood = _choose_tuple(mood, _with_random_tuple(MOOD_CHOICES), rng)
-        resolved_scale = _choose_tuple(scale, _with_random_tuple(SCALE_CHOICES), rng)
-        resolved_focal = _choose_tuple(focal_element, _with_random_tuple(FOCAL_CHOICES), rng)
-        resolved_architecture = _choose_tuple(architecture, _with_random_tuple(ARCHITECTURE_CHOICES), rng)
-        resolved_creature = _choose_tuple(creature_presence, _with_random_tuple(CREATURE_CHOICES), rng)
-        resolved_lighting = _choose(lighting_style, lighting_styles, rng)
-        resolved_palette = _choose(color_palette, color_palettes, rng)
-        resolved_lens = _choose(camera_lens, camera_lenses, rng)
+        resolved_studio = choose(studio_background, studio_backgrounds, rng)
+        resolved_real = choose(real_background, real_backgrounds, rng)
+        resolved_imag = choose(imaginative_background, imaginative_backgrounds, rng)
+        resolved_theme = choose_tuple(theme, with_random_tuple(THEME_CHOICES), rng)
+        resolved_time = choose_tuple(time_of_day, with_random_tuple(TIME_OF_DAY_CHOICES), rng)
+        resolved_weather = choose_tuple(weather, with_random_tuple(WEATHER_CHOICES), rng)
+        resolved_mood = choose_tuple(mood, with_random_tuple(MOOD_CHOICES), rng)
+        resolved_scale = choose_tuple(scale, with_random_tuple(SCALE_CHOICES), rng)
+        resolved_focal = choose_tuple(focal_element, with_random_tuple(FOCAL_CHOICES), rng)
+        resolved_architecture = choose_tuple(architecture, with_random_tuple(ARCHITECTURE_CHOICES), rng)
+        resolved_creature = choose_tuple(creature_presence, with_random_tuple(CREATURE_CHOICES), rng)
+        resolved_lighting = choose(lighting_style, lighting_styles, rng)
+        resolved_palette = choose(color_palette, color_palettes, rng)
+        resolved_lens = choose(camera_lens, camera_lenses, rng)
 
         style_meta = prompt_styles.get(prompt_style, prompt_styles.get("SDXL", {}))
 
@@ -297,10 +236,10 @@ class BackgroundEditNode:
         else:
             bg_prompt, style_hint = raw, ""
 
-        if content_rating != "NSFW allowed":
+        if content_rating == "SFW":
             err = enforce_sfw(bg_prompt)
             if err:
-                return ("[Blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed'.]", "")
+                return ("[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]", "")
 
         return bg_prompt.strip(), style_hint.strip()
 

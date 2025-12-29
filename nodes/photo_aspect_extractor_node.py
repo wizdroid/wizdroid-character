@@ -21,15 +21,13 @@ try:
 except ImportError:  # pragma: no cover
     requests = None
 
-from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from lib.content_safety import enforce_sfw
 from lib.data_files import load_json
 from lib.system_prompts import apply_content_policy, load_system_prompt_text
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
-RANDOM_LABEL = "Random"
-NONE_LABEL = "none"
-DEFAULT_OLLAMA_URL = "http://localhost:11434"
 VISION_KEYWORDS = {
     "vision",
     "vl",
@@ -349,7 +347,7 @@ class PhotoAspectExtractorNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "extraction_mode": (mode_keys, {"default": mode_keys[0]}),
                 "retain_face": ("BOOLEAN", {"default": False}),
                 "retain_pose_and_camera": ("BOOLEAN", {"default": True}),
@@ -542,10 +540,10 @@ Requirements:
         if prefix_parts:
             print("[PhotoAspectExtractor] Added prompt prefixes")
 
-        if content_rating != "NSFW allowed":
+        if content_rating == "SFW":
             err = enforce_sfw(out)
             if err:
-                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed'.]"
+                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]"
                 return (blocked, blocked)
         return (out, out)
     

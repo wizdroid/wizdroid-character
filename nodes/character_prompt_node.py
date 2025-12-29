@@ -4,159 +4,28 @@ import hashlib
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
+from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
 from lib.content_safety import enforce_sfw
 from lib.data_files import load_json
-from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.helpers import (
+    choose,
+    choose_for_rating,
+    extract_descriptions,
+    get_background_groups,
+    normalize_option_list,
+    option_description,
+    option_name,
+    pool_for_rating,
+    split_groups,
+    with_random,
+)
+from lib.ollama_client import collect_models, generate_text
 from lib.system_prompts import load_system_prompt_template
-RANDOM_LABEL = "Random"
-NONE_LABEL = "none"
-CONTENT_RATING_CHOICES = ("SFW", "NSFW", "Mixed")
-DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 _PROMPT_CACHE: Dict[str, str] = {}
 _MAX_CACHE_SIZE = 100
 
 logger = logging.getLogger(__name__)
-
-
-def _option_name(item: Any) -> Optional[str]:
-    if isinstance(item, str):
-        name = item.strip()
-        return name or None
-    if isinstance(item, dict):
-        name = str(item.get("name") or item.get("value") or item.get("label") or "").strip()
-        return name or None
-    return None
-
-
-def _option_description(item: Any) -> str:
-    if isinstance(item, dict):
-        desc = item.get("description")
-        if desc is None:
-            desc = item.get("desc")
-        return str(desc or "").strip()
-    return ""
-
-
-def _normalize_option_list(options: Any) -> List[str]:
-    """Normalize a list of option items into a list of option names.
-
-    Supports either:
-    - ["a", "b", ...]
-    - [{"name": "a", "description": "..."}, ...]
-    """
-
-    if not isinstance(options, list):
-        return []
-
-    out: List[str] = []
-    for item in options:
-        name = _option_name(item)
-        if name:
-            out.append(name)
-    return out
-
-
-def _extract_descriptions(payload: Any) -> Dict[str, str]:
-    """Build {option_name: description} mapping from list/dict(SFW/NSFW) payload."""
-
-    out: Dict[str, str] = {}
-    if isinstance(payload, dict):
-        groups = [payload.get("sfw") or [], payload.get("nsfw") or []]
-    elif isinstance(payload, list):
-        groups = [payload]
-    else:
-        groups = []
-
-    for group in groups:
-        if not isinstance(group, list):
-            continue
-        for item in group:
-            name = _option_name(item)
-            if not name:
-                continue
-            desc = _option_description(item)
-            if desc:
-                out[name] = desc
-    return out
-
-
-def _with_random(options: List[str]) -> Tuple[str, ...]:
-    """Prepend Random and none options to a list."""
-    normalized = _normalize_option_list(options)
-    values: List[str] = [RANDOM_LABEL, NONE_LABEL]
-    for option in normalized:
-        if option and option != NONE_LABEL:
-            values.append(option)
-    return tuple(values)
-
-
-def _choose(value: Optional[str], options: List[Any], rng: random.Random) -> Optional[str]:
-    """Select a value, handling Random and none cases."""
-    normalized = _normalize_option_list(options)
-    if value == RANDOM_LABEL:
-        pool = [opt for opt in normalized if opt != NONE_LABEL]
-        selection = rng.choice(pool) if pool else None
-    else:
-        selection = value
-    return None if selection == NONE_LABEL or selection is None else selection
-
-
-def _split_groups(payload: Any) -> Tuple[List[str], List[str]]:
-    """Split payload into SFW and NSFW lists."""
-    if isinstance(payload, dict):
-        sfw_raw = payload.get("sfw") or []
-        nsfw_raw = payload.get("nsfw") or []
-        sfw: List[str] = []
-        nsfw: List[str] = []
-        if isinstance(sfw_raw, list):
-            for item in sfw_raw:
-                name = _option_name(item)
-                if name:
-                    sfw.append(name)
-        if isinstance(nsfw_raw, list):
-            for item in nsfw_raw:
-                name = _option_name(item)
-                if name:
-                    nsfw.append(name)
-        return sfw, nsfw
-    elif isinstance(payload, list):
-        sfw: List[str] = []
-        for item in payload:
-            name = _option_name(item)
-            if name:
-                sfw.append(name)
-        return sfw, []
-    return [], []
-
-
-def _pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
-    """Get appropriate pool based on content rating."""
-    if rating == "SFW":
-        return sfw
-    if rating == "NSFW":
-        return nsfw
-    return sfw + nsfw  # Mixed
-
-
-def _choose_for_rating(value: Optional[str], sfw: List[str], nsfw: List[str], rating: str, rng: random.Random) -> Optional[str]:
-    """Choose value respecting content rating."""
-    if value == RANDOM_LABEL:
-        pool = [opt for opt in _pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
-        if not pool:
-            pool = [opt for opt in (sfw + nsfw) if opt != NONE_LABEL]
-        return rng.choice(pool) if pool else None
-    return None if value == NONE_LABEL or value is None else value
-
-
-def _get_background_groups(payload: Any) -> Dict[str, List[str]]:
-    """Extract background style groups from payload."""
-    default = {"studio_controlled": [], "public_exotic_real": [], "imaginative_surreal": []}
-    if isinstance(payload, dict):
-        return {k: list(payload.get(k) or []) for k in default}
-    elif isinstance(payload, list):
-        return {**default, "studio_controlled": list(payload)}
-    return default
 
 
 def _get_option_data() -> Dict[str, Any]:
@@ -167,16 +36,16 @@ def _get_option_data() -> Dict[str, Any]:
     country_options = load_json("countries.json")
     culture_options = load_json("cultures.json")
     
-    pose_sfw, pose_nsfw = _split_groups(option_map.get("pose_style"))
-    image_sfw, image_nsfw = _split_groups(option_map.get("image_category"))
-    image_desc_map = _extract_descriptions(option_map.get("image_category"))
-    fashion_style_desc_map = _extract_descriptions(option_map.get("fashion_style"))
-    fashion_outfit_desc_map = _extract_descriptions(option_map.get("fashion_outfit"))
-    makeup_style_desc_map = _extract_descriptions(option_map.get("makeup_style"))
-    lighting_style_desc_map = _extract_descriptions(option_map.get("lighting_style"))
-    camera_lens_desc_map = _extract_descriptions(option_map.get("camera_lens"))
-    color_palette_desc_map = _extract_descriptions(option_map.get("color_palette"))
-    background_groups = _get_background_groups(option_map.get("background_style"))
+    pose_sfw, pose_nsfw = split_groups(option_map.get("pose_style"))
+    image_sfw, image_nsfw = split_groups(option_map.get("image_category"))
+    image_desc_map = extract_descriptions(option_map.get("image_category"))
+    fashion_style_desc_map = extract_descriptions(option_map.get("fashion_style"))
+    fashion_outfit_desc_map = extract_descriptions(option_map.get("fashion_outfit"))
+    makeup_style_desc_map = extract_descriptions(option_map.get("makeup_style"))
+    lighting_style_desc_map = extract_descriptions(option_map.get("lighting_style"))
+    camera_lens_desc_map = extract_descriptions(option_map.get("camera_lens"))
+    color_palette_desc_map = extract_descriptions(option_map.get("color_palette"))
+    bg_groups = get_background_groups(option_map.get("background_style"))
     
     return {
         "option_map": option_map,
@@ -195,7 +64,7 @@ def _get_option_data() -> Dict[str, Any]:
         "lighting_style_desc_map": lighting_style_desc_map,
         "camera_lens_desc_map": camera_lens_desc_map,
         "color_palette_desc_map": color_palette_desc_map,
-        "background_groups": background_groups,
+        "background_groups": bg_groups,
     }
 
 
@@ -233,42 +102,42 @@ class CharacterPromptBuilder:
                 # === Character Identity ===
                 "character_name": ("STRING", {"default": ""}),
                 "retain_face": ("BOOLEAN", {"default": False}),
-                "gender": (_with_random(opt["gender"]), {"default": RANDOM_LABEL}),
-                "race": (_with_random(opt.get("race") or [NONE_LABEL]), {"default": NONE_LABEL}),
-                "age_group": (_with_random(opt["age_group"]), {"default": RANDOM_LABEL}),
-                "body_type": (_with_random(opt["body_type"]), {"default": NONE_LABEL}),
+                "gender": (with_random(opt["gender"]), {"default": RANDOM_LABEL}),
+                "race": (with_random(opt.get("race") or [NONE_LABEL]), {"default": NONE_LABEL}),
+                "age_group": (with_random(opt["age_group"]), {"default": RANDOM_LABEL}),
+                "body_type": (with_random(opt["body_type"]), {"default": NONE_LABEL}),
                 
                 # === Appearance (optional - default none) ===
-                "hair_color": (_with_random(opt["hair_color"]), {"default": NONE_LABEL}),
-                "hair_style": (_with_random(opt["hair_style"]), {"default": NONE_LABEL}),
-                "eye_color": (_with_random(opt["eye_color"]), {"default": NONE_LABEL}),
-                "makeup_style": (_with_random(opt["makeup_style"]), {"default": NONE_LABEL}),
+                "hair_color": (with_random(opt["hair_color"]), {"default": NONE_LABEL}),
+                "hair_style": (with_random(opt["hair_style"]), {"default": NONE_LABEL}),
+                "eye_color": (with_random(opt["eye_color"]), {"default": NONE_LABEL}),
+                "makeup_style": (with_random(opt["makeup_style"]), {"default": NONE_LABEL}),
                 
                 # === Expression & Pose ===
-                "facial_expression": (_with_random(opt["facial_expression"]), {"default": RANDOM_LABEL}),
-                "face_angle": (_with_random(opt["face_angle"]), {"default": NONE_LABEL}),
-                "pose_style": (_with_random(data["pose_sfw"] + data["pose_nsfw"]), {"default": RANDOM_LABEL}),
+                "facial_expression": (with_random(opt["facial_expression"]), {"default": RANDOM_LABEL}),
+                "face_angle": (with_random(opt["face_angle"]), {"default": NONE_LABEL}),
+                "pose_style": (with_random(data["pose_sfw"] + data["pose_nsfw"]), {"default": RANDOM_LABEL}),
                 
                 # === Fashion ===
-                "fashion_outfit": (_with_random(opt.get("fashion_outfit") or [NONE_LABEL]), {"default": RANDOM_LABEL}),
-                "fashion_style": (_with_random(opt.get("fashion_style") or [NONE_LABEL]), {"default": RANDOM_LABEL}),
-                "footwear_style": (_with_random(opt.get("footwear_style") or [NONE_LABEL]), {"default": NONE_LABEL}),
-                "upcycled_fashion": (_with_random(opt.get("upcycled_materials") or [NONE_LABEL]), {"default": NONE_LABEL}),
+                "fashion_outfit": (with_random(opt.get("fashion_outfit") or [NONE_LABEL]), {"default": RANDOM_LABEL}),
+                "fashion_style": (with_random(opt.get("fashion_style") or [NONE_LABEL]), {"default": RANDOM_LABEL}),
+                "footwear_style": (with_random(opt.get("footwear_style") or [NONE_LABEL]), {"default": NONE_LABEL}),
+                "upcycled_fashion": (with_random(opt.get("upcycled_materials") or [NONE_LABEL]), {"default": NONE_LABEL}),
                 
                 # === Scene & Camera ===
-                "image_category": (_with_random(data["image_sfw"] + data["image_nsfw"]), {"default": RANDOM_LABEL}),
-                "background_stage_style": (_with_random(bg["studio_controlled"] or [NONE_LABEL]), {"default": NONE_LABEL}),
-                "background_location_style": (_with_random(bg["public_exotic_real"] or [NONE_LABEL]), {"default": NONE_LABEL}),
-                "background_imaginative_style": (_with_random(bg["imaginative_surreal"] or [NONE_LABEL]), {"default": NONE_LABEL}),
-                "lighting_style": (_with_random(opt.get("lighting_style") or [NONE_LABEL]), {"default": RANDOM_LABEL}),
-                "camera_angle": (_with_random(opt["camera_angle"]), {"default": NONE_LABEL}),
-                "camera_lens": (_with_random(opt.get("camera_lens") or [NONE_LABEL]), {"default": NONE_LABEL}),
-                "color_palette": (_with_random(opt.get("color_palette") or [NONE_LABEL]), {"default": NONE_LABEL}),
+                "image_category": (with_random(data["image_sfw"] + data["image_nsfw"]), {"default": RANDOM_LABEL}),
+                "background_stage_style": (with_random(bg["studio_controlled"] or [NONE_LABEL]), {"default": NONE_LABEL}),
+                "background_location_style": (with_random(bg["public_exotic_real"] or [NONE_LABEL]), {"default": NONE_LABEL}),
+                "background_imaginative_style": (with_random(bg["imaginative_surreal"] or [NONE_LABEL]), {"default": NONE_LABEL}),
+                "lighting_style": (with_random(opt.get("lighting_style") or [NONE_LABEL]), {"default": RANDOM_LABEL}),
+                "camera_angle": (with_random(opt["camera_angle"]), {"default": NONE_LABEL}),
+                "camera_lens": (with_random(opt.get("camera_lens") or [NONE_LABEL]), {"default": NONE_LABEL}),
+                "color_palette": (with_random(opt.get("color_palette") or [NONE_LABEL]), {"default": NONE_LABEL}),
                 
                 # === Cultural Context ===
-                "region": (_with_random(data["region_options"]["regions"]), {"default": NONE_LABEL}),
-                "country": (_with_random(data["country_options"]["countries"]), {"default": NONE_LABEL}),
-                "culture": (_with_random(data["culture_options"]["cultures"]), {"default": NONE_LABEL}),
+                "region": (with_random(data["region_options"]["regions"]), {"default": NONE_LABEL}),
+                "country": (with_random(data["country_options"]["countries"]), {"default": NONE_LABEL}),
+                "culture": (with_random(data["culture_options"]["cultures"]), {"default": NONE_LABEL}),
                 
                 # === Custom Text ===
                 "custom_text_llm": ("STRING", {"multiline": True, "default": ""}),
@@ -331,32 +200,32 @@ class CharacterPromptBuilder:
         # Resolve all selections
         resolved = {
             "character_name": character_name.strip() or None,
-            "image_category": _choose_for_rating(image_category, data["image_sfw"], data["image_nsfw"], pool_mode, rng),
-            "gender": _choose(gender, opt["gender"], rng),
-            "race": _choose(race, opt.get("race") or [], rng),
-            "age_group": _choose(age_group, opt["age_group"], rng),
-            "body_type": _choose(body_type, opt["body_type"], rng),
-            "hair_color": _choose(hair_color, opt["hair_color"], rng),
-            "hair_style": _choose(hair_style, opt["hair_style"], rng),
-            "eye_color": _choose(eye_color, opt["eye_color"], rng),
-            "facial_expression": _choose(facial_expression, opt["facial_expression"], rng),
-            "face_angle": _choose(face_angle, opt["face_angle"], rng),
-            "camera_angle": _choose(camera_angle, opt["camera_angle"], rng),
-            "pose_style": _choose_for_rating(pose_style, data["pose_sfw"], data["pose_nsfw"], pool_mode, rng),
-            "makeup_style": _choose(makeup_style, opt["makeup_style"], rng),
-            "fashion_outfit": _choose(fashion_outfit, opt.get("fashion_outfit") or [], rng),
-            "fashion_style": _choose(fashion_style, opt.get("fashion_style") or [], rng),
-            "footwear_style": _choose(footwear_style, opt.get("footwear_style") or [], rng),
-            "upcycled_fashion": _choose(upcycled_fashion, opt.get("upcycled_materials") or [], rng),
-            "background_stage_style": _choose(background_stage_style, bg["studio_controlled"], rng),
-            "background_location_style": _choose(background_location_style, bg["public_exotic_real"], rng),
-            "background_imaginative_style": _choose(background_imaginative_style, bg["imaginative_surreal"], rng),
-            "lighting_style": _choose(lighting_style, opt.get("lighting_style") or [], rng),
-            "camera_lens": _choose(camera_lens, opt.get("camera_lens") or [], rng),
-            "color_palette": _choose(color_palette, opt.get("color_palette") or [], rng),
-            "region": _choose(region, data["region_options"]["regions"], rng),
-            "country": _choose(country, data["country_options"]["countries"], rng),
-            "culture": _choose(culture, data["culture_options"]["cultures"], rng),
+            "image_category": choose_for_rating(image_category, data["image_sfw"], data["image_nsfw"], pool_mode, rng),
+            "gender": choose(gender, opt["gender"], rng),
+            "race": choose(race, opt.get("race") or [], rng),
+            "age_group": choose(age_group, opt["age_group"], rng),
+            "body_type": choose(body_type, opt["body_type"], rng),
+            "hair_color": choose(hair_color, opt["hair_color"], rng),
+            "hair_style": choose(hair_style, opt["hair_style"], rng),
+            "eye_color": choose(eye_color, opt["eye_color"], rng),
+            "facial_expression": choose(facial_expression, opt["facial_expression"], rng),
+            "face_angle": choose(face_angle, opt["face_angle"], rng),
+            "camera_angle": choose(camera_angle, opt["camera_angle"], rng),
+            "pose_style": choose_for_rating(pose_style, data["pose_sfw"], data["pose_nsfw"], pool_mode, rng),
+            "makeup_style": choose(makeup_style, opt["makeup_style"], rng),
+            "fashion_outfit": choose(fashion_outfit, opt.get("fashion_outfit") or [], rng),
+            "fashion_style": choose(fashion_style, opt.get("fashion_style") or [], rng),
+            "footwear_style": choose(footwear_style, opt.get("footwear_style") or [], rng),
+            "upcycled_fashion": choose(upcycled_fashion, opt.get("upcycled_materials") or [], rng),
+            "background_stage_style": choose(background_stage_style, bg["studio_controlled"], rng),
+            "background_location_style": choose(background_location_style, bg["public_exotic_real"], rng),
+            "background_imaginative_style": choose(background_imaginative_style, bg["imaginative_surreal"], rng),
+            "lighting_style": choose(lighting_style, opt.get("lighting_style") or [], rng),
+            "camera_lens": choose(camera_lens, opt.get("camera_lens") or [], rng),
+            "color_palette": choose(color_palette, opt.get("color_palette") or [], rng),
+            "region": choose(region, data["region_options"]["regions"], rng),
+            "country": choose(country, data["country_options"]["countries"], rng),
+            "culture": choose(culture, data["culture_options"]["cultures"], rng),
         }
 
         # Enforce pool restrictions for manual selections

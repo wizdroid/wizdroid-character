@@ -1,9 +1,10 @@
 import json
 from typing import Any, Dict, List, Optional, Tuple
 
-from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from lib.content_safety import enforce_sfw
 from lib.data_files import load_json
-from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.ollama_client import collect_models, generate_text
 from lib.system_prompts import apply_content_policy
 DEFAULT_CONTEST_JSON = "contest.json"
 def _load_json(filename: str) -> Any:
@@ -78,7 +79,7 @@ class ContestPromptGeneratorNode:
                 "content_rating": (
                     CONTENT_RATING_CHOICES,
                     {
-                        "default": "SFW only",
+                        "default": "SFW",
                     },
                 ),
                 "category": (
@@ -179,12 +180,12 @@ class ContestPromptGeneratorNode:
         if not ok:
             return ("", f"ContestPrompt error: {full}")
 
-        if content_rating != "NSFW allowed":
+        if content_rating == "SFW":
             err = enforce_sfw(full)
             if err:
                 return (
                     "",
-                    "ContestPrompt blocked: potential NSFW content detected. Switch content_rating to 'NSFW allowed' or revise category/notes.",
+                    "ContestPrompt blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW' or revise category/notes.",
                 )
 
         return (full, f"Category: {cat}\n\n{category_text}")

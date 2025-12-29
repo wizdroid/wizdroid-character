@@ -2,9 +2,10 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-from lib.content_safety import CONTENT_RATING_CHOICES, enforce_sfw
+from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from lib.content_safety import enforce_sfw
 from lib.data_files import load_json
-from lib.ollama_client import DEFAULT_OLLAMA_URL, collect_models, generate_text
+from lib.ollama_client import collect_models, generate_text
 from lib.system_prompts import load_system_prompt_text
 
 
@@ -46,7 +47,7 @@ class PromptCombinerNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW only"}),
+                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (style_options, {"default": "SDXL"}),
                 "input_prompt_1": ("STRING", {"multiline": True, "default": ""}),
                 "input_prompt_2": ("STRING", {"multiline": True, "default": ""}),
@@ -146,12 +147,12 @@ class PromptCombinerNode:
             error_msg = f"Failed to combine prompts: {response}"
             return (error_msg, error_msg)
 
-        if content_rating != "NSFW allowed":
+        if content_rating == "SFW":
             err = enforce_sfw(response)
             if err:
                 blocked = (
                     "PromptCombiner blocked: potential NSFW content detected. "
-                    "Switch content_rating to 'NSFW allowed' or revise inputs."
+                    "Switch content_rating to 'Mixed' or 'NSFW' or revise inputs."
                 )
                 return (blocked, blocked)
 

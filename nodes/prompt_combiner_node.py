@@ -2,11 +2,11 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
-from lib.content_safety import enforce_sfw
-from lib.data_files import load_json
-from lib.ollama_client import collect_models, generate_text
-from lib.system_prompts import load_system_prompt_text
+from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from wizdroid_lib.content_safety import enforce_sfw
+from wizdroid_lib.data_files import load_json
+from wizdroid_lib.ollama_client import collect_models, generate_text
+from wizdroid_lib.system_prompts import load_system_prompt_text
 
 
 def _normalize_token_limit(value: Any) -> Optional[int]:

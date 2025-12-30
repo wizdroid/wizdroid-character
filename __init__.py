@@ -1,16 +1,17 @@
 __version__ = "2025.11.01"
 
-import importlib
-import importlib.util
 import sys
 from pathlib import Path
 
-
+# Add the base directory to sys.path FIRST so that imports like 'from wizdroid_lib.content_safety' work
+# This must happen before any other imports that might trigger node module loading
 _BASE_DIR = Path(__file__).resolve().parent
+_BASE_DIR_STR = str(_BASE_DIR)
+if _BASE_DIR_STR not in sys.path:
+    sys.path.insert(0, _BASE_DIR_STR)
 
-# Add the base directory to sys.path so that imports like 'from lib.content_safety' work
-if str(_BASE_DIR) not in sys.path:
-    sys.path.insert(0, str(_BASE_DIR))
+import importlib
+import importlib.util
 
 
 def _import_node_module(module_basename: str):

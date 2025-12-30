@@ -5,13 +5,13 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from lib.content_safety import enforce_sfw
-from lib.data_files import load_json
-from lib.helpers import choose, with_random
-from lib.ollama_client import collect_models, generate_text
-from lib.system_prompts import load_system_prompt_text
-from lib.paths import DATA_DIR
+from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from wizdroid_lib.content_safety import enforce_sfw
+from wizdroid_lib.data_files import load_json
+from wizdroid_lib.helpers import choose, with_random
+from wizdroid_lib.ollama_client import collect_models, generate_text
+from wizdroid_lib.system_prompts import load_system_prompt_text
+from wizdroid_lib.paths import DATA_DIR
 
 logger = logging.getLogger(__name__)
 

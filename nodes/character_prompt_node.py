@@ -4,10 +4,10 @@ import hashlib
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from lib.content_safety import enforce_sfw
-from lib.data_files import load_json
-from lib.helpers import (
+from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from wizdroid_lib.content_safety import enforce_sfw
+from wizdroid_lib.data_files import load_json
+from wizdroid_lib.helpers import (
     choose,
     choose_for_rating,
     extract_descriptions,
@@ -19,8 +19,8 @@ from lib.helpers import (
     split_groups,
     with_random,
 )
-from lib.ollama_client import collect_models, generate_text
-from lib.system_prompts import load_system_prompt_template
+from wizdroid_lib.ollama_client import collect_models, generate_text
+from wizdroid_lib.system_prompts import load_system_prompt_template
 
 _PROMPT_CACHE: Dict[str, str] = {}
 _MAX_CACHE_SIZE = 100

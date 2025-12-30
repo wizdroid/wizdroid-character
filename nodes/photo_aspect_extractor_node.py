@@ -21,10 +21,10 @@ try:
 except ImportError:  # pragma: no cover
     requests = None
 
-from lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from lib.content_safety import enforce_sfw
-from lib.data_files import load_json
-from lib.system_prompts import apply_content_policy, load_system_prompt_text
+from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from wizdroid_lib.content_safety import enforce_sfw
+from wizdroid_lib.data_files import load_json
+from wizdroid_lib.system_prompts import apply_content_policy, load_system_prompt_text
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"

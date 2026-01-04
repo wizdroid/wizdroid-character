@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Styles AI Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #e94560, #f39c12, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        /* Tab Navigation */
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #e94560, #9b59b6);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+        }
+
+        /* Gallery Grid */
+        .gallery-container {
+            display: none;
+        }
+
+        .gallery-container.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 10px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(233, 69, 96, 0.5);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 15px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+            text-align: center;
+        }
+
+        .caption h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .caption .style-number {
+            font-size: 0.75rem;
+            color: #e94560;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* Lightbox Modal */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-caption {
+            color: #fff;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            text-transform: capitalize;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 3rem;
+            color: #fff;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .lightbox-close:hover {
+            color: #e94560;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 3rem;
+            color: #fff;
+            cursor: pointer;
+            padding: 20px;
+            transition: color 0.3s;
+            user-select: none;
+        }
+
+        .lightbox-nav:hover {
+            color: #e94560;
+        }
+
+        .lightbox-prev {
+            left: 20px;
+        }
+
+        .lightbox-next {
+            right: 20px;
+        }
+
+        /* Search/Filter */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            padding: 15px 25px;
+            font-size: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-input:focus {
+            border-color: #e94560;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        /* Stats */
+        .stats {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #888;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .tab-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
+            }
+
+            .gallery-item img {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Fashion Styles AI Gallery</h1>
+            <p class="subtitle">Exploring 57 Fashion Aesthetics Across AI Image Generation Models</p>
+        </header>
+
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search fashion styles...">
+        </div>
+
+        <div class="tab-container" id="tabContainer">
+            <!-- Tabs will be dynamically generated -->
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div id="galleriesContainer">
+            <!-- Galleries will be dynamically generated -->
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <span class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">&#10094;</span>
+        <img class="lightbox-content" id="lightboxImg">
+        <span class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">&#10095;</span>
+        <div class="lightbox-caption" id="lightboxCaption"></div>
+    </div>
+
+    <script>
+        // Fashion Styles in order (matching image numbers 00001-00057)
+        const fashionStyles = [
+            "High Fashion Editorial",
+            "Couture Runway",
+            "Minimalist Clean",
+            "Maximalist Bold",
+            "Boho Free Spirit",
+            "Romantic Feminine",
+            "Cottagecore Pastoral",
+            "Dark Academia Scholarly",
+            "Light Academia Soft",
+            "Preppy Classic",
+            "Old Money Understated",
+            "Quiet Luxury",
+            "Mob Wife Glamour",
+            "Clean Girl Aesthetic",
+            "Coquette Feminine",
+            "Balletcore Graceful",
+            "Tenniscore Sporty",
+            "Coastal Grandmother",
+            "Tomato Girl Mediterranean",
+            "Streetwear Urban",
+            "Gorpcore Outdoor",
+            "Techwear Functional",
+            "Normcore Basic",
+            "Blokecore Casual",
+            "Skater Punk",
+            "Grunge Layered",
+            "Gothic Romantic",
+            "Cyber Goth",
+            "E-Girl Aesthetic",
+            "Soft Girl Pastel",
+            "Dark Feminine",
+            "Kawaii Cute",
+            "Gyaru Japanese",
+            "Lolita Victorian",
+            "Y2K Nostalgic",
+            "McBling Sparkly",
+            "Indie Sleaze",
+            "90s Supermodel",
+            "80s Power Dressing",
+            "70s Bohemian",
+            "60s Mod",
+            "50s Rockabilly",
+            "40s Wartime Elegance",
+            "Roaring 20s Flapper",
+            "Victorian Gothic",
+            "Regencycore Bridgerton",
+            "Cyberpunk Neon",
+            "Solarpunk Eco",
+            "Steampunk Industrial",
+            "Retro Futurism",
+            "Vaporwave Aesthetic",
+            "Festival Bohemian",
+            "Athleisure Sporty",
+            "Resort Vacation",
+            "Après Ski",
+            "Western Cowgirl",
+            "Biker Rebel"
+        ];
+
+        // Configuration - Add new model folders here
+        // The script will automatically detect folders, but you can also manually configure
+        let modelFolders = [];
+        
+        // Dynamically detect folders (for static HTML, we list known folders)
+        // When adding a new model folder, just add it to this array
+        const knownFolders = ['flux', 'sdxl', 'z-image'];
+        
+        // State
+        let currentTab = 0;
+        let currentLightboxIndex = 0;
+        let currentImages = [];
+
+        // Initialize
+        async function init() {
+            modelFolders = await detectFolders();
+            createTabs();
+            createGalleries();
+            switchTab(0);
+            setupSearch();
+        }
+
+        // Detect available folders
+        async function detectFolders() {
+            // For a static HTML file, we use the known folders
+            // In a server environment, this could be an API call
+            return knownFolders;
+        }
+
+        // Create tab buttons
+        function createTabs() {
+            const tabContainer = document.getElementById('tabContainer');
+            tabContainer.innerHTML = '';
+            
+            modelFolders.forEach((folder, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'tab-btn' + (index === 0 ? ' active' : '');
+                btn.textContent = formatFolderName(folder);
+                btn.onclick = () => switchTab(index);
+                tabContainer.appendChild(btn);
+            });
+        }
+
+        // Format folder name for display
+        function formatFolderName(name) {
+            return name.replace(/-/g, ' ').replace(/_/g, ' ').toUpperCase();
+        }
+
+        // Create gallery containers
+        function createGalleries() {
+            const container = document.getElementById('galleriesContainer');
+            container.innerHTML = '';
+            
+            modelFolders.forEach((folder, index) => {
+                const galleryDiv = document.createElement('div');
+                galleryDiv.className = 'gallery-container' + (index === 0 ? ' active' : '');
+                galleryDiv.id = `gallery-${index}`;
+                
+                const grid = document.createElement('div');
+                grid.className = 'gallery-grid';
+                
+                fashionStyles.forEach((style, styleIndex) => {
+                    const imageNum = String(styleIndex + 1).padStart(5, '0');
+                    const imagePath = `${folder}/o__${imageNum}_.png`;
+                    
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    item.dataset.style = style.toLowerCase();
+                    item.onclick = () => openLightbox(folder, styleIndex);
+                    
+                    item.innerHTML = `
+                        <img src="${imagePath}" alt="${style}" loading="lazy" onerror="this.parentElement.style.display='none'">
+                        <div class="caption">
+                            <h3>${style}</h3>
+                            <div class="style-number">#${styleIndex + 1}</div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(item);
+                });
+                
+                galleryDiv.appendChild(grid);
+                container.appendChild(galleryDiv);
+            });
+        }
+
+        // Switch between tabs
+        function switchTab(index) {
+            currentTab = index;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            
+            // Update galleries
+            document.querySelectorAll('.gallery-container').forEach((gallery, i) => {
+                gallery.classList.toggle('active', i === index);
+            });
+            
+            // Update stats
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const activeGallery = document.querySelector('.gallery-container.active');
+            const visibleItems = activeGallery.querySelectorAll('.gallery-item:not([style*="display: none"])');
+            document.getElementById('stats').textContent = 
+                `Showing ${visibleItems.length} of ${fashionStyles.length} styles in ${formatFolderName(modelFolders[currentTab])}`;
+        }
+
+        // Search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                
+                document.querySelectorAll('.gallery-item').forEach(item => {
+                    const style = item.dataset.style;
+                    const matches = style.includes(query);
+                    item.style.display = matches ? '' : 'none';
+                });
+                
+                updateStats();
+            });
+        }
+
+        // Lightbox functions
+        function openLightbox(folder, index) {
+            currentLightboxIndex = index;
+            currentImages = fashionStyles.map((style, i) => ({
+                src: `${folder}/o__${String(i + 1).padStart(5, '0')}_.png`,
+                caption: style
+            }));
+            
+            updateLightbox();
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function updateLightbox() {
+            const img = document.getElementById('lightboxImg');
+            const caption = document.getElementById('lightboxCaption');
+            
+            img.src = currentImages[currentLightboxIndex].src;
+            caption.textContent = `${currentImages[currentLightboxIndex].caption} (#${currentLightboxIndex + 1})`;
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function navigateLightbox(direction) {
+            currentLightboxIndex += direction;
+            
+            if (currentLightboxIndex < 0) currentLightboxIndex = currentImages.length - 1;
+            if (currentLightboxIndex >= currentImages.length) currentLightboxIndex = 0;
+            
+            updateLightbox();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('lightbox').classList.contains('active')) {
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') navigateLightbox(-1);
+                if (e.key === 'ArrowRight') navigateLightbox(1);
+            }
+        });
+
+        // Close lightbox on background click
+        document.getElementById('lightbox').addEventListener('click', (e) => {
+            if (e.target.id === 'lightbox') closeLightbox();
+        });
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

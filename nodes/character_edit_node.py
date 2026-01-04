@@ -69,10 +69,10 @@ class CharacterEditNode:
         rng = random.Random(seed)
         pose_sfw, pose_nsfw = split_groups(character_options.get("pose_style"))
 
-        resolved_face_angle = choose(target_face_angle, character_options["face_angle"], rng)
-        resolved_camera_angle = choose(target_camera_angle, character_options["camera_angle"], rng)
-        resolved_pose = choose_for_rating(target_pose, pose_sfw, pose_nsfw, content_rating, rng)
-        resolved_gender = choose(gender, character_options["gender"], rng)
+        resolved_face_angle = choose(target_face_angle, character_options["face_angle"], rng, seed)
+        resolved_camera_angle = choose(target_camera_angle, character_options["camera_angle"], rng, seed)
+        resolved_pose = choose_for_rating(target_pose, pose_sfw, pose_nsfw, content_rating, rng, seed)
+        resolved_gender = choose(gender, character_options["gender"], rng, seed)
 
         # Validate SFW mode doesn't use NSFW pose
         if content_rating == "SFW" and resolved_pose and resolved_pose in set(pose_nsfw):

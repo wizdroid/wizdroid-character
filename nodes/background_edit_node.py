@@ -166,9 +166,9 @@ class BackgroundEditNode:
         color_palettes = option_map.get("color_palette") or [NONE_LABEL]
         camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
 
-        resolved_studio = choose(studio_background, studio_backgrounds, rng)
-        resolved_real = choose(real_background, real_backgrounds, rng)
-        resolved_imag = choose(imaginative_background, imaginative_backgrounds, rng)
+        resolved_studio = choose(studio_background, studio_backgrounds, rng, seed)
+        resolved_real = choose(real_background, real_backgrounds, rng, seed)
+        resolved_imag = choose(imaginative_background, imaginative_backgrounds, rng, seed)
         resolved_theme = choose_tuple(theme, with_random_tuple(THEME_CHOICES), rng)
         resolved_time = choose_tuple(time_of_day, with_random_tuple(TIME_OF_DAY_CHOICES), rng)
         resolved_weather = choose_tuple(weather, with_random_tuple(WEATHER_CHOICES), rng)
@@ -177,9 +177,9 @@ class BackgroundEditNode:
         resolved_focal = choose_tuple(focal_element, with_random_tuple(FOCAL_CHOICES), rng)
         resolved_architecture = choose_tuple(architecture, with_random_tuple(ARCHITECTURE_CHOICES), rng)
         resolved_creature = choose_tuple(creature_presence, with_random_tuple(CREATURE_CHOICES), rng)
-        resolved_lighting = choose(lighting_style, lighting_styles, rng)
-        resolved_palette = choose(color_palette, color_palettes, rng)
-        resolved_lens = choose(camera_lens, camera_lenses, rng)
+        resolved_lighting = choose(lighting_style, lighting_styles, rng, seed)
+        resolved_palette = choose(color_palette, color_palettes, rng, seed)
+        resolved_lens = choose(camera_lens, camera_lenses, rng, seed)
 
         style_meta = prompt_styles.get(prompt_style, prompt_styles.get("SDXL", {}))
 

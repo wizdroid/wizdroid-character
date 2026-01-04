@@ -195,7 +195,7 @@ class SceneGeneratorNode:
         scene_categories = scene_data.get("scene_categories", {})
         
         # Resolve scene selection
-        resolved_category = choose(scene_category, list(scene_categories.keys()), rng)
+        resolved_category = choose(scene_category, list(scene_categories.keys()), rng, seed)
         
         # If specific_scene is Random, pick from the resolved category
         if specific_scene == RANDOM_LABEL:
@@ -206,17 +206,17 @@ class SceneGeneratorNode:
                 scene_pool = [s for scenes in scene_categories.values() for s in scenes]
             resolved_scene = rng.choice(scene_pool) if scene_pool else "mysterious scene"
         else:
-            resolved_scene = choose(specific_scene, [], rng)
+            resolved_scene = choose(specific_scene, [], rng, seed)
         
         # Custom scene overrides selection
         if custom_scene.strip():
             resolved_scene = custom_scene.strip()
         
         # Resolve atmosphere
-        resolved_mood = choose(mood, scene_data.get("scene_moods", []), rng)
-        resolved_time = choose(time_of_day, scene_data.get("time_of_day", []), rng)
-        resolved_weather = choose(weather, scene_data.get("weather_conditions", []), rng)
-        resolved_population = choose(population, scene_data.get("population_density", []), rng)
+        resolved_mood = choose(mood, scene_data.get("scene_moods", []), rng, seed)
+        resolved_time = choose(time_of_day, scene_data.get("time_of_day", []), rng, seed)
+        resolved_weather = choose(weather, scene_data.get("weather_conditions", []), rng, seed)
+        resolved_population = choose(population, scene_data.get("population_density", []), rng, seed)
         
         # Build selections dict for caching
         selections = {

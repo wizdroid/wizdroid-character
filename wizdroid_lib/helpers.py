@@ -90,12 +90,23 @@ def with_random_tuple(options: Tuple[str, ...]) -> Tuple[str, ...]:
     return (RANDOM_LABEL, NONE_LABEL, *options)
 
 
-def choose(value: Optional[str], options: List[Any], rng: random.Random) -> Optional[str]:
-    """Select a value, handling Random and none cases."""
+def choose(value: Optional[str], options: List[Any], rng: random.Random, seed: Optional[int] = None) -> Optional[str]:
+    """Select a value, handling Random and none cases.
+    
+    If seed is provided, uses sequential iteration (seed % len) instead of random.
+    This allows incrementing seed from 0 to iterate through the list in order.
+    """
     normalized = normalize_option_list(options) if options and isinstance(options[0], dict) else options
     if value == RANDOM_LABEL:
         pool = [opt for opt in normalized if opt != NONE_LABEL]
-        selection = rng.choice(pool) if pool else None
+        if pool:
+            if seed is not None:
+                # Sequential iteration: use seed as index
+                selection = pool[seed % len(pool)]
+            else:
+                selection = rng.choice(pool)
+        else:
+            selection = None
     else:
         selection = value
     return None if selection == NONE_LABEL or selection is None else selection
@@ -159,13 +170,24 @@ def choose_for_rating(
     nsfw: List[str],
     rating: str,
     rng: random.Random,
+    seed: Optional[int] = None,
 ) -> Optional[str]:
-    """Choose value respecting content rating."""
+    """Choose value respecting content rating.
+    
+    If seed is provided, uses sequential iteration (seed % len) instead of random.
+    This allows incrementing seed from 0 to iterate through the list in order.
+    """
     if value == RANDOM_LABEL:
         pool = [opt for opt in pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
         if not pool:
             pool = [opt for opt in (sfw + nsfw) if opt != NONE_LABEL]
-        return rng.choice(pool) if pool else None
+        if pool:
+            if seed is not None:
+                # Sequential iteration: use seed as index
+                return pool[seed % len(pool)]
+            else:
+                return rng.choice(pool)
+        return None
     return None if value == NONE_LABEL or value is None else value
 
 

@@ -185,11 +185,11 @@ class MetaPromptGeneratorNode:
         meta_options = _get_meta_options()
 
         selected_directives = {
-            "region": choose(regional_style, meta_options["regions"], rng),
-            "futuristic": choose(futuristic_setting, meta_options["futuristic_settings"], rng),
-            "ancient": choose(ancient_setting, meta_options["ancient_eras"], rng),
-            "mythology": choose(mythological_element, meta_options["mythological_elements"], rng),
-            "style": choose(visual_style, meta_options["visual_styles"], rng),
+            "region": choose(regional_style, meta_options["regions"], rng, seed),
+            "futuristic": choose(futuristic_setting, meta_options["futuristic_settings"], rng, seed),
+            "ancient": choose(ancient_setting, meta_options["ancient_eras"], rng, seed),
+            "mythology": choose(mythological_element, meta_options["mythological_elements"], rng, seed),
+            "style": choose(visual_style, meta_options["visual_styles"], rng, seed),
         }
 
         directive_parts: List[str] = []

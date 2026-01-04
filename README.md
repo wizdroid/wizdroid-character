@@ -11,6 +11,10 @@ Custom nodes for ComfyUI that generate and edit character-focused prompts using 
 - LoRA dataset export helpers for Kohya-style training.
 - Data-driven contest prompt generator (loads contest rules from JSON in `data/`).
 
+## Fashion Styles Gallery
+
+Browse our [Fashion Styles AI Gallery](https://wizdroid.github.io/wizdroid-character/docs/www/gallery.html) to explore all 57 fashion aesthetics across different AI image generation models (FLUX, SDXL, and more).
+
 ## Install
 
 1. Clone into your ComfyUI custom nodes folder:

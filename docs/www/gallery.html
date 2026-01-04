@@ -397,6 +397,14 @@
         // When adding a new model folder, just add it to this array
         const knownFolders = ['flux', 'sdxl', 'z-image', 'qwen'];
         
+        // Custom display names for model folders
+        const folderDisplayNames = {
+            'flux': 'Flux.1 Dev',
+            'sdxl': 'SDXL 1.0',
+            'z-image': 'Z-Image-Turbo',
+            'qwen': 'Qwen Image 202512'
+        };
+        
         // State
         let currentTab = 0;
         let currentLightboxIndex = 0;
@@ -434,7 +442,7 @@
 
         // Format folder name for display
         function formatFolderName(name) {
-            return name.replace(/-/g, ' ').replace(/_/g, ' ').toUpperCase();
+            return folderDisplayNames[name] || name.replace(/-/g, ' ').replace(/_/g, ' ').toUpperCase();
         }
 
         // Create gallery containers

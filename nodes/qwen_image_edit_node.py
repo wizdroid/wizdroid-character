@@ -230,9 +230,9 @@ class QwenImageEditNode:
 
 
 NODE_CLASS_MAPPINGS = {
-    "WizdroidQwenImageEdit": QwenImageEditNode,
+    "WizdroidImageEdit": QwenImageEditNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidQwenImageEdit": "Qwen Image Edit",
+    "WizdroidImageEdit": "Image Edit",
 }

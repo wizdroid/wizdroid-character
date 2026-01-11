@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
@@ -11,22 +12,50 @@ except ImportError:  # pragma: no cover
 
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
+# Model cache with TTL to prevent UI blocking on repeated INPUT_TYPES calls
+_MODELS_CACHE: Dict[str, List[str]] = {}
+_MODELS_CACHE_TIME: Dict[str, float] = {}
+_MODELS_TTL = 60.0  # Refresh models at most every 60 seconds
 
-def collect_models(ollama_url: str) -> List[str]:
-    """Best-effort discovery of available Ollama models."""
+
+def collect_models(ollama_url: str, use_cache: bool = True) -> List[str]:
+    """Best-effort discovery of available Ollama models with TTL caching.
+    
+    Args:
+        ollama_url: Ollama server URL
+        use_cache: If True, use TTL-based caching to prevent UI blocking
+    
+    Returns:
+        List of model names, or fallback error strings
+    """
+    global _MODELS_CACHE, _MODELS_CACHE_TIME
 
     if requests is None:
         return ["install_requests_library"]
 
+    # Check cache
+    if use_cache:
+        cached = _MODELS_CACHE.get(ollama_url)
+        cache_time = _MODELS_CACHE_TIME.get(ollama_url, 0)
+        if cached and (time.time() - cache_time) < _MODELS_TTL:
+            return cached
+
     try:
         resp = requests.get(f"{ollama_url.rstrip('/')}/api/tags", timeout=5)
         if resp.status_code != 200:
-            return ["model_not_available"]
+            return _MODELS_CACHE.get(ollama_url) or ["model_not_available"]
         data = resp.json()
         models = [m.get("name", "unknown") for m in data.get("models", [])]
-        return models or ["no_models_found"]
+        result = models or ["no_models_found"]
+        
+        # Update cache
+        _MODELS_CACHE[ollama_url] = result
+        _MODELS_CACHE_TIME[ollama_url] = time.time()
+        return result
+        
     except Exception:  # noqa: BLE001
-        return ["ollama_not_running"]
+        # Return cached value if available, otherwise error
+        return _MODELS_CACHE.get(ollama_url) or ["ollama_not_running"]
 
 
 def safe_post(url: str, json_body: Dict[str, Any], timeout: int = 120) -> Tuple[bool, str]:

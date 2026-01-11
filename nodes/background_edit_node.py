@@ -84,8 +84,10 @@ FOCAL_CHOICES = (
 )
 
 
-class BackgroundEditNode:
-    CATEGORY = "Wizdroid/backgrounds"
+class WizdroidBackgroundNode:
+    """🧙 Generate surreal background prompts using Ollama LLM."""
+    
+    CATEGORY = "🧙 Wizdroid/Prompts"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("background_prompt", "style_inspiration")
     FUNCTION = "generate_background_prompt"
@@ -245,9 +247,9 @@ class BackgroundEditNode:
 
 
 NODE_CLASS_MAPPINGS = {
-    "BackgroundEditNode": BackgroundEditNode,
+    "WizdroidBackground": WizdroidBackgroundNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "BackgroundEditNode": "Background Edit",
+    "WizdroidBackground": "🧙 Wizdroid: Background",
 }

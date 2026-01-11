@@ -3,8 +3,10 @@ from pathlib import Path
 from typing import Tuple
 
 
-class LoRAValidateNode:
-    CATEGORY = "Wizdroid/train"
+class WizdroidLoRAValidateNode:
+    """🧙 Validate LoRA training by generating preview images."""
+    
+    CATEGORY = "🧙 Wizdroid/Training"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("status", "out_dir")
     FUNCTION = "validate_lora"
@@ -60,6 +62,6 @@ class LoRAValidateNode:
         return ("OK", str(out))
 
 
-NODE_CLASS_MAPPINGS = {"WizdroidLoRAValidate": LoRAValidateNode}
+NODE_CLASS_MAPPINGS = {"WizdroidLoRAValidate": WizdroidLoRAValidateNode}
 
-NODE_DISPLAY_NAME_MAPPINGS = {"WizdroidLoRAValidate": "LoRA Validate (Generate Preview)"}
+NODE_DISPLAY_NAME_MAPPINGS = {"WizdroidLoRAValidate": "🧙 Wizdroid: LoRA Validate"}

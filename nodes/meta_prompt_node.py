@@ -57,12 +57,8 @@ def _get_meta_options() -> Dict[str, Any]:
     }
 
 
-class MetaPromptGeneratorNode:
-    """Generate a detailed image prompt from loose keywords using Ollama.
-
-    This node takes a short text input (keywords or fragments) and asks an
-    Ollama-hosted LLM to expand it into a 150–200 token imaginative prompt.
-    """
+class WizdroidMetaPromptNode:
+    """🧙 Expand loose keywords into detailed image prompts using Ollama LLM."""
 
     @classmethod
     def INPUT_TYPES(cls) -> Dict[str, Dict[str, Any]]:  # noqa: N802
@@ -161,7 +157,7 @@ class MetaPromptGeneratorNode:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("prompt",)
     FUNCTION = "generate_prompt"
-    CATEGORY = "Wizdroid/character"
+    CATEGORY = "🧙 Wizdroid/Prompts"
 
     def generate_prompt(
         self,
@@ -272,9 +268,9 @@ class MetaPromptGeneratorNode:
 
 
 META_PROMPT_NODE_CLASS_MAPPINGS = {
-    "MetaPromptGenerator": MetaPromptGeneratorNode,
+    "WizdroidMetaPrompt": WizdroidMetaPromptNode,
 }
 
 META_PROMPT_NODE_DISPLAY_NAME_MAPPINGS = {
-    "MetaPromptGenerator": "Meta Prompt Generator",
+    "WizdroidMetaPrompt": "🧙 Wizdroid: Meta Prompt",
 }

@@ -13,6 +13,9 @@ if _BASE_DIR_STR not in sys.path:
 import importlib
 import importlib.util
 
+# Web directory for custom node UI (icons, colors)
+WEB_DIRECTORY = "./web"
+
 
 def _import_node_module(module_basename: str):
     """Import a node module.

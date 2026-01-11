@@ -5,8 +5,8 @@ from typing import Tuple
 
 from PIL import Image
 
-from .character_prompt_node import CharacterPromptBuilder
-from .photo_aspect_extractor_node import PhotoAspectExtractorNode
+from .character_prompt_node import WizdroidCharacterPromptNode
+from .photo_aspect_extractor_node import WizdroidPhotoAspectNode
 
 
 DEFAULT_DATA_ROOT = "training/kohya/datasets"
@@ -40,15 +40,17 @@ def _save_image_with_resize(source: Path, target: Path, resize_mode: str) -> Tup
         return img.size
 
 
-class LoRADatasetExportNode:
-    CATEGORY = "Wizdroid/train"
+class WizdroidLoRADatasetNode:
+    """🧙 Export image datasets for LoRA training with auto-captioning."""
+    
+    CATEGORY = "🧙 Wizdroid/Training"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("dataset_path", "captions_jsonl")
     FUNCTION = "export_dataset"
 
     @classmethod
     def INPUT_TYPES(cls):
-        ollama_models = PhotoAspectExtractorNode._collect_ollama_models()
+        ollama_models = WizdroidPhotoAspectNode._collect_ollama_models()
         return {
             "required": {
                 "dataset_slug": ("STRING", {"default": "char_demo"}),
@@ -100,8 +102,8 @@ class LoRADatasetExportNode:
         captions = []
 
         # Helper for Ollama vision model
-        extractor = PhotoAspectExtractorNode()
-        builder = CharacterPromptBuilder()
+        extractor = WizdroidPhotoAspectNode()
+        builder = WizdroidCharacterPromptNode()
 
         for idx, p in enumerate(provided):
             p_path = Path(p)
@@ -213,6 +215,6 @@ class LoRADatasetExportNode:
         return str(root), str(captions_jsonl)
 
 
-NODE_CLASS_MAPPINGS = {"WizdroidLoRADatasetExport": LoRADatasetExportNode}
+NODE_CLASS_MAPPINGS = {"WizdroidLoRADataset": WizdroidLoRADatasetNode}
 
-NODE_DISPLAY_NAME_MAPPINGS = {"WizdroidLoRADatasetExport": "LoRA Dataset Export"}
+NODE_DISPLAY_NAME_MAPPINGS = {"WizdroidLoRADataset": "🧙 Wizdroid: LoRA Dataset Export"}

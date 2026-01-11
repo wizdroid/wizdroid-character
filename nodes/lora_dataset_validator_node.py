@@ -4,8 +4,10 @@ from typing import Tuple
 from PIL import Image
 
 
-class LoRADatasetValidatorNode:
-    CATEGORY = "Wizdroid/train"
+class WizdroidLoRADatasetValidatorNode:
+    """🧙 Validate LoRA training datasets for quality and completeness."""
+    
+    CATEGORY = "🧙 Wizdroid/Training"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("status", "report")
     FUNCTION = "validate_dataset"
@@ -69,6 +71,6 @@ class LoRADatasetValidatorNode:
         return ("WARN", "\n".join(report))
 
 
-NODE_CLASS_MAPPINGS = {"WizdroidLoRADatasetValidator": LoRADatasetValidatorNode}
+NODE_CLASS_MAPPINGS = {"WizdroidLoRADatasetValidator": WizdroidLoRADatasetValidatorNode}
 
-NODE_DISPLAY_NAME_MAPPINGS = {"WizdroidLoRADatasetValidator": "LoRA Dataset Validator"}
+NODE_DISPLAY_NAME_MAPPINGS = {"WizdroidLoRADatasetValidator": "🧙 Wizdroid: LoRA Dataset Validator"}

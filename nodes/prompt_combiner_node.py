@@ -25,13 +25,10 @@ def _normalize_token_limit(value: Any) -> Optional[int]:
     return None
 
 
-class PromptCombinerNode:
-    """
-    ComfyUI node to combine multiple text prompts into one coherent prompt
-    using different model styles from prompt_styles.json.
-    """
+class WizdroidPromptCombinerNode:
+    """🧙 Combine multiple text prompts into one coherent prompt using Ollama LLM."""
 
-    CATEGORY = "Wizdroid/character"
+    CATEGORY = "🧙 Wizdroid/Prompts"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("combined_prompt", "preview")
     FUNCTION = "combine_prompts"
@@ -160,9 +157,9 @@ class PromptCombinerNode:
 
 
 NODE_CLASS_MAPPINGS = {
-    "WizdroidPromptCombiner": PromptCombinerNode,
+    "WizdroidPromptCombiner": WizdroidPromptCombinerNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidPromptCombiner": "Prompt Combiner",
+    "WizdroidPromptCombiner": "🧙 Wizdroid: Prompt Combiner",
 }

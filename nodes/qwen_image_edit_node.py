@@ -17,14 +17,10 @@ EDIT_MODE_CHOICES = (
 )
 
 
-class QwenImageEditNode:
-    """
-    ComfyUI node to generate prompts for Qwen Image Edit or similar multi-image
-    editing models. Supports up to 3 image descriptions with LLM-generated
-    editing instructions.
-    """
+class WizdroidImageEditNode:
+    """🧙 Generate prompts for multi-image AI editing models using Ollama LLM."""
 
-    CATEGORY = "Wizdroid/character"
+    CATEGORY = "🧙 Wizdroid/Prompts"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("edit_prompt", "preview")
     FUNCTION = "generate_edit_prompt"
@@ -230,9 +226,9 @@ class QwenImageEditNode:
 
 
 NODE_CLASS_MAPPINGS = {
-    "WizdroidImageEdit": QwenImageEditNode,
+    "WizdroidImageEdit": WizdroidImageEditNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidImageEdit": "Image Edit",
+    "WizdroidImageEdit": "🧙 Wizdroid: Image Edit",
 }

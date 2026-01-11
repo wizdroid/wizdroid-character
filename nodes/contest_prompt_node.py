@@ -44,12 +44,8 @@ def _load_contest() -> Dict[str, Any]:
     return payload
 
 
-class ContestPromptGeneratorNode:
-    """Contest prompt generator via Ollama.
-
-    This node reads a single common contest definition from data/contest.json.
-    You can replace that JSON file per contest theme (then restart ComfyUI).
-    """
+class WizdroidContestPromptNode:
+    """🧙 Generate contest-ready prompts from data/contest.json using Ollama LLM."""
 
     @classmethod
     def INPUT_TYPES(cls) -> Dict[str, Dict[str, Any]]:  # noqa: N802
@@ -130,7 +126,7 @@ class ContestPromptGeneratorNode:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("prompt", "debug")
     FUNCTION = "generate"
-    CATEGORY = "Wizdroid/character"
+    CATEGORY = "🧙 Wizdroid/Prompts"
 
     def generate(
         self,
@@ -192,9 +188,9 @@ class ContestPromptGeneratorNode:
 
 
 NODE_CLASS_MAPPINGS = {
-    "ContestPromptGenerator": ContestPromptGeneratorNode,
+    "WizdroidContestPrompt": WizdroidContestPromptNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ContestPromptGenerator": "Contest Prompt Generator (Ollama)",
+    "WizdroidContestPrompt": "🧙 Wizdroid: Contest Prompt",
 }

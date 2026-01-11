@@ -87,17 +87,10 @@ EMOTION_OPTIONS = [
 ]
 
 
-class QwenMultiAngleNode:
-    """
-    ComfyUI node to generate prompts for the Qwen Image Edit Multiple Angles LoRA.
-    
-    Produces prompts in the format: <sks> [azimuth] [elevation] [distance]
-    
-    Supports all 96 camera positions:
-    - 8 Azimuths × 4 Elevations × 3 Distances = 96 poses
-    """
+class WizdroidMultiAngleNode:
+    """🧙 Generate multi-angle camera prompts for the Qwen Image Edit LoRA."""
 
-    CATEGORY = "Wizdroid/character"
+    CATEGORY = "🧙 Wizdroid/Prompts"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("prompt", "preview")
     FUNCTION = "generate_prompt"
@@ -186,9 +179,9 @@ class QwenMultiAngleNode:
 
 
 NODE_CLASS_MAPPINGS = {
-    "WizdroidMultiAngle": QwenMultiAngleNode,
+    "WizdroidMultiAngle": WizdroidMultiAngleNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidMultiAngle": "Multi-Angle",
+    "WizdroidMultiAngle": "🧙 Wizdroid: Multi-Angle",
 }

@@ -1,7 +1,6 @@
 import json
 import random
 import hashlib
-import time
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
@@ -22,11 +21,6 @@ _MAX_CACHE_SIZE = 50
 # Data Caches (mtime based)
 _SCENE_DATA_CACHE: Optional[Tuple[int, Dict[str, Any]]] = None
 _PROMPT_STYLES_CACHE: Optional[Tuple[int, Dict[str, Any]]] = None
-
-# Model Cache (Time-to-live based)
-_MODELS_CACHE: List[str] = []
-_MODELS_LAST_UPDATE: float = 0
-_MODELS_TTL = 60.0  # Refresh models at most every 60 seconds
 
 _DEFAULT_SCENE_DATA = {
     "scene_categories": {"Open Scene": ["dynamic cinematic scene"]},
@@ -55,38 +49,19 @@ def _load_json_cached(filename: str, default: Dict, cache_var: Optional[Tuple[in
         payload = load_json(filename)
         return (mtime, payload), payload
     except Exception as exc:
-        logger.error(f"[SceneGenerator] Failed to load {filename}: {exc}")
+        logger.error(f"[WizdroidSceneGenerator] Failed to load {filename}: {exc}")
         return (0, default), default
 
-def _get_cached_models(url: str) -> List[str]:
-    """Get Ollama models with TTL caching to prevent UI blocking."""
-    global _MODELS_CACHE, _MODELS_LAST_UPDATE
-    
-    now = time.time()
-    if not _MODELS_CACHE or (now - _MODELS_LAST_UPDATE > _MODELS_TTL):
-        try:
-            models = collect_models(url)
-            if models:
-                _MODELS_CACHE = models
-                _MODELS_LAST_UPDATE = now
-        except Exception as e:
-            logger.warning(f"[SceneGenerator] Could not fetch models: {e}")
-            if not _MODELS_CACHE:
-                return ["llama3:latest"] # Fallback
-    return _MODELS_CACHE
 
 def _cache_key(data: Dict) -> str:
     """Generate cache key for scene caching."""
     return hashlib.md5(json.dumps(data, sort_keys=True).encode()).hexdigest()
 
 
-class SceneGeneratorNode:
-    """
-    Generates vivid scene prompts for any imaginable scenario.
-    Optimized with caching and robust error handling.
-    """
+class WizdroidSceneGeneratorNode:
+    """🧙 Generate vivid scene prompts for any imaginable scenario using Ollama LLM."""
     
-    CATEGORY = "Wizdroid/scene"
+    CATEGORY = "🧙 Wizdroid/Prompts"
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("scene_prompt", "negative_prompt", "preview")
     FUNCTION = "generate_scene"
@@ -113,8 +88,8 @@ class SceneGeneratorNode:
         if not all_scenes:
             all_scenes = ["dynamic scene"]
         
-        # Get models (cached)
-        ollama_models = _get_cached_models(DEFAULT_OLLAMA_URL)
+        # Get models (uses centralized TTL caching)
+        ollama_models = collect_models(DEFAULT_OLLAMA_URL)
         category_names = list(scene_categories.keys())
         
         return {
@@ -353,9 +328,9 @@ class SceneGeneratorNode:
 
 
 NODE_CLASS_MAPPINGS = {
-    "SceneGeneratorNode": SceneGeneratorNode,
+    "WizdroidSceneGenerator": WizdroidSceneGeneratorNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SceneGeneratorNode": "Scene Generator",
+    "WizdroidSceneGenerator": "🧙 Wizdroid: Scene Generator",
 }

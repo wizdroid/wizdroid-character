@@ -5,8 +5,10 @@ from pathlib import Path
 from typing import Tuple
 
 
-class SDXLLoRATrainerNode:
-    CATEGORY = "Wizdroid/train"
+class WizdroidLoRATrainerNode:
+    """🧙 Train SDXL LoRA models using Kohya sd-scripts."""
+    
+    CATEGORY = "🧙 Wizdroid/Training"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("status", "trained_lora")
     FUNCTION = "train_lora"
@@ -93,6 +95,6 @@ class SDXLLoRATrainerNode:
             return (f"ERROR: {e}", "")
 
 
-NODE_CLASS_MAPPINGS = {"WizdroidSDXLLoRATrainer": SDXLLoRATrainerNode}
+NODE_CLASS_MAPPINGS = {"WizdroidLoRATrainer": WizdroidLoRATrainerNode}
 
-NODE_DISPLAY_NAME_MAPPINGS = {"WizdroidSDXLLoRATrainer": "SDXL LoRA Trainer"}
+NODE_DISPLAY_NAME_MAPPINGS = {"WizdroidLoRATrainer": "🧙 Wizdroid: LoRA Trainer"}

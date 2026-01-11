@@ -312,13 +312,10 @@ def _describe_subject(gender: Optional[str], age: Optional[str]) -> str:
     return subject_phrase
 
 
-class PhotoAspectExtractorNode:
-    """
-    ComfyUI node to extract various aspects from images using Ollama vision models.
-    Supports extracting clothes, pose, or style descriptions.
-    """
+class WizdroidPhotoAspectNode:
+    """🧙 Extract aspects (clothes, pose, style) from images using Ollama vision models."""
 
-    CATEGORY = "Wizdroid/character"
+    CATEGORY = "🧙 Wizdroid/Analysis"
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("extracted_prompt", "preview")
     FUNCTION = "extract_aspect"
@@ -673,12 +670,12 @@ Requirements:
             return ["install_requests_library"]
         try:
             tags_url = f"{ollama_url}/api/tags"
-            models = PhotoAspectExtractorNode._fetch_filter_models(tags_url)
+            models = WizdroidPhotoAspectNode._fetch_filter_models(tags_url)
             if models:
                 return models
 
-            if PhotoAspectExtractorNode._pull_florence_model():
-                models = PhotoAspectExtractorNode._fetch_filter_models(tags_url)
+            if WizdroidPhotoAspectNode._pull_florence_model():
+                models = WizdroidPhotoAspectNode._fetch_filter_models(tags_url)
                 if models:
                     return models
 
@@ -688,7 +685,7 @@ Requirements:
         except requests.exceptions.Timeout:
             return ["ollama_timeout"]
         except Exception as exc:
-            print(f"[PhotoAspectExtractor] Error fetching Ollama models: {exc}")
+            print(f"[WizdroidPhotoAspect] Error fetching Ollama models: {exc}")
             return ["ollama_error"]
 
     @staticmethod
@@ -737,9 +734,9 @@ Requirements:
 
 
 NODE_CLASS_MAPPINGS = {
-    "WizdroidPhotoAspectExtractor": PhotoAspectExtractorNode,
+    "WizdroidPhotoAspect": WizdroidPhotoAspectNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidPhotoAspectExtractor": "Photo Aspect Extractor",
+    "WizdroidPhotoAspect": "🧙 Wizdroid: Photo Aspect Extractor",
 }

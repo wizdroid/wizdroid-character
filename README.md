@@ -25,7 +25,7 @@ Custom nodes for ComfyUI that generate and edit character-focused prompts using 
 
 ## 🎨 Fashion Styles Gallery
 
-Browse our [Fashion Styles AI Gallery](https://wizdroid.github.io/wizdroid-character/docs/www/gallery.html) to explore all 57 fashion aesthetics across different AI image generation models (Flux.1 Dev, SDXL 1.0, Z-Image-Turbo, Qwen Image 202512).
+Browse our [Fashion Styles AI Gallery](https://wizdroid.github.io/wizdroid-character/gallery.html) to explore all 57 fashion aesthetics across different AI image generation models (Flux.1 Dev, SDXL 1.0, Z-Image-Turbo, Qwen Image 202512).
 
 ## 📦 Install
 

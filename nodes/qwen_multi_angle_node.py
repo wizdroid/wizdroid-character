@@ -86,6 +86,32 @@ EMOTION_OPTIONS = [
     "nostalgic",
 ]
 
+BODYTYPE_OPTIONS = [
+    "slim",
+    "slim and fit",
+    "curvy",
+    "slim thick",
+    "thick",
+    "healthy",
+    "voluptuous",
+    "athletic",
+    "muscular",
+    "petite",
+    "average",
+    "plus size",
+    "obese",
+    "morbidly obese",
+    "jabba the hutt level obese",
+    "pear shaped",
+    "hourglass shaped",
+    "apple shaped",
+    "inverted triangle",
+    "rectangle",
+    "ectomorph",
+    "mesomorph",
+    "endomorph",
+]
+
 
 class WizdroidMultiAngleNode:
     """🧙 Generate multi-angle camera prompts for the Qwen Image Edit LoRA."""
@@ -102,6 +128,7 @@ class WizdroidMultiAngleNode:
                 "azimuth": (with_random(AZIMUTH_OPTIONS), {"default": "front view"}),
                 "elevation": (with_random(ELEVATION_OPTIONS), {"default": "eye-level shot"}),
                 "distance": (with_random(DISTANCE_OPTIONS), {"default": "medium shot"}),
+                "bodytype": (with_random(BODYTYPE_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
                 "additional_text": ("STRING", {
                     "multiline": True,
@@ -119,6 +146,7 @@ class WizdroidMultiAngleNode:
         azimuth: str,
         elevation: str,
         distance: str,
+        bodytype: str,
         emotion: str,
         additional_text: str,
         seed: int = 0,
@@ -131,10 +159,15 @@ class WizdroidMultiAngleNode:
         resolved_azimuth = self._resolve(azimuth, AZIMUTH_OPTIONS, rng)
         resolved_elevation = self._resolve(elevation, ELEVATION_OPTIONS, rng)
         resolved_distance = self._resolve(distance, DISTANCE_OPTIONS, rng)
+        resolved_bodytype = self._resolve(bodytype, BODYTYPE_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
         
         # Build prompt in the required format: <sks> [azimuth] [elevation] [distance]
         prompt = f"<sks> {resolved_azimuth} {resolved_elevation} {resolved_distance}"
+        
+        # Add bodytype if not none
+        if resolved_bodytype != "none":
+            prompt = f"{prompt}, {resolved_bodytype} body type"
         
         # Add emotion
         prompt = f"{prompt}, {resolved_emotion} expression"
@@ -151,6 +184,7 @@ class WizdroidMultiAngleNode:
             f"  • Azimuth: {resolved_azimuth}",
             f"  • Elevation: {resolved_elevation}",
             f"  • Distance: {resolved_distance}",
+            f"  • Body Type: {resolved_bodytype if resolved_bodytype != 'none' else 'None'}",
             f"  • Emotion: {resolved_emotion}",
         ]
         

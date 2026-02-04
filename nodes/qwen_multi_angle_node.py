@@ -255,6 +255,79 @@ EYE_COLOR_OPTIONS = [
   "vampire crimson (eternal night)"
 ]
 
+HAIRSTYLE_OPTIONS = [
+  "bald",
+  "buzz cut",
+  "shaved head",
+  "crew cut",
+  "high and tight",
+  "short cropped",
+  "pixie cut",
+  "bob",
+  "lob (long bob)",
+  "shoulder length",
+  "mid-length straight",
+  "long straight",
+  "extra long",
+  "ponytail",
+  "high ponytail",
+  "low ponytail",
+  "braids",
+  "cornrows",
+  "box braids",
+  "french braid",
+  "dutch braid",
+  "fishtail braid",
+  "bun",
+  "top knot",
+  "messy bun",
+  "space buns",
+  "updo",
+  "chignon",
+  "wavy",
+  "beach waves",
+  "curly",
+  "loose curls",
+  "tight coils",
+  "afro",
+  "twist out",
+  "bantu knots",
+  "dreadlocks",
+  "locs",
+  "faux locs",
+  "undercut",
+  "side shave",
+  "mohawk",
+  "faux hawk",
+  "mullet",
+  "shag",
+  "layered",
+  "feathered",
+  "bangs",
+  "side-swept bangs",
+  "curtain bangs",
+  "pompadour",
+  "quiff",
+  "slicked back",
+  "messy bedhead",
+  "top fade",
+  "low fade",
+  "tapered",
+  "hi-top fade",
+  "bowl cut",
+  "asymmetrical",
+  "wolf cut",
+  "hime cut",
+  "samurai topknot",
+  "viking braids",
+  "elfin spikes",
+  "mermaid waves",
+  "unicorn mane",
+  "wizard beard flow (if applicable)",
+  "dragon spikes",
+  "zombie tousled"
+]
+
 
 class WizdroidMultiAngleNode:
     """🧙 Generate multi-angle camera prompts for the Qwen Image Edit LoRA."""
@@ -274,6 +347,7 @@ class WizdroidMultiAngleNode:
                 "bodytype": (with_random(BODYTYPE_OPTIONS + ["none"]), {"default": "none"}),
                 "skin_tone": (with_random(SKIN_TONE_OPTIONS + ["none"]), {"default": "none"}),
                 "eye_color": (with_random(EYE_COLOR_OPTIONS + ["none"]), {"default": "none"}),
+                "hairstyle": (with_random(HAIRSTYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
                 "additional_text": ("STRING", {
                     "multiline": True,
@@ -294,6 +368,7 @@ class WizdroidMultiAngleNode:
         bodytype: str,
         skin_tone: str,
         eye_color: str,
+        hairstyle: str,
         emotion: str,
         additional_text: str,
         seed: int = 0,
@@ -309,6 +384,7 @@ class WizdroidMultiAngleNode:
         resolved_bodytype = self._resolve(bodytype, BODYTYPE_OPTIONS + ["none"], rng)
         resolved_skin_tone = self._resolve(skin_tone, SKIN_TONE_OPTIONS + ["none"], rng)
         resolved_eye_color = self._resolve(eye_color, EYE_COLOR_OPTIONS + ["none"], rng)
+        resolved_hairstyle = self._resolve(hairstyle, HAIRSTYLE_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
         
         # Build prompt in the required format: <sks> [azimuth] [elevation] [distance]
@@ -325,6 +401,10 @@ class WizdroidMultiAngleNode:
         # Add eye color if not none
         if resolved_eye_color != "none":
             prompt = f"{prompt}, {resolved_eye_color} eyes"
+        
+        # Add hairstyle if not none
+        if resolved_hairstyle != "none":
+            prompt = f"{prompt}, {resolved_hairstyle} hairstyle"
         
         # Add emotion
         prompt = f"{prompt}, {resolved_emotion} expression"
@@ -344,6 +424,7 @@ class WizdroidMultiAngleNode:
             f"  • Body Type: {resolved_bodytype if resolved_bodytype != 'none' else 'None'}",
             f"  • Skin Tone: {resolved_skin_tone if resolved_skin_tone != 'none' else 'None'}",
             f"  • Eye Color: {resolved_eye_color if resolved_eye_color != 'none' else 'None'}",
+            f"  • Hairstyle: {resolved_hairstyle if resolved_hairstyle != 'none' else 'None'}",
             f"  • Emotion: {resolved_emotion}",
         ]
         

@@ -141,6 +141,120 @@ BODYTYPE_OPTIONS = [
   "barrel-chested"
 ]
 
+SKIN_TONE_OPTIONS = [
+  "porcelain",
+  "ivory",
+  "fair",
+  "light",
+  "pale",
+  "alabaster",
+  "rosy",
+  "beige",
+  "cream",
+  "honey",
+  "light beige",
+  "peach",
+  "warm ivory",
+  "cool fair",
+  "neutral light",
+  "medium",
+  "olive",
+  "tan",
+  "golden",
+  "caramel",
+  "wheat",
+  "sandy",
+  "bronze",
+  "warm medium",
+  "cool medium",
+  "neutral tan",
+  "deep",
+  "rich",
+  "chestnut",
+  "mahogany",
+  "cocoa",
+  "espresso",
+  "ebony",
+  "dark",
+  "deep brown",
+  "warm deep",
+  "cool deep",
+  "neutral dark",
+  "fitzpatrick type i",
+  "fitzpatrick type ii",
+  "fitzpatrick type iii",
+  "fitzpatrick type iv",
+  "fitzpatrick type v",
+  "fitzpatrick type vi",
+  "sun-kissed",
+  "freckled fair",
+  "glowy olive",
+  "toffee",
+  "mocha",
+  "midnight",
+  "ashy pale",
+  "ruddy",
+  "sallow",
+  "tawny",
+  "umber",
+  "sienna",
+  "sepia",
+  "walnut",
+  "onyx",
+  "ghostly white (vampire chic)",
+  "sunburnt lobster (oops level)",
+  "chocolate fondue",
+  "velvet night"
+]
+
+EYE_COLOR_OPTIONS = [
+  "blue",
+  "light blue",
+  "ice blue",
+  "steel blue",
+  "turquoise",
+  "aqua",
+  "green",
+  "emerald green",
+  "forest green",
+  "olive green",
+  "hazel",
+  "amber",
+  "honey",
+  "gold",
+  "brown",
+  "light brown",
+  "chestnut brown",
+  "dark brown",
+  "chocolate brown",
+  "black",
+  "gray",
+  "slate gray",
+  "silver",
+  "violet",
+  "indigo",
+  "lavender",
+  "red",
+  "albino pink",
+  "heterochromia (two different colors)",
+  "central heterochromia (ring of different color)",
+  "sectoral heterochromia (patch of different color)",
+  "fitzpatrick blue-gray",
+  "stormy gray",
+  "mossy green",
+  "caramel brown",
+  "whiskey amber",
+  "midnight blue",
+  "sapphire",
+  "jade",
+  "topaz",
+  "onyx black",
+  "zombie white (undead chic)",
+  "dragon red (fiery myth)",
+  "alien glow (neon weird)",
+  "vampire crimson (eternal night)"
+]
+
 
 class WizdroidMultiAngleNode:
     """🧙 Generate multi-angle camera prompts for the Qwen Image Edit LoRA."""
@@ -158,6 +272,8 @@ class WizdroidMultiAngleNode:
                 "elevation": (with_random(ELEVATION_OPTIONS), {"default": "eye-level shot"}),
                 "distance": (with_random(DISTANCE_OPTIONS), {"default": "medium shot"}),
                 "bodytype": (with_random(BODYTYPE_OPTIONS + ["none"]), {"default": "none"}),
+                "skin_tone": (with_random(SKIN_TONE_OPTIONS + ["none"]), {"default": "none"}),
+                "eye_color": (with_random(EYE_COLOR_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
                 "additional_text": ("STRING", {
                     "multiline": True,
@@ -176,6 +292,8 @@ class WizdroidMultiAngleNode:
         elevation: str,
         distance: str,
         bodytype: str,
+        skin_tone: str,
+        eye_color: str,
         emotion: str,
         additional_text: str,
         seed: int = 0,
@@ -189,6 +307,8 @@ class WizdroidMultiAngleNode:
         resolved_elevation = self._resolve(elevation, ELEVATION_OPTIONS, rng)
         resolved_distance = self._resolve(distance, DISTANCE_OPTIONS, rng)
         resolved_bodytype = self._resolve(bodytype, BODYTYPE_OPTIONS + ["none"], rng)
+        resolved_skin_tone = self._resolve(skin_tone, SKIN_TONE_OPTIONS + ["none"], rng)
+        resolved_eye_color = self._resolve(eye_color, EYE_COLOR_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
         
         # Build prompt in the required format: <sks> [azimuth] [elevation] [distance]
@@ -197,6 +317,14 @@ class WizdroidMultiAngleNode:
         # Add bodytype if not none
         if resolved_bodytype != "none":
             prompt = f"{prompt}, {resolved_bodytype} body type"
+        
+        # Add skin tone if not none
+        if resolved_skin_tone != "none":
+            prompt = f"{prompt}, {resolved_skin_tone} skin tone"
+        
+        # Add eye color if not none
+        if resolved_eye_color != "none":
+            prompt = f"{prompt}, {resolved_eye_color} eyes"
         
         # Add emotion
         prompt = f"{prompt}, {resolved_emotion} expression"
@@ -214,6 +342,8 @@ class WizdroidMultiAngleNode:
             f"  • Elevation: {resolved_elevation}",
             f"  • Distance: {resolved_distance}",
             f"  • Body Type: {resolved_bodytype if resolved_bodytype != 'none' else 'None'}",
+            f"  • Skin Tone: {resolved_skin_tone if resolved_skin_tone != 'none' else 'None'}",
+            f"  • Eye Color: {resolved_eye_color if resolved_eye_color != 'none' else 'None'}",
             f"  • Emotion: {resolved_emotion}",
         ]
         

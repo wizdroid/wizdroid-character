@@ -12,373 +12,27 @@ Supports all 96 camera positions:
 
 from typing import Tuple
 
-from wizdroid_lib.constants import RANDOM_LABEL
-from wizdroid_lib.helpers import with_random
 import random
 
+from wizdroid_lib.constants import RANDOM_LABEL
+from wizdroid_lib.data_files import load_json
+from wizdroid_lib.helpers import with_random
 
-# === Camera Position Options ===
 
-AZIMUTH_OPTIONS = [
-    "front view",              # 0°
-    "front-right quarter view",  # 45°
-    "right side view",         # 90°
-    "back-right quarter view",  # 135°
-    "back view",               # 180°
-    "back-left quarter view",   # 225°
-    "left side view",          # 270°
-    "front-left quarter view",  # 315°
-]
+# === Option Data ===
 
-ELEVATION_OPTIONS = [
-    "low-angle shot",   # -30° - Camera below, looking up
-    "eye-level shot",   # 0° - Camera at object level
-    "elevated shot",    # 30° - Camera slightly above
-    "high-angle shot",  # 60° - Camera high, looking down
-]
+_OPTIONS = load_json("qwen_multi_angle_options.json")
 
-DISTANCE_OPTIONS = [
-    "close-up",     # ×0.6 - Details, textures
-    "medium shot",  # ×1.0 - Balanced, standard
-    "wide shot",    # ×1.8 - Context, environment
-]
-
-EMOTION_OPTIONS = [
-    "neutral",
-    "happy",
-    "smiling",
-    "laughing",
-    "sad",
-    "crying",
-    "angry",
-    "furious",
-    "surprised",
-    "shocked",
-    "fearful",
-    "scared",
-    "disgusted",
-    "confused",
-    "thoughtful",
-    "pensive",
-    "serious",
-    "determined",
-    "confident",
-    "shy",
-    "embarrassed",
-    "proud",
-    "excited",
-    "bored",
-    "tired",
-    "sleepy",
-    "relaxed",
-    "calm",
-    "peaceful",
-    "loving",
-    "flirty",
-    "seductive",
-    "mischievous",
-    "playful",
-    "curious",
-    "worried",
-    "anxious",
-    "hopeful",
-    "melancholic",
-    "nostalgic",
-]
-
-BODYTYPE_OPTIONS = [
-  "slim",
-  "slim and fit",
-  "slender",
-  "lithe",
-  "lanky",
-  "wiry",
-  "curvy",
-  "slim thick",
-  "thick",
-  "voluptuous",
-  "chubby",
-  "plump",
-  "buxom",
-  "rubenesque",
-  "healthy",
-  "balanced",
-  "natural",
-  "compact",
-  "athletic",
-  "muscular",
-  "toned",
-  "fit",
-  "buff",
-  "swole",
-  "bodybuilder",
-  "petite",
-  "average",
-  "plus size",
-  "heavyset",
-  "stocky",
-  "stout",
-  "portly",
-  "obese",
-  "morbidly obese",
-  "jabba the hutt level obese",
-  "pear shaped",
-  "hourglass shaped",
-  "apple shaped",
-  "inverted triangle",
-  "rectangle",
-  "triangle",
-  "oval",
-  "round",
-  "spoon",
-  "diamond",
-  "v-shaped",
-  "ectomorph",
-  "mesomorph",
-  "endomorph",
-  "frail",
-  "delicate",
-  "barrel-chested"
-]
-
-SKIN_TONE_OPTIONS = [
-  "porcelain",
-  "ivory",
-  "fair",
-  "light",
-  "pale",
-  "alabaster",
-  "rosy",
-  "beige",
-  "cream",
-  "honey",
-  "light beige",
-  "peach",
-  "warm ivory",
-  "cool fair",
-  "neutral light",
-  "medium",
-  "olive",
-  "tan",
-  "golden",
-  "caramel",
-  "wheat",
-  "sandy",
-  "bronze",
-  "warm medium",
-  "cool medium",
-  "neutral tan",
-  "deep",
-  "rich",
-  "chestnut",
-  "mahogany",
-  "cocoa",
-  "espresso",
-  "ebony",
-  "dark",
-  "deep brown",
-  "warm deep",
-  "cool deep",
-  "neutral dark",
-  "fitzpatrick type i",
-  "fitzpatrick type ii",
-  "fitzpatrick type iii",
-  "fitzpatrick type iv",
-  "fitzpatrick type v",
-  "fitzpatrick type vi",
-  "sun-kissed",
-  "freckled fair",
-  "glowy olive",
-  "toffee",
-  "mocha",
-  "midnight",
-  "ashy pale",
-  "ruddy",
-  "sallow",
-  "tawny",
-  "umber",
-  "sienna",
-  "sepia",
-  "walnut",
-  "onyx",
-  "ghostly white (vampire chic)",
-  "sunburnt lobster (oops level)",
-  "chocolate fondue",
-  "velvet night"
-]
-
-EYE_COLOR_OPTIONS = [
-  "blue",
-  "light blue",
-  "ice blue",
-  "steel blue",
-  "turquoise",
-  "aqua",
-  "green",
-  "emerald green",
-  "forest green",
-  "olive green",
-  "hazel",
-  "amber",
-  "honey",
-  "gold",
-  "brown",
-  "light brown",
-  "chestnut brown",
-  "dark brown",
-  "chocolate brown",
-  "black",
-  "gray",
-  "slate gray",
-  "silver",
-  "violet",
-  "indigo",
-  "lavender",
-  "red",
-  "albino pink",
-  "heterochromia (two different colors)",
-  "central heterochromia (ring of different color)",
-  "sectoral heterochromia (patch of different color)",
-  "fitzpatrick blue-gray",
-  "stormy gray",
-  "mossy green",
-  "caramel brown",
-  "whiskey amber",
-  "midnight blue",
-  "sapphire",
-  "jade",
-  "topaz",
-  "onyx black",
-  "zombie white (undead chic)",
-  "dragon red (fiery myth)",
-  "alien glow (neon weird)",
-  "vampire crimson (eternal night)"
-]
-
-HAIRSTYLE_OPTIONS = [
-  "bald",
-  "buzz cut",
-  "shaved head",
-  "crew cut",
-  "high and tight",
-  "short cropped",
-  "pixie cut",
-  "bob",
-  "lob (long bob)",
-  "shoulder length",
-  "mid-length straight",
-  "long straight",
-  "extra long",
-  "ponytail",
-  "high ponytail",
-  "low ponytail",
-  "braids",
-  "cornrows",
-  "box braids",
-  "french braid",
-  "dutch braid",
-  "fishtail braid",
-  "bun",
-  "top knot",
-  "messy bun",
-  "space buns",
-  "updo",
-  "chignon",
-  "wavy",
-  "beach waves",
-  "curly",
-  "loose curls",
-  "tight coils",
-  "afro",
-  "twist out",
-  "bantu knots",
-  "dreadlocks",
-  "locs",
-  "faux locs",
-  "undercut",
-  "side shave",
-  "mohawk",
-  "faux hawk",
-  "mullet",
-  "shag",
-  "layered",
-  "feathered",
-  "bangs",
-  "side-swept bangs",
-  "curtain bangs",
-  "pompadour",
-  "quiff",
-  "slicked back",
-  "messy bedhead",
-  "top fade",
-  "low fade",
-  "tapered",
-  "hi-top fade",
-  "bowl cut",
-  "asymmetrical",
-  "wolf cut",
-  "hime cut",
-  "samurai topknot",
-  "viking braids",
-  "elfin spikes",
-  "mermaid waves",
-  "unicorn mane",
-  "wizard beard flow (if applicable)",
-  "dragon spikes",
-  "zombie tousled"
-]
-
-OUTFIT_STYLE_OPTIONS = [
-  "glamorous",
-  "romantic",
-  "casual",
-  "formal",
-  "bohemian",
-  "goth",
-  "punk",
-  "vintage",
-  "modern",
-  "sporty",
-  "elegant",
-  "edgy",
-  "minimalist",
-  "maximalist",
-  "hippie",
-  "preppy",
-  "streetwear",
-  "haute couture",
-  "retro",
-  "futuristic",
-  "military",
-  "business",
-  "beachwear",
-  "evening wear",
-  "daywear",
-  "fantasy",
-  "sci-fi",
-  "historical",
-  "tribal",
-  "artistic",
-  "grunge",
-  "hipster",
-  "classic",
-  "trendy",
-  "vintage glam",
-  "boho chic",
-  "urban",
-  "rural",
-  "exotic",
-  "mystical",
-  "warrior",
-  "noble",
-  "peasant",
-  "royal",
-  "pirate",
-  "vampire chic",
-  "zombie apocalypse",
-  "superhero",
-  "villainous"
-]
+AZIMUTH_OPTIONS = _OPTIONS["azimuth"]
+ELEVATION_OPTIONS = _OPTIONS["elevation"]
+DISTANCE_OPTIONS = _OPTIONS["distance"]
+EMOTION_OPTIONS = _OPTIONS["emotion"]
+BODYTYPE_OPTIONS = _OPTIONS["bodytype"]
+SKIN_TONE_OPTIONS = _OPTIONS["skin_tone"]
+EYE_COLOR_OPTIONS = _OPTIONS["eye_color"]
+HAIRSTYLE_OPTIONS = _OPTIONS["hairstyle"]
+OUTFIT_STYLE_OPTIONS = _OPTIONS["outfit_style"]
+MAKEUP_STYLE_OPTIONS = _OPTIONS["makeup_style"]
 
 
 class WizdroidMultiAngleNode:
@@ -401,6 +55,7 @@ class WizdroidMultiAngleNode:
                 "eye_color": (with_random(EYE_COLOR_OPTIONS + ["none"]), {"default": "none"}),
                 "hairstyle": (with_random(HAIRSTYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "outfit_style": (with_random(OUTFIT_STYLE_OPTIONS + ["none"]), {"default": "none"}),
+                "makeup_style": (with_random(MAKEUP_STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
                 "additional_text": ("STRING", {
                     "multiline": True,
@@ -423,6 +78,7 @@ class WizdroidMultiAngleNode:
         eye_color: str,
         hairstyle: str,
         outfit_style: str,
+        makeup_style: str,
         emotion: str,
         additional_text: str,
         seed: int = 0,
@@ -440,6 +96,7 @@ class WizdroidMultiAngleNode:
         resolved_eye_color = self._resolve(eye_color, EYE_COLOR_OPTIONS + ["none"], rng)
         resolved_hairstyle = self._resolve(hairstyle, HAIRSTYLE_OPTIONS + ["none"], rng)
         resolved_outfit_style = self._resolve(outfit_style, OUTFIT_STYLE_OPTIONS + ["none"], rng)
+        resolved_makeup_style = self._resolve(makeup_style, MAKEUP_STYLE_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
         
         # Build prompt in the required format: <sks> [azimuth] [elevation] [distance]
@@ -465,6 +122,10 @@ class WizdroidMultiAngleNode:
         if resolved_outfit_style != "none":
             prompt = f"{prompt}, {resolved_outfit_style} outfit style"
         
+        # Add makeup style if not none
+        if resolved_makeup_style != "none":
+            prompt = f"{prompt}, {resolved_makeup_style} makeup"
+        
         # Add emotion
         prompt = f"{prompt}, {resolved_emotion} expression"
         
@@ -485,6 +146,7 @@ class WizdroidMultiAngleNode:
             f"  • Eye Color: {resolved_eye_color if resolved_eye_color != 'none' else 'None'}",
             f"  • Hairstyle: {resolved_hairstyle if resolved_hairstyle != 'none' else 'None'}",
             f"  • Outfit Style: {resolved_outfit_style if resolved_outfit_style != 'none' else 'None'}",
+            f"  • Makeup Style: {resolved_makeup_style if resolved_makeup_style != 'none' else 'None'}",
             f"  • Emotion: {resolved_emotion}",
         ]
         

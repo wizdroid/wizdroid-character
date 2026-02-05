@@ -35,6 +35,7 @@ OUTFIT_STYLE_OPTIONS = _OPTIONS["outfit_style"]
 MAKEUP_STYLE_OPTIONS = _OPTIONS["makeup_style"]
 BACKGROUND_OPTIONS = _OPTIONS["background"]
 OUTFIT_TYPE_OPTIONS = _OPTIONS["outfit_type"]
+STYLE_OPTIONS = _OPTIONS["style"]
 
 
 class WizdroidMultiAngleNode:
@@ -49,6 +50,8 @@ class WizdroidMultiAngleNode:
     def INPUT_TYPES(cls):
         return {
             "required": {
+                "retain_face": (["enabled", "disabled"], {"default": "enabled"}),
+                "gender": (["none", "male", "female"], {"default": "none"}),
                 "azimuth": (with_random(AZIMUTH_OPTIONS), {"default": "front view"}),
                 "elevation": (with_random(ELEVATION_OPTIONS), {"default": "eye-level shot"}),
                 "distance": (with_random(DISTANCE_OPTIONS), {"default": "medium shot"}),
@@ -60,6 +63,7 @@ class WizdroidMultiAngleNode:
                 "makeup_style": (with_random(MAKEUP_STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "background": (with_random(BACKGROUND_OPTIONS + ["none"]), {"default": "none"}),
                 "outfit_type": (with_random(OUTFIT_TYPE_OPTIONS + ["none"]), {"default": "none"}),
+                "style": (with_random(STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
                 "additional_text": ("STRING", {
                     "multiline": True,
@@ -74,6 +78,8 @@ class WizdroidMultiAngleNode:
 
     def generate_prompt(
         self,
+        retain_face: str,
+        gender: str,
         azimuth: str,
         elevation: str,
         distance: str,
@@ -85,6 +91,7 @@ class WizdroidMultiAngleNode:
         makeup_style: str,
         background: str,
         outfit_type: str,
+        style: str,
         emotion: str,
         additional_text: str,
         seed: int = 0,
@@ -105,55 +112,81 @@ class WizdroidMultiAngleNode:
         resolved_makeup_style = self._resolve(makeup_style, MAKEUP_STYLE_OPTIONS + ["none"], rng)
         resolved_background = self._resolve(background, BACKGROUND_OPTIONS + ["none"], rng)
         resolved_outfit_type = self._resolve(outfit_type, OUTFIT_TYPE_OPTIONS + ["none"], rng)
+        resolved_style = self._resolve(style, STYLE_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
         
-        # Build prompt in the required format: <sks> [azimuth] [elevation] [distance]
-        prompt = f"<sks> {resolved_azimuth} {resolved_elevation} {resolved_distance}"
+        # Build natural language prompt
+        prompt_parts = []
         
-        # Add bodytype if not none
+        # Add retain face prefix if enabled
+        if retain_face == "enabled":
+            prompt_parts.append("Retain the facial features and identity of the person in the input image")
+        
+        # Camera/shot specification (required for LoRA)
+        prompt_parts.append(f"<sks> {resolved_azimuth}, {resolved_elevation}, {resolved_distance}")
+        
+        # Build physical description
+        physical_traits = []
+        
+        # Add gender if specified
+        if gender != "none":
+            physical_traits.append(gender)
+        
         if resolved_bodytype != "none":
-            prompt = f"{prompt}, {resolved_bodytype} body type"
-        
-        # Add skin tone if not none
+            physical_traits.append(f"{resolved_bodytype} build")
         if resolved_skin_tone != "none":
-            prompt = f"{prompt}, {resolved_skin_tone} skin tone"
-        
-        # Add eye color if not none
+            physical_traits.append(f"{resolved_skin_tone} skin")
         if resolved_eye_color != "none":
-            prompt = f"{prompt}, {resolved_eye_color} eyes"
-        
-        # Add hairstyle if not none
+            physical_traits.append(f"{resolved_eye_color} eyes")
         if resolved_hairstyle != "none":
-            prompt = f"{prompt}, {resolved_hairstyle} hairstyle"
+            physical_traits.append(f"{resolved_hairstyle} hair")
         
-        # Add outfit style if not none
-        if resolved_outfit_style != "none":
-            prompt = f"{prompt}, {resolved_outfit_style} outfit style"
+        if physical_traits:
+            if gender != "none":
+                prompt_parts.append(f"A {', '.join(physical_traits)}")
+            else:
+                prompt_parts.append(f"A person with {', '.join(physical_traits)}")
         
-        # Add outfit type if not none
+        # Build outfit description
+        outfit_desc = []
         if resolved_outfit_type != "none":
-            prompt = f"{prompt}, {resolved_outfit_type} outfit"
+            outfit_desc.append(f"in {resolved_outfit_type}")
+        elif resolved_outfit_style != "none":
+            outfit_desc.append(f"dressed in {resolved_outfit_style} style")
         
-        # Add makeup style if not none
         if resolved_makeup_style != "none":
-            prompt = f"{prompt}, {resolved_makeup_style} makeup"
+            outfit_desc.append(f"{resolved_makeup_style} makeup")
         
-        # Add background if not none
+        if outfit_desc:
+            prompt_parts.append(", ".join(outfit_desc))
+        
+        # Expression
+        prompt_parts.append(f"{resolved_emotion} expression")
+        
+        # Style and setting
+        style_setting = []
+        if resolved_style != "none":
+            style_setting.append(f"{resolved_style} style")
         if resolved_background != "none":
-            prompt = f"{prompt}, {resolved_background} background"
+            style_setting.append(f"{resolved_background} setting")
         
-        # Add emotion
-        prompt = f"{prompt}, {resolved_emotion} expression"
+        if style_setting:
+            prompt_parts.append(", ".join(style_setting))
+        
+        # Combine into natural flowing prompt
+        prompt = ". ".join(prompt_parts)
         
         # Append additional text if provided
         if additional_text.strip():
-            prompt = f"{prompt}, {additional_text.strip()}"
+            prompt = f"{prompt}. {additional_text.strip()}"
         
         # Build preview with more details
         preview_lines = [
             f"Prompt: {prompt}",
             "",
             "Camera Settings:",
+            f"  • Retain Face: {retain_face}",
+            f"  • Gender: {gender if gender != 'none' else 'None'}",
             f"  • Azimuth: {resolved_azimuth}",
             f"  • Elevation: {resolved_elevation}",
             f"  • Distance: {resolved_distance}",
@@ -165,6 +198,7 @@ class WizdroidMultiAngleNode:
             f"  • Outfit Type: {resolved_outfit_type if resolved_outfit_type != 'none' else 'None'}",
             f"  • Makeup Style: {resolved_makeup_style if resolved_makeup_style != 'none' else 'None'}",
             f"  • Background: {resolved_background if resolved_background != 'none' else 'None'}",
+            f"  • Style: {resolved_style if resolved_style != 'none' else 'None'}",
             f"  • Emotion: {resolved_emotion}",
         ]
         

@@ -67,6 +67,10 @@ class WizdroidMultiAngleNode:
                 "style": (with_random(STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
                 "pose_style": (with_random(POSE_STYLE_OPTIONS + ["none"]), {"default": "none"}),
+                "input_image_index": ("STRING", {
+                    "default": "1",
+                    "placeholder": "1-9"
+                }),
                 "additional_text": ("STRING", {
                     "multiline": True,
                     "default": "",
@@ -96,6 +100,7 @@ class WizdroidMultiAngleNode:
         style: str,
         emotion: str,
         pose_style: str,
+        input_image_index: str,
         additional_text: str,
         seed: int = 0,
     ) -> Tuple[str, str]:
@@ -118,13 +123,17 @@ class WizdroidMultiAngleNode:
         resolved_style = self._resolve(style, STYLE_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
         resolved_pose_style = self._resolve(pose_style, POSE_STYLE_OPTIONS + ["none"], rng)
+        resolved_input_index = self._resolve_input_index(input_image_index)
         
         # Build natural language prompt
         prompt_parts = []
         
         # Add retain face prefix if enabled
         if retain_face == "enabled":
-            prompt_parts.append("Retain the facial features and identity of the person in the input image")
+            prompt_parts.append(
+                "Transform the person from the input image "
+                f"{resolved_input_index}"
+            )
         
         # Camera/shot specification (required for LoRA)
         prompt_parts.append(f"<sks> {resolved_azimuth}, {resolved_elevation}, {resolved_distance}")
@@ -210,6 +219,9 @@ class WizdroidMultiAngleNode:
             f"  • Emotion: {resolved_emotion}",
             f"  • Pose Style: {resolved_pose_style if resolved_pose_style != 'none' else 'None'}",
         ]
+
+        if retain_face == "enabled":
+            preview_lines.append(f"  • Input Image Index: {resolved_input_index}")
         
         if additional_text.strip():
             preview_lines.extend([
@@ -233,6 +245,19 @@ class WizdroidMultiAngleNode:
         if value == RANDOM_LABEL:
             return rng.choice(options)
         return value
+
+    @staticmethod
+    def _resolve_input_index(value: str) -> int:
+        """Coerce input image index to an int in the range 1-9, defaulting to 1."""
+        try:
+            parsed = int(str(value).strip())
+        except (TypeError, ValueError):
+            return 1
+
+        if parsed < 1 or parsed > 9:
+            return 1
+
+        return parsed
 
 
 NODE_CLASS_MAPPINGS = {

@@ -36,6 +36,7 @@ MAKEUP_STYLE_OPTIONS = _OPTIONS["makeup_style"]
 BACKGROUND_OPTIONS = _OPTIONS["background"]
 OUTFIT_TYPE_OPTIONS = _OPTIONS["outfit_type"]
 STYLE_OPTIONS = _OPTIONS["style"]
+POSE_STYLE_OPTIONS = _OPTIONS["pose_style"]
 
 
 class WizdroidMultiAngleNode:
@@ -65,6 +66,7 @@ class WizdroidMultiAngleNode:
                 "outfit_type": (with_random(OUTFIT_TYPE_OPTIONS + ["none"]), {"default": "none"}),
                 "style": (with_random(STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
+                "pose_style": (with_random(POSE_STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "additional_text": ("STRING", {
                     "multiline": True,
                     "default": "",
@@ -93,6 +95,7 @@ class WizdroidMultiAngleNode:
         outfit_type: str,
         style: str,
         emotion: str,
+        pose_style: str,
         additional_text: str,
         seed: int = 0,
     ) -> Tuple[str, str]:
@@ -114,6 +117,7 @@ class WizdroidMultiAngleNode:
         resolved_outfit_type = self._resolve(outfit_type, OUTFIT_TYPE_OPTIONS + ["none"], rng)
         resolved_style = self._resolve(style, STYLE_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
+        resolved_pose_style = self._resolve(pose_style, POSE_STYLE_OPTIONS + ["none"], rng)
         
         # Build natural language prompt
         prompt_parts = []
@@ -163,6 +167,10 @@ class WizdroidMultiAngleNode:
         # Expression
         prompt_parts.append(f"{resolved_emotion} expression")
         
+        # Pose style
+        if resolved_pose_style != "none":
+            prompt_parts.append(f"{resolved_pose_style}")
+        
         # Style and setting
         style_setting = []
         if resolved_style != "none":
@@ -200,6 +208,7 @@ class WizdroidMultiAngleNode:
             f"  • Background: {resolved_background if resolved_background != 'none' else 'None'}",
             f"  • Style: {resolved_style if resolved_style != 'none' else 'None'}",
             f"  • Emotion: {resolved_emotion}",
+            f"  • Pose Style: {resolved_pose_style if resolved_pose_style != 'none' else 'None'}",
         ]
         
         if additional_text.strip():

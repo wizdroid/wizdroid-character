@@ -887,5 +887,22 @@
     "pulp fiction",
     "noir",
     "film noir"
+  ],
+  "pose_style": [
+    "glamorous pose",
+    "cute pose",
+    "romantic pose",
+    "seductive pose",
+    "confident pose",
+    "shy pose",
+    "playful pose",
+    "elegant pose",
+    "fierce pose",
+    "casual pose",
+    "dramatic pose",
+    "athletic pose",
+    "relaxed pose",
+    "mysterious pose",
+    "joyful pose"
   ]
 }

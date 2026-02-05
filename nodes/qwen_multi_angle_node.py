@@ -328,57 +328,56 @@ HAIRSTYLE_OPTIONS = [
   "zombie tousled"
 ]
 
-MOOD_OPTIONS = [
+OUTFIT_STYLE_OPTIONS = [
+  "glamorous",
   "romantic",
-  "adventurous",
-  "mysterious",
+  "casual",
+  "formal",
+  "bohemian",
+  "goth",
+  "punk",
+  "vintage",
+  "modern",
+  "sporty",
   "elegant",
-  "playful",
-  "dramatic",
-  "serene",
-  "intense",
-  "whimsical",
-  "bold",
-  "gentle",
-  "passionate",
-  "melancholic",
-  "joyful",
-  "contemplative",
-  "fierce",
-  "dreamy",
-  "stoic",
-  "cheerful",
-  "brooding",
-  "optimistic",
-  "cynical",
-  "tender",
-  "wild",
-  "calm",
-  "chaotic",
-  "nostalgic",
-  "ambitious",
-  "peaceful",
-  "rebellious",
-  "innocent",
-  "sophisticated",
-  "quirky",
-  "majestic",
-  "vulnerable",
-  "empowered",
-  "lonely",
-  "sociable",
-  "introspective",
-  "exuberant",
-  "reserved",
-  "charismatic",
-  "moody",
-  "zen",
-  "fiery",
-  "ethereal",
-  "grounded",
-  "ecstatic",
-  "pensive",
-  "radiant"
+  "edgy",
+  "minimalist",
+  "maximalist",
+  "hippie",
+  "preppy",
+  "streetwear",
+  "haute couture",
+  "retro",
+  "futuristic",
+  "military",
+  "business",
+  "beachwear",
+  "evening wear",
+  "daywear",
+  "fantasy",
+  "sci-fi",
+  "historical",
+  "tribal",
+  "artistic",
+  "grunge",
+  "hipster",
+  "classic",
+  "trendy",
+  "vintage glam",
+  "boho chic",
+  "urban",
+  "rural",
+  "exotic",
+  "mystical",
+  "warrior",
+  "noble",
+  "peasant",
+  "royal",
+  "pirate",
+  "vampire chic",
+  "zombie apocalypse",
+  "superhero",
+  "villainous"
 ]
 
 
@@ -401,7 +400,7 @@ class WizdroidMultiAngleNode:
                 "skin_tone": (with_random(SKIN_TONE_OPTIONS + ["none"]), {"default": "none"}),
                 "eye_color": (with_random(EYE_COLOR_OPTIONS + ["none"]), {"default": "none"}),
                 "hairstyle": (with_random(HAIRSTYLE_OPTIONS + ["none"]), {"default": "none"}),
-                "mood": (with_random(MOOD_OPTIONS + ["none"]), {"default": "none"}),
+                "outfit_style": (with_random(OUTFIT_STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
                 "additional_text": ("STRING", {
                     "multiline": True,
@@ -423,7 +422,7 @@ class WizdroidMultiAngleNode:
         skin_tone: str,
         eye_color: str,
         hairstyle: str,
-        mood: str,
+        outfit_style: str,
         emotion: str,
         additional_text: str,
         seed: int = 0,
@@ -440,7 +439,7 @@ class WizdroidMultiAngleNode:
         resolved_skin_tone = self._resolve(skin_tone, SKIN_TONE_OPTIONS + ["none"], rng)
         resolved_eye_color = self._resolve(eye_color, EYE_COLOR_OPTIONS + ["none"], rng)
         resolved_hairstyle = self._resolve(hairstyle, HAIRSTYLE_OPTIONS + ["none"], rng)
-        resolved_mood = self._resolve(mood, MOOD_OPTIONS + ["none"], rng)
+        resolved_outfit_style = self._resolve(outfit_style, OUTFIT_STYLE_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
         
         # Build prompt in the required format: <sks> [azimuth] [elevation] [distance]
@@ -462,9 +461,9 @@ class WizdroidMultiAngleNode:
         if resolved_hairstyle != "none":
             prompt = f"{prompt}, {resolved_hairstyle} hairstyle"
         
-        # Add mood if not none
-        if resolved_mood != "none":
-            prompt = f"{prompt}, {resolved_mood} mood"
+        # Add outfit style if not none
+        if resolved_outfit_style != "none":
+            prompt = f"{prompt}, {resolved_outfit_style} outfit style"
         
         # Add emotion
         prompt = f"{prompt}, {resolved_emotion} expression"
@@ -485,7 +484,7 @@ class WizdroidMultiAngleNode:
             f"  • Skin Tone: {resolved_skin_tone if resolved_skin_tone != 'none' else 'None'}",
             f"  • Eye Color: {resolved_eye_color if resolved_eye_color != 'none' else 'None'}",
             f"  • Hairstyle: {resolved_hairstyle if resolved_hairstyle != 'none' else 'None'}",
-            f"  • Mood: {resolved_mood if resolved_mood != 'none' else 'None'}",
+            f"  • Outfit Style: {resolved_outfit_style if resolved_outfit_style != 'none' else 'None'}",
             f"  • Emotion: {resolved_emotion}",
         ]
         

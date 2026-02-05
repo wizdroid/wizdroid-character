@@ -34,6 +34,7 @@ HAIRSTYLE_OPTIONS = _OPTIONS["hairstyle"]
 OUTFIT_STYLE_OPTIONS = _OPTIONS["outfit_style"]
 MAKEUP_STYLE_OPTIONS = _OPTIONS["makeup_style"]
 BACKGROUND_OPTIONS = _OPTIONS["background"]
+OUTFIT_TYPE_OPTIONS = _OPTIONS["outfit_type"]
 
 
 class WizdroidMultiAngleNode:
@@ -58,6 +59,7 @@ class WizdroidMultiAngleNode:
                 "outfit_style": (with_random(OUTFIT_STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "makeup_style": (with_random(MAKEUP_STYLE_OPTIONS + ["none"]), {"default": "none"}),
                 "background": (with_random(BACKGROUND_OPTIONS + ["none"]), {"default": "none"}),
+                "outfit_type": (with_random(OUTFIT_TYPE_OPTIONS + ["none"]), {"default": "none"}),
                 "emotion": (with_random(EMOTION_OPTIONS), {"default": "neutral"}),
                 "additional_text": ("STRING", {
                     "multiline": True,
@@ -82,6 +84,7 @@ class WizdroidMultiAngleNode:
         outfit_style: str,
         makeup_style: str,
         background: str,
+        outfit_type: str,
         emotion: str,
         additional_text: str,
         seed: int = 0,
@@ -101,6 +104,7 @@ class WizdroidMultiAngleNode:
         resolved_outfit_style = self._resolve(outfit_style, OUTFIT_STYLE_OPTIONS + ["none"], rng)
         resolved_makeup_style = self._resolve(makeup_style, MAKEUP_STYLE_OPTIONS + ["none"], rng)
         resolved_background = self._resolve(background, BACKGROUND_OPTIONS + ["none"], rng)
+        resolved_outfit_type = self._resolve(outfit_type, OUTFIT_TYPE_OPTIONS + ["none"], rng)
         resolved_emotion = self._resolve(emotion, EMOTION_OPTIONS, rng)
         
         # Build prompt in the required format: <sks> [azimuth] [elevation] [distance]
@@ -125,6 +129,10 @@ class WizdroidMultiAngleNode:
         # Add outfit style if not none
         if resolved_outfit_style != "none":
             prompt = f"{prompt}, {resolved_outfit_style} outfit style"
+        
+        # Add outfit type if not none
+        if resolved_outfit_type != "none":
+            prompt = f"{prompt}, {resolved_outfit_type} outfit"
         
         # Add makeup style if not none
         if resolved_makeup_style != "none":
@@ -154,6 +162,7 @@ class WizdroidMultiAngleNode:
             f"  • Eye Color: {resolved_eye_color if resolved_eye_color != 'none' else 'None'}",
             f"  • Hairstyle: {resolved_hairstyle if resolved_hairstyle != 'none' else 'None'}",
             f"  • Outfit Style: {resolved_outfit_style if resolved_outfit_style != 'none' else 'None'}",
+            f"  • Outfit Type: {resolved_outfit_type if resolved_outfit_type != 'none' else 'None'}",
             f"  • Makeup Style: {resolved_makeup_style if resolved_makeup_style != 'none' else 'None'}",
             f"  • Background: {resolved_background if resolved_background != 'none' else 'None'}",
             f"  • Emotion: {resolved_emotion}",

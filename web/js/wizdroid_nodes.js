@@ -455,6 +455,11 @@ app.registerExtension({
                 onConfigure.apply(this, arguments);
             }
             
+            // Clear existing entries to prevent duplication on reload
+            while (this.refImageEntries && this.refImageEntries.length > 0) {
+                this.removeLastRefEntry();
+            }
+            
             // Restore entries after a short delay to ensure widgets are ready
             if (o.refImageEntries && Array.isArray(o.refImageEntries) && o.refImageEntries.length > 0) {
                 setTimeout(() => {

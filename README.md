@@ -11,7 +11,7 @@ Custom nodes for ComfyUI that generate and edit character-focused prompts using 
 - **🧙 Wizdroid: Meta Prompt** - Expand loose keywords into detailed image prompts
 - **🧙 Wizdroid: Prompt Combiner** - Merge multiple prompts into one coherent description
 - **🧙 Wizdroid: Image Edit** - Generate multi-image editing instructions (face swap, style transfer)
-- **🧙 Wizdroid: Multi-Angle** - Camera position prompts for Qwen multi-angle LoRA
+- **🧙 Wizdroid: Character Edit** - Character editing prompts with multiple reference images (clothing, pose, background, style)
 - **🧙 Wizdroid: Contest Prompt** - Data-driven contest prompt generator
 
 ### Analysis (🧙 Wizdroid/Analysis)

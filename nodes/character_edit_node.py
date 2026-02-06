@@ -1,10 +1,14 @@
 """
-Qwen Multi-Angle LoRA Prompt Generator
+Character Edit Prompt Generator
 
-Generates prompts for fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA
-https://huggingface.co/fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA
+Generates prompts for image editing models with multiple reference images:
+- Subject reference (face/identity)
+- Clothing reference
+- Pose reference
+- Background/lighting reference
+- Style reference
 
-Supports all 96 camera positions:
+Supports camera positioning for multi-angle editing:
 - 8 Azimuths (horizontal rotation)
 - 4 Elevations (vertical angle)
 - 3 Distances
@@ -38,9 +42,19 @@ OUTFIT_TYPE_OPTIONS = _OPTIONS["outfit_type"]
 STYLE_OPTIONS = _OPTIONS["style"]
 POSE_STYLE_OPTIONS = _OPTIONS["pose_style"]
 
+# Reference image type options
+REF_IMAGE_TYPE_OPTIONS = ["none", "clothing", "pose", "background", "style"]
 
-class WizdroidMultiAngleNode:
-    """🧙 Generate multi-angle camera prompts for the Qwen Image Edit LoRA."""
+# Prompt templates for each reference type
+REF_PROMPT_TEMPLATES = {
+    "clothing": "Use image {index} STRICTLY as clothing reference — apply this outfit exactly, no creative changes.",
+    "pose": "Use image {index} as pose reference — copy body position, angles, and limb placement precisely.",
+    "background": "Use image {index} as background/lighting reference — match the environment, lighting, and atmosphere.",    
+    "style": "Use image {index} as style reference \u2014 replicate the artistic style, color palette, rendering technique, and visual aesthetics exactly.",}
+
+
+class WizdroidCharacterEditNode:
+    """🧙 Generate character edit prompts with multiple reference images for image editing models."""
 
     CATEGORY = "🧙 Wizdroid/Prompts"
     RETURN_TYPES = ("STRING", "STRING")
@@ -70,6 +84,11 @@ class WizdroidMultiAngleNode:
                 "input_image_index": ("STRING", {
                     "default": "1",
                     "placeholder": "1-9"
+                }),
+                "ref_images": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "Dynamic reference config (managed by UI)"
                 }),
                 "additional_text": ("STRING", {
                     "multiline": True,
@@ -101,6 +120,7 @@ class WizdroidMultiAngleNode:
         emotion: str,
         pose_style: str,
         input_image_index: str,
+        ref_images: str,
         additional_text: str,
         seed: int = 0,
     ) -> Tuple[str, str]:
@@ -128,15 +148,35 @@ class WizdroidMultiAngleNode:
         # Build natural language prompt
         prompt_parts = []
         
-        # Add retain face prefix if enabled
+        # Build reference image prompts
+        ref_prompts = []
+        
+        # Add subject reference (always first, uses input_image_index)
         if retain_face == "enabled":
-            prompt_parts.append(
-                "Transform the person from the input image "
-                f"{resolved_input_index}"
+            ref_prompts.append(
+                f"Use image {resolved_input_index} as subject reference for face and identity."
             )
         
+        # Parse dynamic reference images from JSON string
+        # Format: "2:clothing,3:pose,4:background" or JSON like [{"index":2,"type":"clothing"}]
+        ref_assignments = self._parse_ref_images(ref_images)
+        
+        for img_index, ref_type in ref_assignments:
+            if ref_type != "none" and ref_type in REF_PROMPT_TEMPLATES:
+                ref_prompts.append(REF_PROMPT_TEMPLATES[ref_type].format(index=img_index))
+        
+        # Add all reference prompts to the beginning
+        if ref_prompts:
+            ref_block = "\n".join(ref_prompts)
+            # Strip trailing period to avoid double-period when joined with ". "
+            prompt_parts.append(ref_block.rstrip("."))
+        
         # Camera/shot specification (required for LoRA)
-        prompt_parts.append(f"<sks> {resolved_azimuth}, {resolved_elevation}, {resolved_distance}")
+        camera_parts = [p for p in [resolved_azimuth, resolved_elevation, resolved_distance] if p != "none"]
+        if camera_parts:
+            prompt_parts.append(f"<sks> {', '.join(camera_parts)}")
+        else:
+            prompt_parts.append("<sks>")
         
         # Build physical description
         physical_traits = []
@@ -221,7 +261,16 @@ class WizdroidMultiAngleNode:
         ]
 
         if retain_face == "enabled":
-            preview_lines.append(f"  • Input Image Index: {resolved_input_index}")
+            preview_lines.append(f"  • Subject Image: {resolved_input_index}")
+        
+        # Show reference image assignments in preview
+        ref_preview_lines = []
+        for img_index, ref_type in ref_assignments:
+            if ref_type != "none":
+                ref_preview_lines.append(f"  • Image {img_index}: {ref_type}")
+        
+        if ref_preview_lines:
+            preview_lines.extend(["", "Reference Images:"] + ref_preview_lines)
         
         if additional_text.strip():
             preview_lines.extend([
@@ -232,8 +281,8 @@ class WizdroidMultiAngleNode:
         preview_lines.extend([
             "",
             "Tips:",
-            "  • LoRA Strength: 0.8 - 1.0 recommended",
-            "  • Base Model: Qwen/Qwen-Image-Edit-2511",
+            "  • LoRA Strength: 0.8 - 1.0 recommended for image editing models",
+            "  • Supports multiple reference images for precise character editing",
         ])
         preview = "\n".join(preview_lines)
         
@@ -259,11 +308,55 @@ class WizdroidMultiAngleNode:
 
         return parsed
 
+    @staticmethod
+    def _parse_ref_images(ref_images_str: str) -> list:
+        """Parse reference images string into list of (index, type) tuples.
+        
+        Supports formats:
+        - Simple: "2:clothing,3:pose,4:background"
+        - JSON: [{"index":2,"type":"clothing"},...]
+        """
+        if not ref_images_str or not ref_images_str.strip():
+            return []
+        
+        ref_images_str = ref_images_str.strip()
+        result = []
+        
+        # Try JSON format first
+        if ref_images_str.startswith('['):
+            try:
+                import json
+                data = json.loads(ref_images_str)
+                for item in data:
+                    if isinstance(item, dict) and 'index' in item and 'type' in item:
+                        idx = int(item['index'])
+                        ref_type = str(item['type']).lower()
+                        if ref_type in REF_IMAGE_TYPE_OPTIONS and ref_type != 'none':
+                            result.append((idx, ref_type))
+                return result
+            except (json.JSONDecodeError, ValueError, KeyError):
+                pass
+        
+        # Try simple format: "2:clothing,3:pose"
+        try:
+            for part in ref_images_str.split(','):
+                part = part.strip()
+                if ':' in part:
+                    idx_str, ref_type = part.split(':', 1)
+                    idx = int(idx_str.strip())
+                    ref_type = ref_type.strip().lower()
+                    if ref_type in REF_IMAGE_TYPE_OPTIONS and ref_type != 'none':
+                        result.append((idx, ref_type))
+        except (ValueError, AttributeError):
+            pass
+        
+        return result
+
 
 NODE_CLASS_MAPPINGS = {
-    "WizdroidMultiAngle": WizdroidMultiAngleNode,
+    "WizdroidCharacterEdit": WizdroidCharacterEditNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "WizdroidMultiAngle": "🧙 Wizdroid: Multi-Angle",
+    "WizdroidCharacterEdit": "🧙 Wizdroid: Character Edit",
 }

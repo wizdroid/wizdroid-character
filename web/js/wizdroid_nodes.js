@@ -154,7 +154,7 @@ const NODE_CATEGORIES = {
     "WizdroidMetaPrompt": "prompts",
     "WizdroidPromptCombiner": "prompts",
     "WizdroidImageEdit": "prompts",
-    "WizdroidMultiAngle": "prompts",
+    "WizdroidCharacterEdit": "prompts",
     "WizdroidContestPrompt": "prompts",
     
     // Training
@@ -297,6 +297,174 @@ app.registerExtension({
             }
             
             return options;
+        };
+    }
+});
+
+// Dynamic Reference Images for WizdroidCharacterEdit node
+app.registerExtension({
+    name: "Wizdroid.DynamicRefImages",
+    
+    async beforeRegisterNodeDef(nodeType, nodeData, app) {
+        if (nodeData.name !== "WizdroidCharacterEdit") return;
+        
+        const onNodeCreated = nodeType.prototype.onNodeCreated;
+        nodeType.prototype.onNodeCreated = function() {
+            if (onNodeCreated) {
+                onNodeCreated.apply(this, arguments);
+            }
+            
+            const node = this;
+            
+            // Reference image entries storage
+            if (!node.refImageEntries) {
+                node.refImageEntries = [];
+            }
+            
+            // Find the ref_images widget (hidden, stores JSON)
+            const refImagesWidget = node.widgets?.find(w => w.name === "ref_images");
+            if (refImagesWidget) {
+                refImagesWidget.type = "hidden";
+                refImagesWidget.computeSize = () => [0, -4];
+            }
+            
+            // Function to sync entries to the hidden widget
+            const syncToWidget = () => {
+                if (!refImagesWidget) return;
+                const data = node.refImageEntries
+                    .filter(e => e.type !== "none")
+                    .map(e => ({ index: e.index, type: e.type }));
+                refImagesWidget.value = JSON.stringify(data);
+                node.setDirtyCanvas(true);
+            };
+            
+            // Function to add a new reference entry
+            const addRefEntry = (index = 2, type = "none") => {
+                const entryId = node.refImageEntries.length;
+                const entry = { id: entryId, index, type };
+                node.refImageEntries.push(entry);
+                
+                // Create combo widget for reference type
+                const typeWidget = node.addWidget("combo", `ref_${entryId}_type`, type, (v) => {
+                    entry.type = v;
+                    syncToWidget();
+                }, {
+                    values: ["none", "clothing", "pose", "background", "style"],
+                    serialize: false
+                });
+                typeWidget._refEntryId = entryId;
+                
+                // Create number widget for image index
+                const indexWidget = node.addWidget("number", `ref_${entryId}_index`, index, (v) => {
+                    entry.index = Math.max(1, Math.min(9, Math.floor(v)));
+                    indexWidget.value = entry.index;
+                    syncToWidget();
+                }, {
+                    min: 1,
+                    max: 9,
+                    step: 1,
+                    precision: 0,
+                    serialize: false
+                });
+                indexWidget._refEntryId = entryId;
+                
+                entry.typeWidget = typeWidget;
+                entry.indexWidget = indexWidget;
+                
+                syncToWidget();
+                node.setSize(node.computeSize());
+                return entry;
+            };
+            
+            // Function to remove the last reference entry
+            const removeLastRefEntry = () => {
+                if (node.refImageEntries.length === 0) return;
+                
+                const entry = node.refImageEntries.pop();
+                
+                // Remove widgets
+                const typeIdx = node.widgets.indexOf(entry.typeWidget);
+                if (typeIdx !== -1) node.widgets.splice(typeIdx, 1);
+                
+                const indexIdx = node.widgets.indexOf(entry.indexWidget);
+                if (indexIdx !== -1) node.widgets.splice(indexIdx, 1);
+                
+                syncToWidget();
+                node.setSize(node.computeSize());
+            };
+            
+            // Add "+" button to add reference
+            node.addWidget("button", "➕ Add Reference Image", null, () => {
+                const nextIndex = node.refImageEntries.length + 2; // Start from image 2
+                addRefEntry(Math.min(nextIndex, 9), "none");
+            }, { serialize: false });
+            
+            // Add "−" button to remove reference
+            node.addWidget("button", "➖ Remove Last Reference", null, () => {
+                removeLastRefEntry();
+            }, { serialize: false });
+            
+            // Load existing entries from widget value
+            if (refImagesWidget && refImagesWidget.value) {
+                try {
+                    const data = JSON.parse(refImagesWidget.value);
+                    if (Array.isArray(data)) {
+                        data.forEach(item => {
+                            if (item.index && item.type) {
+                                addRefEntry(item.index, item.type);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    // Parse simple format fallback
+                    const str = refImagesWidget.value;
+                    if (str && str.includes(':')) {
+                        str.split(',').forEach(part => {
+                            const [idx, type] = part.split(':');
+                            if (idx && type) {
+                                addRefEntry(parseInt(idx.trim()), type.trim());
+                            }
+                        });
+                    }
+                }
+            }
+            
+            // Store functions for external access
+            node.addRefEntry = addRefEntry;
+            node.removeLastRefEntry = removeLastRefEntry;
+            node.syncRefImages = syncToWidget;
+        };
+        
+        // Handle serialization to save dynamic entries
+        const onSerialize = nodeType.prototype.onSerialize;
+        nodeType.prototype.onSerialize = function(o) {
+            if (onSerialize) {
+                onSerialize.apply(this, arguments);
+            }
+            // Store ref entries in node properties for reload
+            o.refImageEntries = this.refImageEntries?.map(e => ({
+                index: e.index,
+                type: e.type
+            })) || [];
+        };
+        
+        // Handle deserialization to restore dynamic entries
+        const onConfigure = nodeType.prototype.onConfigure;
+        nodeType.prototype.onConfigure = function(o) {
+            if (onConfigure) {
+                onConfigure.apply(this, arguments);
+            }
+            
+            // Restore entries after a short delay to ensure widgets are ready
+            if (o.refImageEntries && Array.isArray(o.refImageEntries) && o.refImageEntries.length > 0) {
+                setTimeout(() => {
+                    o.refImageEntries.forEach(entry => {
+                        if (this.addRefEntry && entry.index && entry.type) {
+                            this.addRefEntry(entry.index, entry.type);
+                        }
+                    });
+                }, 100);
+            }
         };
     }
 });

@@ -72,6 +72,46 @@ Once installed, look for nodes under these categories in ComfyUI:
 
 Wire them into your normal image-generation workflows.
 
-## 📄 License
+## � Example Workflows
+
+### Character Edit with Multiple References
+
+The `workflows/character_edit_example.json` demonstrates how to use the **🧙 Wizdroid: Character Edit** node for advanced character editing with multiple reference images.
+
+**Features demonstrated:**
+- **Subject reference** (face/identity preservation)
+- **Clothing reference** (outfit transfer)
+- **Pose reference** (body position copying)
+- **Style reference** (artistic style transfer)
+- **Dynamic reference management** (add/remove references with UI buttons)
+
+**Setup:**
+1. Load the workflow: `workflows/character_edit_example.json`
+2. Replace the sample images with your own:
+   - **Subject**: Person whose face/identity to preserve
+   - **Outfit**: Clothing to transfer
+   - **Pose**: Body position to copy
+3. Configure reference types using the dynamic UI:
+   - Click **➕ Add Reference Image** to add more references
+   - Select image index (2, 3, 4...) and reference type
+   - Click **➖ Remove Last Reference** to remove entries
+4. Adjust camera settings, character traits, and styling options
+5. Generate with your preferred image editing model
+
+**Generated prompt example:**
+```
+Use image 1 as subject reference for face and identity.
+Use image 2 STRICTLY as clothing reference — apply this outfit exactly, no creative changes.
+Use image 3 as pose reference — copy body position, angles, and limb placement precisely.
+Use image 4 as style reference — replicate the artistic style, color palette, rendering technique, and visual aesthetics exactly.
+<sks> front view, eye-level shot, medium shot. A female, average build. neutral expression
+```
+
+**Compatible Models:**
+- Qwen Image Edit series
+- Flux Kontext
+- Other multi-reference image editing models
+
+## �📄 License
 
 Licensed under the Apache License, Version 2.0.

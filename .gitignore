@@ -27,3 +27,7 @@ coverage.xml
 
 # Output directories
 scripts/out/
+
+# CIVITAI files
+CIVITAI_DESCRIPTION.txt
+CIVITAI_README.md

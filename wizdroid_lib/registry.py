@@ -9,8 +9,8 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
 import time
 
-from .data_files import load_json
-from .paths import DATA_DIR
+from .data_files import load_json, load_shared
+from .paths import DATA_DIR, SHARED_DIR
 
 
 class DataRegistry:
@@ -51,6 +51,30 @@ class DataRegistry:
             return default
     
     @classmethod
+    def get_shared(cls, key: str, default: Any = None) -> Any:
+        """Get cached shared data by key (filename without .json extension)."""
+        instance = cls()
+        cache_key = f"shared/{key}"
+        filename = f"{key}.json" if not key.endswith(".json") else key
+        
+        try:
+            path = SHARED_DIR / filename
+            if not path.exists():
+                return default
+            current_mtime = int(path.stat().st_mtime_ns)
+            
+            if cache_key in instance._data and instance._mtimes.get(cache_key) == current_mtime:
+                return instance._data[cache_key]
+            
+            data = load_shared(filename)
+            instance._data[cache_key] = data
+            instance._mtimes[cache_key] = current_mtime
+            return data
+            
+        except Exception:
+            return default
+    
+    @classmethod
     def get_character_options(cls) -> Dict[str, Any]:
         """Get character_options.json data."""
         return cls.get("character_options", {})
@@ -84,6 +108,63 @@ class DataRegistry:
     def get_meta_prompt_options(cls) -> Dict[str, Any]:
         """Get meta_prompt_options.json data."""
         return cls.get("meta_prompt_options", {})
+    
+    # --- Shared data accessors ---
+    
+    @classmethod
+    def get_body_types(cls) -> Any:
+        """Get shared/body_types.json data."""
+        return cls.get_shared("body_types", {})
+    
+    @classmethod
+    def get_emotions(cls) -> Any:
+        """Get shared/emotions.json data."""
+        return cls.get_shared("emotions", {})
+    
+    @classmethod
+    def get_eye_colors(cls) -> Any:
+        """Get shared/eye_colors.json data."""
+        return cls.get_shared("eye_colors", {})
+    
+    @classmethod
+    def get_hair(cls) -> Any:
+        """Get shared/hair.json data."""
+        return cls.get_shared("hair", {})
+    
+    @classmethod
+    def get_skin_tones(cls) -> Any:
+        """Get shared/skin_tones.json data."""
+        return cls.get_shared("skin_tones", {})
+    
+    @classmethod
+    def get_makeup(cls) -> Any:
+        """Get shared/makeup.json data."""
+        return cls.get_shared("makeup", {})
+    
+    @classmethod
+    def get_poses(cls) -> Any:
+        """Get shared/poses.json data."""
+        return cls.get_shared("poses", {})
+    
+    @classmethod
+    def get_backgrounds(cls) -> Any:
+        """Get shared/backgrounds.json data."""
+        return cls.get_shared("backgrounds", {})
+    
+    @classmethod
+    def get_camera_lighting(cls) -> Any:
+        """Get shared/camera_lighting.json data."""
+        return cls.get_shared("camera_lighting", {})
+    
+    @classmethod
+    def get_fashion(cls) -> Any:
+        """Get shared/fashion.json data."""
+        return cls.get_shared("fashion", {})
+    
+    @classmethod
+    def get_background_edit(cls) -> Any:
+        """Get shared/background_edit.json data."""
+        return cls.get_shared("background_edit", {})
     
     @classmethod
     def clear_cache(cls) -> None:

@@ -8,12 +8,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
 from wizdroid_lib.content_safety import enforce_sfw
+from wizdroid_lib.data_files import filter_by_gender
 from wizdroid_lib.registry import DataRegistry
 from wizdroid_lib.helpers import (
     choose,
     choose_for_rating,
     extract_descriptions,
-    get_background_groups,
+    normalize_option_list,
     split_groups,
     with_random,
 )
@@ -43,17 +44,64 @@ class WizdroidCharacterPromptNode:
 
     @classmethod
     def INPUT_TYPES(cls):
-        # Use centralized registry for cached data access
+        # Load from shared data
         opt = DataRegistry.get_character_options()
         styles = DataRegistry.get_prompt_styles()
         regions = DataRegistry.get_regions()
         countries = DataRegistry.get_countries()
         cultures = DataRegistry.get_cultures()
 
-        # Process SFW/NSFW splits
-        pose_sfw, pose_nsfw = split_groups(opt.get("pose_style"))
+        # Shared data
+        body_data = DataRegistry.get_body_types() or {}
+        emotions_data = DataRegistry.get_emotions() or {}
+        eye_data = DataRegistry.get_eye_colors() or {}
+        hair_data = DataRegistry.get_hair() or {}
+        skin_data = DataRegistry.get_skin_tones() or {}
+        makeup_data = DataRegistry.get_makeup() or {}
+        poses_data = DataRegistry.get_poses() or {}
+        bg_data = DataRegistry.get_backgrounds() or {}
+        cam_data = DataRegistry.get_camera_lighting() or {}
+        fashion_data = DataRegistry.get_fashion() or {}
+
+        # Extract name lists from shared data
+        body_types = normalize_option_list(body_data.get("body_types", []))
+        emotions = emotions_data.get("emotions", [])
+        eye_colors = eye_data.get("eye_colors", [])
+        hair_colors = hair_data.get("hair_colors", [])
+        hair_styles = (
+            hair_data.get("hair_styles", {}).get("any", [])
+            + hair_data.get("hair_styles", {}).get("female", [])
+            + hair_data.get("hair_styles", {}).get("male", [])
+        )
+        skin_tones = skin_data.get("skin_tones", [])
+        makeup_styles = normalize_option_list(makeup_data.get("makeup_styles", []))
+        fashion_outfits = normalize_option_list(fashion_data.get("fashion_outfits", []))
+        fashion_styles_list = normalize_option_list(fashion_data.get("fashion_styles", []))
+        footwear = fashion_data.get("footwear_styles", [])
+
+        # Poses with SFW/NSFW split
+        sfw_poses = (
+            poses_data.get("pose_styles", {}).get("sfw", {}).get("any", [])
+            + poses_data.get("pose_styles", {}).get("sfw", {}).get("female", [])
+            + poses_data.get("pose_styles", {}).get("sfw", {}).get("male", [])
+        )
+        nsfw_poses = poses_data.get("pose_styles", {}).get("nsfw", [])
+
+        # Backgrounds from shared
+        backgrounds = bg_data.get("backgrounds", {})
+        bg_studio = backgrounds.get("studio_controlled", [])
+        bg_real = backgrounds.get("public_exotic_real", [])
+        bg_imaginative = backgrounds.get("imaginative_surreal", [])
+
+        # Camera/lighting from shared
+        lighting_styles = normalize_option_list(cam_data.get("lighting_styles", []))
+        camera_angles = cam_data.get("camera_angles", [])
+        camera_lenses = normalize_option_list(cam_data.get("camera_lenses", []))
+        color_palettes = normalize_option_list(cam_data.get("color_palettes", []))
+        face_angles = cam_data.get("face_angles", [])
+
+        # Legacy data from character_options (image_category still in original)
         image_sfw, image_nsfw = split_groups(opt.get("image_category"))
-        bg = get_background_groups(opt.get("background_style"))
 
         # Get Ollama models (with TTL caching)
         ollama_models = collect_models(DEFAULT_OLLAMA_URL)
@@ -73,30 +121,30 @@ class WizdroidCharacterPromptNode:
                 "gender": (with_random(opt.get("gender", [])), {"default": RANDOM_LABEL}),
                 "race": (with_random(opt.get("race", [])), {"default": NONE_LABEL}),
                 "age_group": (with_random(opt.get("age_group", [])), {"default": RANDOM_LABEL}),
-                "body_type": (with_random(opt.get("body_type", [])), {"default": NONE_LABEL}),
+                "body_type": (with_random(body_types), {"default": NONE_LABEL}),
+                "skin_tone": (with_random(skin_tones), {"default": NONE_LABEL}),
                 # Appearance
-                "hair_color": (with_random(opt.get("hair_color", [])), {"default": NONE_LABEL}),
-                "hair_style": (with_random(opt.get("hair_style", [])), {"default": NONE_LABEL}),
-                "eye_color": (with_random(opt.get("eye_color", [])), {"default": NONE_LABEL}),
-                "makeup_style": (with_random(opt.get("makeup_style", [])), {"default": NONE_LABEL}),
+                "hair_color": (with_random(hair_colors), {"default": NONE_LABEL}),
+                "hair_style": (with_random(hair_styles), {"default": NONE_LABEL}),
+                "eye_color": (with_random(eye_colors), {"default": NONE_LABEL}),
+                "makeup_style": (with_random(makeup_styles), {"default": NONE_LABEL}),
                 # Expression & Pose
-                "facial_expression": (with_random(opt.get("facial_expression", [])), {"default": RANDOM_LABEL}),
-                "face_angle": (with_random(opt.get("face_angle", [])), {"default": NONE_LABEL}),
-                "pose_style": (with_random(pose_sfw + pose_nsfw), {"default": RANDOM_LABEL}),
+                "facial_expression": (with_random(emotions), {"default": RANDOM_LABEL}),
+                "face_angle": (with_random(face_angles), {"default": NONE_LABEL}),
+                "pose_style": (with_random(sfw_poses + nsfw_poses), {"default": RANDOM_LABEL}),
                 # Fashion
-                "fashion_outfit": (with_random(opt.get("fashion_outfit", [])), {"default": RANDOM_LABEL}),
-                "fashion_style": (with_random(opt.get("fashion_style", [])), {"default": RANDOM_LABEL}),
-                "footwear_style": (with_random(opt.get("footwear_style", [])), {"default": NONE_LABEL}),
-                "upcycled_fashion": (with_random(opt.get("upcycled_materials", [])), {"default": NONE_LABEL}),
+                "fashion_outfit": (with_random(fashion_outfits), {"default": RANDOM_LABEL}),
+                "fashion_style": (with_random(fashion_styles_list), {"default": RANDOM_LABEL}),
+                "footwear_style": (with_random(footwear), {"default": NONE_LABEL}),
                 # Scene & Camera
                 "image_category": (with_random(image_sfw + image_nsfw), {"default": RANDOM_LABEL}),
-                "background_stage": (with_random(bg.get("studio_controlled", [])), {"default": NONE_LABEL}),
-                "background_location": (with_random(bg.get("public_exotic_real", [])), {"default": NONE_LABEL}),
-                "background_imaginative": (with_random(bg.get("imaginative_surreal", [])), {"default": NONE_LABEL}),
-                "lighting_style": (with_random(opt.get("lighting_style", [])), {"default": RANDOM_LABEL}),
-                "camera_angle": (with_random(opt.get("camera_angle", [])), {"default": NONE_LABEL}),
-                "camera_lens": (with_random(opt.get("camera_lens", [])), {"default": NONE_LABEL}),
-                "color_palette": (with_random(opt.get("color_palette", [])), {"default": NONE_LABEL}),
+                "background_stage": (with_random(bg_studio), {"default": NONE_LABEL}),
+                "background_location": (with_random(bg_real), {"default": NONE_LABEL}),
+                "background_imaginative": (with_random(bg_imaginative), {"default": NONE_LABEL}),
+                "lighting_style": (with_random(lighting_styles), {"default": RANDOM_LABEL}),
+                "camera_angle": (with_random(camera_angles), {"default": NONE_LABEL}),
+                "camera_lens": (with_random(camera_lenses), {"default": NONE_LABEL}),
+                "color_palette": (with_random(color_palettes), {"default": NONE_LABEL}),
                 # Cultural Context
                 "region": (with_random(regions.get("regions", [])), {"default": NONE_LABEL}),
                 "country": (with_random(countries.get("countries", [])), {"default": NONE_LABEL}),
@@ -124,6 +172,7 @@ class WizdroidCharacterPromptNode:
         race: str,
         age_group: str,
         body_type: str,
+        skin_tone: str,
         hair_color: str,
         hair_style: str,
         eye_color: str,
@@ -134,7 +183,6 @@ class WizdroidCharacterPromptNode:
         fashion_outfit: str,
         fashion_style: str,
         footwear_style: str,
-        upcycled_fashion: str,
         image_category: str,
         background_stage: str,
         background_location: str,
@@ -150,20 +198,77 @@ class WizdroidCharacterPromptNode:
         custom_text_append: str,
         seed: int = 0,
     ) -> Tuple[str, str, str]:
-        # Load data from registry
+        # Load data
         opt = DataRegistry.get_character_options()
         styles = DataRegistry.get_prompt_styles()
         regions_data = DataRegistry.get_regions()
         countries_data = DataRegistry.get_countries()
         cultures_data = DataRegistry.get_cultures()
+        body_data = DataRegistry.get_body_types() or {}
+        emotions_data = DataRegistry.get_emotions() or {}
+        eye_data = DataRegistry.get_eye_colors() or {}
+        hair_data = DataRegistry.get_hair() or {}
+        skin_data = DataRegistry.get_skin_tones() or {}
+        makeup_data = DataRegistry.get_makeup() or {}
+        poses_data = DataRegistry.get_poses() or {}
+        bg_data = DataRegistry.get_backgrounds() or {}
+        cam_data = DataRegistry.get_camera_lighting() or {}
+        fashion_data = DataRegistry.get_fashion() or {}
 
-        pose_sfw, pose_nsfw = split_groups(opt.get("pose_style"))
-        image_sfw, image_nsfw = split_groups(opt.get("image_category"))
-        bg = get_background_groups(opt.get("background_style"))
-
+        # Resolve gender first for filtering
         rng = random.Random(seed)
+        resolved_gender = choose(gender, opt.get("gender", []), rng, seed)
 
-        # Resolve all selections with helper
+        # Gender-filtered option lists
+        body_types = normalize_option_list(
+            filter_by_gender(body_data.get("body_types", []), resolved_gender)
+        )
+        makeup_styles_list = normalize_option_list(
+            filter_by_gender(makeup_data.get("makeup_styles", []), resolved_gender)
+        )
+        fashion_outfits_list = normalize_option_list(
+            filter_by_gender(fashion_data.get("fashion_outfits", []), resolved_gender)
+        )
+        fashion_styles_list = normalize_option_list(
+            filter_by_gender(fashion_data.get("fashion_styles", []), resolved_gender)
+        )
+
+        # Gender-filtered poses
+        sfw_poses = poses_data.get("pose_styles", {}).get("sfw", {}).get("any", [])
+        if resolved_gender and resolved_gender.lower() in ("female", "male"):
+            sfw_poses = sfw_poses + poses_data.get("pose_styles", {}).get("sfw", {}).get(resolved_gender.lower(), [])
+        else:
+            sfw_poses = (
+                sfw_poses
+                + poses_data.get("pose_styles", {}).get("sfw", {}).get("female", [])
+                + poses_data.get("pose_styles", {}).get("sfw", {}).get("male", [])
+            )
+        nsfw_poses = poses_data.get("pose_styles", {}).get("nsfw", [])
+
+        # Non-gender-filtered shared data
+        emotions = emotions_data.get("emotions", [])
+        eye_colors = eye_data.get("eye_colors", [])
+        hair_colors = hair_data.get("hair_colors", [])
+        hair_styles = hair_data.get("hair_styles", {}).get("any", [])
+        if resolved_gender and resolved_gender.lower() in ("female", "male"):
+            hair_styles = hair_styles + hair_data.get("hair_styles", {}).get(resolved_gender.lower(), [])
+        skin_tones = skin_data.get("skin_tones", [])
+        footwear = fashion_data.get("footwear_styles", [])
+
+        backgrounds = bg_data.get("backgrounds", {})
+        bg_studio = backgrounds.get("studio_controlled", [])
+        bg_real = backgrounds.get("public_exotic_real", [])
+        bg_imaginative = backgrounds.get("imaginative_surreal", [])
+
+        lighting_styles_list = normalize_option_list(cam_data.get("lighting_styles", []))
+        camera_angles_list = cam_data.get("camera_angles", [])
+        camera_lenses_list = normalize_option_list(cam_data.get("camera_lenses", []))
+        color_palettes_list = normalize_option_list(cam_data.get("color_palettes", []))
+        face_angles = cam_data.get("face_angles", [])
+
+        image_sfw, image_nsfw = split_groups(opt.get("image_category"))
+
+        # Resolve all selections
         def resolve(val: str, opts: List[Any]) -> Optional[str]:
             return choose(val, opts, rng, seed)
 
@@ -173,30 +278,30 @@ class WizdroidCharacterPromptNode:
         resolved = {
             "character_name": character_name.strip() or None,
             "image_category": resolve_rated(image_category, image_sfw, image_nsfw),
-            "gender": resolve(gender, opt.get("gender", [])),
+            "gender": resolved_gender,
             "race": resolve(race, opt.get("race", [])),
             "age_group": resolve(age_group, opt.get("age_group", [])),
-            "body_type": resolve(body_type, opt.get("body_type", [])),
-            "hair_color": resolve(hair_color, opt.get("hair_color", [])),
-            "hair_style": resolve(hair_style, opt.get("hair_style", [])),
-            "eye_color": resolve(eye_color, opt.get("eye_color", [])),
-            "facial_expression": resolve(facial_expression, opt.get("facial_expression", [])),
-            "face_angle": resolve(face_angle, opt.get("face_angle", [])),
-            "camera_angle": resolve(camera_angle, opt.get("camera_angle", [])),
-            "pose_style": resolve_rated(pose_style, pose_sfw, pose_nsfw),
-            "makeup_style": resolve(makeup_style, opt.get("makeup_style", [])),
-            "fashion_outfit": resolve(fashion_outfit, opt.get("fashion_outfit", [])),
-            "fashion_style": resolve(fashion_style, opt.get("fashion_style", [])),
-            "footwear_style": resolve(footwear_style, opt.get("footwear_style", [])),
-            "upcycled_fashion": resolve(upcycled_fashion, opt.get("upcycled_materials", [])),
+            "body_type": resolve(body_type, body_types),
+            "skin_tone": resolve(skin_tone, skin_tones),
+            "hair_color": resolve(hair_color, hair_colors),
+            "hair_style": resolve(hair_style, hair_styles),
+            "eye_color": resolve(eye_color, eye_colors),
+            "facial_expression": resolve(facial_expression, emotions),
+            "face_angle": resolve(face_angle, face_angles),
+            "camera_angle": resolve(camera_angle, camera_angles_list),
+            "pose_style": resolve_rated(pose_style, sfw_poses, nsfw_poses),
+            "makeup_style": resolve(makeup_style, makeup_styles_list),
+            "fashion_outfit": resolve(fashion_outfit, fashion_outfits_list),
+            "fashion_style": resolve(fashion_style, fashion_styles_list),
+            "footwear_style": resolve(footwear_style, footwear),
             "background_style": (
-                resolve(background_stage, bg.get("studio_controlled", []))
-                or resolve(background_location, bg.get("public_exotic_real", []))
-                or resolve(background_imaginative, bg.get("imaginative_surreal", []))
+                resolve(background_stage, bg_studio)
+                or resolve(background_location, bg_real)
+                or resolve(background_imaginative, bg_imaginative)
             ),
-            "lighting_style": resolve(lighting_style, opt.get("lighting_style", [])),
-            "camera_lens": resolve(camera_lens, opt.get("camera_lens", [])),
-            "color_palette": resolve(color_palette, opt.get("color_palette", [])),
+            "lighting_style": resolve(lighting_style, lighting_styles_list),
+            "camera_lens": resolve(camera_lens, camera_lenses_list),
+            "color_palette": resolve(color_palette, color_palettes_list),
             "region": resolve(region, regions_data.get("regions", [])),
             "country": resolve(country, countries_data.get("countries", [])),
             "culture": resolve(culture, cultures_data.get("cultures", [])),
@@ -206,7 +311,7 @@ class WizdroidCharacterPromptNode:
         if content_rating == "SFW":
             if resolved.get("image_category") in set(image_nsfw):
                 return ("[ERROR: SFW rating but NSFW image_category selected]", "", "")
-            if resolved.get("pose_style") in set(pose_nsfw):
+            if resolved.get("pose_style") in set(nsfw_poses):
                 return ("[ERROR: SFW rating but NSFW pose_style selected]", "", "")
 
         # Smart country selection based on region
@@ -222,15 +327,15 @@ class WizdroidCharacterPromptNode:
         if cache_key in _PROMPT_CACHE:
             llm_response = _PROMPT_CACHE[cache_key]
         else:
-            # Extract descriptions for enhanced prompting
+            # Extract descriptions for enhanced prompting (from shared data)
             desc_maps = {
                 "image_category": extract_descriptions(opt.get("image_category")),
-                "fashion_style": extract_descriptions(opt.get("fashion_style")),
-                "fashion_outfit": extract_descriptions(opt.get("fashion_outfit")),
-                "makeup_style": extract_descriptions(opt.get("makeup_style")),
-                "lighting_style": extract_descriptions(opt.get("lighting_style")),
-                "camera_lens": extract_descriptions(opt.get("camera_lens")),
-                "color_palette": extract_descriptions(opt.get("color_palette")),
+                "fashion_style": extract_descriptions(fashion_data.get("fashion_styles")),
+                "fashion_outfit": extract_descriptions(fashion_data.get("fashion_outfits")),
+                "makeup_style": extract_descriptions(makeup_data.get("makeup_styles")),
+                "lighting_style": extract_descriptions(cam_data.get("lighting_styles")),
+                "camera_lens": extract_descriptions(cam_data.get("camera_lenses")),
+                "color_palette": extract_descriptions(cam_data.get("color_palettes")),
             }
 
             llm_response = self._invoke_llm(

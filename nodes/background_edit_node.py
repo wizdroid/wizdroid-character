@@ -4,84 +4,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
 from wizdroid_lib.content_safety import enforce_sfw
-from wizdroid_lib.data_files import load_json
-from wizdroid_lib.helpers import choose, choose_tuple, get_background_groups, with_random, with_random_tuple
+from wizdroid_lib.data_files import load_json, load_shared
+from wizdroid_lib.helpers import choose, choose_tuple, with_random, with_random_tuple
 from wizdroid_lib.ollama_client import collect_models, generate_text
+from wizdroid_lib.registry import DataRegistry
 from wizdroid_lib.system_prompts import load_system_prompt_text
-
-THEME_CHOICES = (
-    "astral myth",
-    "eldritch gothic",
-    "dreamcore pastel",
-    "storm-forged citadel",
-    "sunken neon reef",
-    "glacial cathedral",
-    "lush bioluminescent jungle",
-    "clockwork metropolis",
-    "void labyrinth",
-    "whimsical storybook",
-)
-
-TIME_OF_DAY_CHOICES = (
-    "dawn",
-    "golden hour",
-    "midnight",
-    "blue hour",
-    "eclipse",
-    "eternal night",
-    "binary sunset",
-)
-
-WEATHER_CHOICES = (
-    "clear and crystalline",
-    "mist-laden",
-    "electrical storm",
-    "arcane aurora",
-    "ember snow",
-    "meteor shower",
-)
-
-MOOD_CHOICES = (
-    "serene",
-    "foreboding",
-    "majestic",
-    "whimsical",
-    "chaotic",
-    "sacred",
-    "melancholic",
-)
-
-SCALE_CHOICES = (
-    "intimate vignette",
-    "sweeping vista",
-    "colossal panorama",
-)
-
-CREATURE_CHOICES = (
-    "none",
-    "ambient sprites",
-    "mystic guardians",
-    "majestic beasts",
-    "monstrous apex",
-)
-
-ARCHITECTURE_CHOICES = (
-    "organic biomorphic",
-    "ancient ruins",
-    "brutalist monoliths",
-    "floating pagodas",
-    "shipwreck palaces",
-    "crystal spires",
-)
-
-FOCAL_CHOICES = (
-    "levitating core",
-    "abyssal gateway",
-    "sacred tree",
-    "volcanic forge",
-    "infinite library",
-    "mirror lake",
-)
 
 
 class WizdroidBackgroundNode:
@@ -94,15 +21,37 @@ class WizdroidBackgroundNode:
 
     @classmethod
     def INPUT_TYPES(cls):
-        option_map = load_json("character_options.json")
-        prompt_styles = load_json("prompt_styles.json")
-        background_groups = get_background_groups(option_map.get("background_style"))
-        studio_backgrounds = background_groups["studio_controlled"] or [NONE_LABEL]
-        real_backgrounds = background_groups["public_exotic_real"] or [NONE_LABEL]
-        imaginative_backgrounds = background_groups["imaginative_surreal"] or [NONE_LABEL]
-        color_palettes = option_map.get("color_palette") or [NONE_LABEL]
-        lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
-        camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
+        prompt_styles = DataRegistry.get_prompt_styles() or {}
+        bg_data = DataRegistry.get_backgrounds() or {}
+        cam_data = DataRegistry.get_camera_lighting() or {}
+        bg_edit_data = DataRegistry.get_background_edit() or {}
+
+        backgrounds = bg_data.get("backgrounds", {})
+        studio_backgrounds = backgrounds.get("studio_controlled", [NONE_LABEL])
+        real_backgrounds = backgrounds.get("public_exotic_real", [NONE_LABEL])
+        imaginative_backgrounds = backgrounds.get("imaginative_surreal", [NONE_LABEL])
+        color_palettes = [
+            item.get("name", item) if isinstance(item, dict) else item
+            for item in cam_data.get("color_palettes", [NONE_LABEL])
+        ]
+        lighting_styles = [
+            item.get("name", item) if isinstance(item, dict) else item
+            for item in cam_data.get("lighting_styles", [NONE_LABEL])
+        ]
+        camera_lenses = [
+            item.get("name", item) if isinstance(item, dict) else item
+            for item in cam_data.get("camera_lenses", [NONE_LABEL])
+        ]
+
+        bg_edit = bg_edit_data.get("background_edit", {})
+        themes = tuple(bg_edit.get("themes", ["astral myth"]))
+        time_of_day = tuple(bg_edit.get("time_of_day", ["dawn"]))
+        weather = tuple(bg_edit.get("weather", ["clear and crystalline"]))
+        moods = tuple(bg_edit.get("moods", ["serene"]))
+        scales = tuple(bg_edit.get("scales", ["sweeping vista"]))
+        creatures = tuple(bg_edit.get("creatures", ["none"]))
+        architecture = tuple(bg_edit.get("architecture", ["ancient ruins"]))
+        focal_elements = tuple(bg_edit.get("focal_elements", ["sacred tree"]))
 
         ollama_models = collect_models(DEFAULT_OLLAMA_URL)
 
@@ -115,14 +64,14 @@ class WizdroidBackgroundNode:
                 "studio_background": (with_random(studio_backgrounds), {"default": RANDOM_LABEL}),
                 "real_background": (with_random(real_backgrounds), {"default": NONE_LABEL}),
                 "imaginative_background": (with_random(imaginative_backgrounds), {"default": NONE_LABEL}),
-                "theme": (with_random_tuple(THEME_CHOICES), {"default": RANDOM_LABEL}),
-                "time_of_day": (with_random_tuple(TIME_OF_DAY_CHOICES), {"default": RANDOM_LABEL}),
-                "weather": (with_random_tuple(WEATHER_CHOICES), {"default": RANDOM_LABEL}),
-                "mood": (with_random_tuple(MOOD_CHOICES), {"default": RANDOM_LABEL}),
-                "scale": (with_random_tuple(SCALE_CHOICES), {"default": RANDOM_LABEL}),
-                "focal_element": (with_random_tuple(FOCAL_CHOICES), {"default": RANDOM_LABEL}),
-                "architecture": (with_random_tuple(ARCHITECTURE_CHOICES), {"default": RANDOM_LABEL}),
-                "creature_presence": (with_random_tuple(CREATURE_CHOICES), {"default": RANDOM_LABEL}),
+                "theme": (with_random_tuple(themes), {"default": RANDOM_LABEL}),
+                "time_of_day": (with_random_tuple(time_of_day), {"default": RANDOM_LABEL}),
+                "weather": (with_random_tuple(weather), {"default": RANDOM_LABEL}),
+                "mood": (with_random_tuple(moods), {"default": RANDOM_LABEL}),
+                "scale": (with_random_tuple(scales), {"default": RANDOM_LABEL}),
+                "focal_element": (with_random_tuple(focal_elements), {"default": RANDOM_LABEL}),
+                "architecture": (with_random_tuple(architecture), {"default": RANDOM_LABEL}),
+                "creature_presence": (with_random_tuple(creatures), {"default": RANDOM_LABEL}),
                 "lighting_style": (with_random(lighting_styles), {"default": RANDOM_LABEL}),
                 "color_palette": (with_random(color_palettes), {"default": RANDOM_LABEL}),
                 "camera_lens": (with_random(camera_lenses), {"default": RANDOM_LABEL}),
@@ -156,29 +105,51 @@ class WizdroidBackgroundNode:
         custom_notes: str,
         seed: int = 0,
     ) -> Tuple[str, str]:
-        option_map = load_json("character_options.json")
-        prompt_styles = load_json("prompt_styles.json")
+        prompt_styles = DataRegistry.get_prompt_styles() or {}
+        bg_data = DataRegistry.get_backgrounds() or {}
+        cam_data = DataRegistry.get_camera_lighting() or {}
+        bg_edit_data = DataRegistry.get_background_edit() or {}
+
         rng = random.Random(seed)
 
-        background_groups = get_background_groups(option_map.get("background_style"))
-        studio_backgrounds = background_groups["studio_controlled"] or [NONE_LABEL]
-        real_backgrounds = background_groups["public_exotic_real"] or [NONE_LABEL]
-        imaginative_backgrounds = background_groups["imaginative_surreal"] or [NONE_LABEL]
-        lighting_styles = option_map.get("lighting_style") or [NONE_LABEL]
-        color_palettes = option_map.get("color_palette") or [NONE_LABEL]
-        camera_lenses = option_map.get("camera_lens") or [NONE_LABEL]
+        backgrounds = bg_data.get("backgrounds", {})
+        studio_backgrounds = backgrounds.get("studio_controlled", [NONE_LABEL])
+        real_backgrounds = backgrounds.get("public_exotic_real", [NONE_LABEL])
+        imaginative_backgrounds = backgrounds.get("imaginative_surreal", [NONE_LABEL])
+        lighting_styles = [
+            item.get("name", item) if isinstance(item, dict) else item
+            for item in cam_data.get("lighting_styles", [NONE_LABEL])
+        ]
+        color_palettes = [
+            item.get("name", item) if isinstance(item, dict) else item
+            for item in cam_data.get("color_palettes", [NONE_LABEL])
+        ]
+        camera_lenses = [
+            item.get("name", item) if isinstance(item, dict) else item
+            for item in cam_data.get("camera_lenses", [NONE_LABEL])
+        ]
+
+        bg_edit = bg_edit_data.get("background_edit", {})
+        themes = tuple(bg_edit.get("themes", ["astral myth"]))
+        time_of_day_opts = tuple(bg_edit.get("time_of_day", ["dawn"]))
+        weather_opts = tuple(bg_edit.get("weather", ["clear and crystalline"]))
+        mood_opts = tuple(bg_edit.get("moods", ["serene"]))
+        scale_opts = tuple(bg_edit.get("scales", ["sweeping vista"]))
+        creature_opts = tuple(bg_edit.get("creatures", ["none"]))
+        arch_opts = tuple(bg_edit.get("architecture", ["ancient ruins"]))
+        focal_opts = tuple(bg_edit.get("focal_elements", ["sacred tree"]))
 
         resolved_studio = choose(studio_background, studio_backgrounds, rng, seed)
         resolved_real = choose(real_background, real_backgrounds, rng, seed)
         resolved_imag = choose(imaginative_background, imaginative_backgrounds, rng, seed)
-        resolved_theme = choose_tuple(theme, with_random_tuple(THEME_CHOICES), rng)
-        resolved_time = choose_tuple(time_of_day, with_random_tuple(TIME_OF_DAY_CHOICES), rng)
-        resolved_weather = choose_tuple(weather, with_random_tuple(WEATHER_CHOICES), rng)
-        resolved_mood = choose_tuple(mood, with_random_tuple(MOOD_CHOICES), rng)
-        resolved_scale = choose_tuple(scale, with_random_tuple(SCALE_CHOICES), rng)
-        resolved_focal = choose_tuple(focal_element, with_random_tuple(FOCAL_CHOICES), rng)
-        resolved_architecture = choose_tuple(architecture, with_random_tuple(ARCHITECTURE_CHOICES), rng)
-        resolved_creature = choose_tuple(creature_presence, with_random_tuple(CREATURE_CHOICES), rng)
+        resolved_theme = choose_tuple(theme, with_random_tuple(themes), rng)
+        resolved_time = choose_tuple(time_of_day, with_random_tuple(time_of_day_opts), rng)
+        resolved_weather = choose_tuple(weather, with_random_tuple(weather_opts), rng)
+        resolved_mood = choose_tuple(mood, with_random_tuple(mood_opts), rng)
+        resolved_scale = choose_tuple(scale, with_random_tuple(scale_opts), rng)
+        resolved_focal = choose_tuple(focal_element, with_random_tuple(focal_opts), rng)
+        resolved_architecture = choose_tuple(architecture, with_random_tuple(arch_opts), rng)
+        resolved_creature = choose_tuple(creature_presence, with_random_tuple(creature_opts), rng)
         resolved_lighting = choose(lighting_style, lighting_styles, rng, seed)
         resolved_palette = choose(color_palette, color_palettes, rng, seed)
         resolved_lens = choose(camera_lens, camera_lenses, rng, seed)

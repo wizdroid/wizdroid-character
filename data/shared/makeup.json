@@ -1,0 +1,291 @@
+{
+    "makeup_styles": [
+        {
+            "name": "no makeup natural",
+            "description": "Bare skin, minimal product, understated finish.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "bare minimum tinted moisturizer",
+            "description": "Sheer coverage with natural brows and lashes.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "clean girl effortless",
+            "description": "Groomed brows, subtle blush, glossy lips, dewy skin.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "soft glam everyday",
+            "description": "Wearable glam with soft eyeshadow and gentle contour.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "natural beauty enhanced",
+            "description": "Even complexion, subtle highlight, light definition.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "fresh faced dewy",
+            "description": "Luminous skin, soft blush, glossy lip.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "sun-kissed healthy glow",
+            "description": "Bronzed warmth with subtle shimmer highlight.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "glass skin luminous",
+            "description": "Ultra-luminous smooth skin with bright highlight.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "matte flawless finish",
+            "description": "Full-coverage matte base with crisp definition.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "romantic soft pink",
+            "description": "Rosy blush, soft pink lids, gentle lip tint.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "warm bronzed goddess",
+            "description": "Bronze eyeshadow, golden highlight, sunlit glow.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "cool toned sculpted",
+            "description": "Taupe shadows, sculpted cheeks, crisp highlight.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "old hollywood glamour",
+            "description": "Red lipstick, defined liner, elegant polish.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "90s supermodel matte",
+            "description": "Matte base, brown liner, neutral lips, strong cheekbones.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "80s bold colorful",
+            "description": "Bright eyeshadow, strong blush, vivid lips.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "70s disco shimmer",
+            "description": "Shimmery lids, glossy highlight, retro sparkle.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "60s mod dramatic",
+            "description": "Graphic liner, bold lashes, pale lip.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "50s pinup classic",
+            "description": "Winged eyeliner, red lips, classic polish.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "korean soft gradient",
+            "description": "Gradient lips, soft blush, youthful K-beauty.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "latte warm neutral",
+            "description": "Creamy beige-brown palette, glossy neutral lips.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "strawberry pink fresh",
+            "description": "Fresh pink blush and lips with dewy skin.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "peach coral sunny",
+            "description": "Peach/coral tones, warm sunny makeup.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "berry rich deep",
+            "description": "Berry lip tones with complementary blush.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "plum sultry dark",
+            "description": "Plum/burgundy tones, sultry dramatic mood.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "nude understated",
+            "description": "Neutral nude lips, minimal color, clean look.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "mob wife dramatic glam",
+            "description": "Sharp liner, heavy lashes, bold lip, intense contour.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "coquette soft feminine",
+            "description": "Soft blush, delicate liner, glossy lips, sweet details.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "dark feminine mysterious",
+            "description": "Smokier eyes, deeper lip tones, confident mysterious vibe.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "gothic pale dramatic",
+            "description": "Pale base, dark lipstick, heavy liner, high contrast.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "grunge smudged undone",
+            "description": "Smudged eyeliner, messy shadow, intentionally imperfect.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "punk bold graphic",
+            "description": "Graphic shapes/colors, high contrast, edgy punk.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "ethereal fairy light",
+            "description": "Soft shimmer, pastel tones, delicate sparkle.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "editorial avant-garde",
+            "description": "Experimental high-fashion makeup, bold styling.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "euphoria artistic",
+            "description": "Creative makeup with gems/glitter and bold colors.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "festival glitter bold",
+            "description": "Bright colors, glitter, face gems, energetic.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "bridal radiant classic",
+            "description": "Radiant base, soft smoky eyes, natural rosy lips.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "red carpet polished",
+            "description": "Flawless professional glam, high-end finish.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "groomed masculine",
+            "description": "Clean skin, groomed brows, subtle concealer, matte finish.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "editorial masculine",
+            "description": "Bold editorial look with defined features, subtle contour.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "rugged natural",
+            "description": "Natural skin texture, minimal grooming, authentic look.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "stage performance",
+            "description": "Stage-ready definition with contour, highlight, and eye definition.",
+            "gender": [
+                "male"
+            ]
+        }
+    ]
+}

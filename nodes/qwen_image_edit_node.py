@@ -97,7 +97,7 @@ class WizdroidImageEditNode:
 
         # Build user prompt
         lines = [
-            "Generate a detailed image editing prompt for a multi-image AI model.",
+            "Generate an ultra-detailed, high-fashion-quality image editing prompt for a multi-image AI model.",
             "",
             f"Edit Mode: {edit_mode}",
             "",
@@ -124,12 +124,18 @@ class WizdroidImageEditNode:
         lines.extend([
             "",
             "Output Requirements:",
-            "- Generate a single, clear editing instruction prompt",
+            "- Generate a RICHLY DETAILED, multi-paragraph prompt (150–300 words)",
             "- Reference images as 'Image 1', 'Image 2', 'Image 3' as needed",
-            "- Be specific about what to preserve and what to transfer",
-            "- Describe the expected final result",
-            "- Do NOT include any explanations, markdown, or preamble",
-            "- Start directly with the editing instruction",
+            "- ALWAYS name concrete elements (e.g. 'the woman with auburn hair from Image 1', "
+            "  'the red silk dress from Image 2') — NEVER say 'the subject of Image N'",
+            "- For style transfers, DESCRIBE the style explicitly (palette, texture, genre)",
+            "- Cover ALL layers: identity, clothing, pose, beauty/makeup, photography quality",
+            "- ALWAYS include professional makeup/beauty enhancements for human subjects",
+            "- ALWAYS close with photography quality descriptors (studio lighting, 8K, "
+            "  cinematic color grading, masterpiece, best quality, photorealistic, no artifacts)",
+            "- Be lavishly specific about what to preserve and what to transfer",
+            "- Do NOT include any explanations, markdown, headers, or preamble",
+            "- Start directly with the descriptive editing instruction",
             "- Remove any reasoning or planning text; do not include '<think>' or similar tags",
             "",
             "Output only the final editing prompt:",
@@ -150,11 +156,11 @@ class WizdroidImageEditNode:
             prompt=user_prompt,
             system=system_prompt,
             options={
-                "temperature": 0.7,
-                "num_predict": 1024,
+                "temperature": 0.75,
+                "num_predict": 2048,
                 "seed": int(seed),
             },
-            timeout=120,
+            timeout=180,
         )
 
         if not ok:
@@ -168,14 +174,27 @@ class WizdroidImageEditNode:
 
         if edit_mode == "Face Swap (Image 1 → Image 2)":
             return (
-                "Transfer the facial features (including face shape, eyes, nose, mouth, skin tone, "
-                "and distinctive facial characteristics) from Image 1 onto the subject in Image 2, "
-                "while preserving all other elements from Image 2 exactly as they are—including "
-                "clothing, body pose, facial expression/emotion, hairstyle (unless it obscures facial "
-                "features), lighting, background, and overall composition. Do not alter the pose, "
-                "outfit, emotional expression, or scene from Image 2 in any way. The final image "
-                "must look like the person from Image 1 naturally inhabiting the exact moment, "
-                "attire, and setting shown in Image 2."
+                f"Generate an ultra-detailed, high-fashion-grade face swap prompt (150–300 words, "
+                f"multiple paragraphs).\n\n"
+                f"SOURCE IDENTITY (Image 1): {img1}\n"
+                f"TARGET SCENE  (Image 2): {img2}\n\n"
+                f"PARAGRAPH 1 — IDENTITY & OUTFIT:\n"
+                f"Describe a stunning portrait of the EXACT same person from Image 1, using their "
+                f"precise facial features, skin tone, eye color/shape, hair color/style/texture with "
+                f"absolutely zero changes to identity. Then describe the exact outfit, fabric details, "
+                f"fit, accessories, and jewelry from Image 2 that the person must wear.\n\n"
+                f"PARAGRAPH 2 — POSE & COMPOSITION:\n"
+                f"Preserve the exact body pose, camera angle, framing, and spatial arrangement from "
+                f"Image 2. Describe the background/setting from Image 2 in detail.\n\n"
+                f"PARAGRAPH 3 — BEAUTY & MAKEUP:\n"
+                f"Add lavish professional studio makeup: flawless skin finish with subtle glow, "
+                f"contouring, highlighting, elegant eyeshadow, voluminous lashes, defined brows, "
+                f"natural blush, bold yet elegant lips. Describe expression and eye catchlights.\n\n"
+                f"PARAGRAPH 4 — PHOTOGRAPHY QUALITY:\n"
+                f"Close with: professional beauty photography, soft diffused studio lighting, gentle "
+                f"rim light, high-end fashion magazine style, ultra-sharp details, 8K resolution, "
+                f"cinematic color grading, masterpiece, best quality, photorealistic, no deformations, "
+                f"no artifacts."
             )
 
         elif edit_mode == "Face Swap (Image 1 → Image 3)":
@@ -185,23 +204,52 @@ class WizdroidImageEditNode:
                     "Please provide a description for Image 3."
                 )
             return (
-                "Transfer the facial features (including face shape, eyes, nose, mouth, skin tone, "
-                "and distinctive facial characteristics) from Image 1 onto the subject in Image 3, "
-                "while preserving all other elements from Image 3 exactly as they are—including "
-                "clothing, body pose, facial expression/emotion, hairstyle (unless it obscures facial "
-                "features), lighting, background, and overall composition. Image 2 may provide "
-                "additional context or reference. Do not alter the pose, outfit, emotional expression, "
-                "or scene from Image 3 in any way. The final image must look like the person from "
-                "Image 1 naturally inhabiting the exact moment, attire, and setting shown in Image 3."
+                f"Generate an ultra-detailed, high-fashion-grade face swap prompt (150–300 words, "
+                f"multiple paragraphs).\n\n"
+                f"SOURCE IDENTITY (Image 1): {img1}\n"
+                f"OUTFIT / REF   (Image 2): {img2}\n"
+                f"TARGET SCENE   (Image 3): {img3}\n\n"
+                f"PARAGRAPH 1 — IDENTITY & OUTFIT:\n"
+                f"Describe a stunning portrait of the EXACT same person from Image 1, using their "
+                f"precise facial features, skin tone, eye color/shape, hair with zero identity changes. "
+                f"If Image 2 provides clothing or accessory reference, incorporate those exact garment "
+                f"details (fabric, fit, color, accessories). Otherwise use Image 3's outfit.\n\n"
+                f"PARAGRAPH 2 — POSE & COMPOSITION:\n"
+                f"Preserve the exact body pose, camera angle, framing, and spatial arrangement from "
+                f"Image 3. Describe Image 3's background/setting in detail.\n\n"
+                f"PARAGRAPH 3 — BEAUTY & MAKEUP:\n"
+                f"Add lavish professional studio makeup: flawless skin with subtle glow, contouring, "
+                f"highlighting, elegant eyeshadow, voluminous lashes, defined brows, natural blush, "
+                f"bold yet elegant lips. Describe expression and eye catchlights.\n\n"
+                f"PARAGRAPH 4 — PHOTOGRAPHY QUALITY:\n"
+                f"Close with: professional beauty photography, soft diffused studio lighting, gentle "
+                f"rim light, high-end fashion magazine style, ultra-sharp details, 8K resolution, "
+                f"cinematic color grading, masterpiece, best quality, photorealistic, no deformations, "
+                f"no artifacts."
             )
 
         elif edit_mode == "Style Transfer (Image 1 style → Image 2)":
             return (
-                "Apply the visual style, artistic treatment, color palette, and aesthetic qualities "
-                "from Image 1 to the content and subjects in Image 2. Preserve the core subjects, "
-                "composition, and identifiable elements from Image 2, but render them in the style "
-                "captured in Image 1. This includes lighting mood, texture treatment, color grading, "
-                "and any distinctive artistic effects."
+                f"Generate an ultra-detailed style transfer prompt (150–300 words, multiple "
+                f"paragraphs).\n\n"
+                f"STYLE SOURCE  (Image 1): {img1}\n"
+                f"CONTENT SOURCE(Image 2): {img2}\n\n"
+                f"PARAGRAPH 1 — STYLE DESCRIPTION:\n"
+                f"Explicitly describe Image 1's visual style in rich detail: color palette, texture "
+                f"quality, brush stroke character, lighting mood, tonal range, artistic genre, and "
+                f"any distinctive aesthetic signatures. NEVER just say 'the style of Image 1'.\n\n"
+                f"PARAGRAPH 2 — CONTENT PRESERVATION:\n"
+                f"Describe the visual content from Image 2 that must be preserved intact: core "
+                f"subjects, their identity/features, composition, spatial arrangement, and key "
+                f"details. State that these must remain fully recognizable.\n\n"
+                f"PARAGRAPH 3 — INTEGRATION & BEAUTY:\n"
+                f"Describe how the style characteristics wrap around the preserved content — how "
+                f"lighting, color grading, and texture treatment transform the scene. If human "
+                f"subjects are present, add flattering beauty enhancements appropriate to the "
+                f"style.\n\n"
+                f"PARAGRAPH 4 — PHOTOGRAPHY QUALITY:\n"
+                f"Close with quality descriptors appropriate to the style: ultra-sharp details, "
+                f"high resolution, masterpiece, best quality, no deformations, no artifacts."
             )
 
         elif edit_mode == "Triple Blend":
@@ -211,17 +259,50 @@ class WizdroidImageEditNode:
                     "Please provide a description for Image 3."
                 )
             return (
-                "Combine elements from all three images into a cohesive final result. "
-                "Use Image 1 as the primary source for facial features or main subject identity, "
-                "Image 2 for pose, scene, and composition, and Image 3 for style, lighting, or "
-                "additional contextual elements. Blend these elements naturally to create a unified image."
+                f"Generate an ultra-detailed triple-blend prompt (150–300 words, multiple "
+                f"paragraphs).\n\n"
+                f"IDENTITY SOURCE (Image 1): {img1}\n"
+                f"OUTFIT / POSE  (Image 2): {img2}\n"
+                f"STYLE / SCENE  (Image 3): {img3}\n\n"
+                f"PARAGRAPH 1 — IDENTITY:\n"
+                f"Describe a stunning portrait of the EXACT same person from Image 1, using their "
+                f"precise facial features, skin tone, eye color/shape, hair color/style/texture "
+                f"with absolutely zero changes to identity.\n\n"
+                f"PARAGRAPH 2 — OUTFIT & POSE:\n"
+                f"Describe the exact outfit from Image 2 (fabric details, fit, accessories, jewelry) "
+                f"and the exact pose, camera angle, framing from Image 2.\n\n"
+                f"PARAGRAPH 3 — STYLE & SCENE:\n"
+                f"If Image 3 provides a style reference, describe those style characteristics in "
+                f"detail (palette, texture, lighting, mood). If Image 3 provides a scene/background, "
+                f"describe it vividly.\n\n"
+                f"PARAGRAPH 4 — BEAUTY & MAKEUP:\n"
+                f"Add lavish professional studio makeup: flawless skin with subtle glow, contouring, "
+                f"highlighting, elegant eyeshadow, voluminous lashes, defined brows, natural blush, "
+                f"bold yet elegant lips. Describe expression and eye catchlights.\n\n"
+                f"PARAGRAPH 5 — PHOTOGRAPHY QUALITY:\n"
+                f"Close with: professional beauty photography, soft diffused studio lighting, gentle "
+                f"rim light, high-end fashion magazine style, ultra-sharp details, 8K resolution, "
+                f"cinematic color grading, masterpiece, best quality, photorealistic, no deformations, "
+                f"no artifacts."
             )
 
         else:  # Custom mode
             return (
-                "Generate a custom editing prompt based on the image descriptions provided. "
-                "Analyze what the user likely wants to achieve based on the descriptions and "
-                "additional instructions, then create an appropriate editing prompt."
+                f"Generate an ultra-detailed, high-fashion-grade custom editing prompt (150–300 "
+                f"words, multiple paragraphs).\n\n"
+                f"Image 1: {img1}\n"
+                f"Image 2: {img2}\n"
+                f"{'Image 3: ' + img3 + chr(10) if img3 else ''}"
+                f"\nAnalyze the image descriptions and additional instructions to determine the "
+                f"user's intent, then craft a richly detailed prompt that covers:\n"
+                f"- IDENTITY: precise facial features, skin tone, distinguishing characteristics\n"
+                f"- CLOTHING: exact garment details, fabric, fit, accessories\n"
+                f"- POSE: body position, camera angle, framing, composition\n"
+                f"- BEAUTY: professional makeup, expression, catchlights\n"
+                f"- QUALITY: professional photography, studio lighting, 8K resolution, cinematic "
+                f"color grading, masterpiece, best quality, photorealistic, no artifacts\n\n"
+                f"ALWAYS name concrete elements from each image rather than generic 'the subject'. "
+                f"For style transfers, describe style characteristics explicitly."
             )
 
 

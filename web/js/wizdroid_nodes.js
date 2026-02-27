@@ -349,7 +349,7 @@ app.registerExtension({
                     entry.type = v;
                     syncToWidget();
                 }, {
-                    values: ["none", "clothing", "pose", "background", "style"],
+                    values: ["none", "clothing", "pose", "background", "lighting", "style"],
                     serialize: false
                 });
                 typeWidget._refEntryId = entryId;
@@ -455,20 +455,25 @@ app.registerExtension({
                 onConfigure.apply(this, arguments);
             }
             
-            // Clear existing entries to prevent duplication on reload
-            while (this.refImageEntries && this.refImageEntries.length > 0) {
-                this.removeLastRefEntry();
-            }
-            
-            // Restore entries after a short delay to ensure widgets are ready
-            if (o.refImageEntries && Array.isArray(o.refImageEntries) && o.refImageEntries.length > 0) {
-                setTimeout(() => {
-                    o.refImageEntries.forEach(entry => {
-                        if (this.addRefEntry && entry.index && entry.type) {
-                            this.addRefEntry(entry.index, entry.type);
-                        }
-                    });
-                }, 100);
+            // Only restore from serialized property if it exists;
+            // otherwise keep entries already loaded from widget value
+            // (backward compat with older workflows)
+            if (o.refImageEntries && Array.isArray(o.refImageEntries)) {
+                // Clear existing entries to prevent duplication on reload
+                while (this.refImageEntries && this.refImageEntries.length > 0) {
+                    this.removeLastRefEntry();
+                }
+                
+                // Restore entries after a short delay to ensure widgets are ready
+                if (o.refImageEntries.length > 0) {
+                    setTimeout(() => {
+                        o.refImageEntries.forEach(entry => {
+                            if (this.addRefEntry && entry.index && entry.type) {
+                                this.addRefEntry(entry.index, entry.type);
+                            }
+                        });
+                    }, 100);
+                }
             }
         };
     }

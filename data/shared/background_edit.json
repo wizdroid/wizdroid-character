@@ -1,0 +1,70 @@
+{
+    "background_edit": {
+        "themes": [
+            "astral myth",
+            "eldritch gothic",
+            "dreamcore pastel",
+            "storm-forged citadel",
+            "sunken neon reef",
+            "glacial cathedral",
+            "lush bioluminescent jungle",
+            "clockwork metropolis",
+            "void labyrinth",
+            "whimsical storybook"
+        ],
+        "time_of_day": [
+            "dawn",
+            "golden hour",
+            "midnight",
+            "blue hour",
+            "eclipse",
+            "eternal night",
+            "binary sunset"
+        ],
+        "weather": [
+            "clear and crystalline",
+            "mist-laden",
+            "electrical storm",
+            "arcane aurora",
+            "ember snow",
+            "meteor shower"
+        ],
+        "moods": [
+            "serene",
+            "foreboding",
+            "majestic",
+            "whimsical",
+            "chaotic",
+            "sacred",
+            "melancholic"
+        ],
+        "scales": [
+            "intimate vignette",
+            "sweeping vista",
+            "colossal panorama"
+        ],
+        "creatures": [
+            "none",
+            "ambient sprites",
+            "mystic guardians",
+            "majestic beasts",
+            "monstrous apex"
+        ],
+        "architecture": [
+            "organic biomorphic",
+            "ancient ruins",
+            "brutalist monoliths",
+            "floating pagodas",
+            "shipwreck palaces",
+            "crystal spires"
+        ],
+        "focal_elements": [
+            "levitating core",
+            "abyssal gateway",
+            "sacred tree",
+            "volcanic forge",
+            "infinite library",
+            "mirror lake"
+        ]
+    }
+}

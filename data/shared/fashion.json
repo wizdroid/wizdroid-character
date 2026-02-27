@@ -1,0 +1,550 @@
+{
+    "fashion_outfits": [
+        {
+            "name": "mini skirt and crop top",
+            "description": "Youthful two-piece with short skirt and fitted crop.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "tube dress",
+            "description": "Strapless fitted dress with clean neckline.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "bodycon dress",
+            "description": "Tight figure-hugging dress with sleek silhouette.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "slip dress",
+            "description": "Satin slip with delicate straps and soft drape.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "midi dress",
+            "description": "Mid-calf length, balanced versatile silhouette.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "maxi dress flowy",
+            "description": "Full-length flowing dress with soft movement.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "wrap dress",
+            "description": "Wrap-front with tied waist and flattering V-neck.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "evening gown",
+            "description": "Formal full-length gown with elegant fabrics.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "cocktail dress",
+            "description": "Dressy shorter formal for parties.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "little black dress",
+            "description": "Classic LBD, timeless versatile elegance.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "corset top with trousers",
+            "description": "Structured corset paired with tailored trousers.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "power suit tailored",
+            "description": "Sharp tailored blazer and matching trousers.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "oversized blazer dress",
+            "description": "Oversized blazer worn as bold dress.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "leather pants and silk top",
+            "description": "Edgy leather pants with soft silky blouse.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "wide leg trousers and blouse",
+            "description": "Loose wide-leg trousers with elegant blouse.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "cargo pants and tank top",
+            "description": "Utility cargo with simple tank, casual streetwear.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "baggy jeans and baby tee",
+            "description": "Loose jeans with fitted baby tee, Y2K casual.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "hoodie and sweatpants",
+            "description": "Matching casual loungewear.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "matching tracksuit",
+            "description": "Coordinated sporty set.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "yoga set athleisure",
+            "description": "Sport bra + leggings, fitness athleisure.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "tennis skirt outfit",
+            "description": "Pleated tennis skirt with sporty top.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "leather jacket outfit",
+            "description": "Leather jacket layered over casual basics.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "bomber jacket streetwear",
+            "description": "Bomber jacket with sporty urban layers.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "trench coat classic",
+            "description": "Classic trench coat, structured timeless outerwear.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "saree traditional",
+            "description": "Traditional saree drape with rich fabric.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "cheongsam qipao",
+            "description": "Fitted traditional dress with high collar.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "kimono formal",
+            "description": "Formal kimono with obi belt.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "hanbok korean",
+            "description": "Traditional Hanbok with high-waist skirt.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "modern abaya",
+            "description": "Modern abaya with contemporary tailoring.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "dashiki colorful",
+            "description": "Bold patterned dashiki-inspired garment.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "astronaut suit",
+            "description": "Space suit with helmet, sci-fi technical.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "military dress uniform",
+            "description": "Formal military-style, structured ceremonial.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "tailored three-piece suit",
+            "description": "Classic vest, blazer, and trousers ensemble.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "slim fit suit modern",
+            "description": "Contemporary slim-cut suit with narrow lapels.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "double breasted blazer",
+            "description": "Structured double-breasted blazer with wide lapels.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "turtleneck and slacks",
+            "description": "Refined turtleneck with tailored slim trousers.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "henley and jeans",
+            "description": "Casual henley shirt with fitted denim.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "polo and chinos",
+            "description": "Smart casual polo with pressed chinos.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "flannel and denim",
+            "description": "Rugged flannel button-up over denim.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "linen shirt resort",
+            "description": "Breezy open-collar linen shirt, vacation styling.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "leather jacket and tee",
+            "description": "Classic leather jacket over plain t-shirt.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "gym tank and shorts",
+            "description": "Athletic tank top with training shorts.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "kurta traditional",
+            "description": "Traditional kurta with churidar or pajama.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "sherwani formal",
+            "description": "Embroidered sherwani for formal occasions.",
+            "gender": [
+                "male"
+            ]
+        }
+    ],
+    "fashion_styles": [
+        {
+            "name": "high fashion editorial",
+            "description": "Avant-garde magazine styling with bold silhouettes.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "minimalist clean",
+            "description": "Simple refined wardrobe with clean lines.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "streetwear urban",
+            "description": "Modern streetwear with hoodies and sneakers.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "old money understated",
+            "description": "Heritage luxury without logos, tailored basics.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "quiet luxury",
+            "description": "Premium minimalism with subtle high-quality materials.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "dark academia scholarly",
+            "description": "Vintage scholarly with tweed and muted tones.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "preppy classic",
+            "description": "Clean collegiate with polos, blazers, pleats.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "grunge layered",
+            "description": "90s grunge with flannel and distressed denim.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "gothic romantic",
+            "description": "Dark elegant with lace/velvet and dramatic silhouettes.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "cyberpunk neon",
+            "description": "Neon cyberpunk street with techwear and chrome.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "techwear functional",
+            "description": "Futuristic utility with black and modular pockets.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "boho free spirit",
+            "description": "Relaxed bohemian with flowing fabrics and earthy tones.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "athleisure sporty",
+            "description": "Sport-meets-street with leggings and sneakers.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "western cowgirl",
+            "description": "Western with denim, boots, and fringe.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "biker rebel",
+            "description": "Biker with leather jacket and tough rebellious edge.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "steampunk industrial",
+            "description": "Steampunk with leather, brass, and Victorian machinery.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "vaporwave aesthetic",
+            "description": "Neon/pastel gradients with 80s/90s nostalgia.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "y2k nostalgic",
+            "description": "Early-2000s with low-rise, glossy materials, baby tees.",
+            "gender": [
+                "any"
+            ]
+        },
+        {
+            "name": "romantic feminine",
+            "description": "Soft elegant styling with lace/satin and gentle colors.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "coquette feminine",
+            "description": "Sweet flirty styling with bows and soft pinks.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "mob wife glamour",
+            "description": "Opulent bold glam with fur and gold jewelry.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "clean girl aesthetic",
+            "description": "Fresh minimal styling with sleek effortless beauty.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "cottagecore pastoral",
+            "description": "Pastoral handmade vibe with linen and florals.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "balletcore graceful",
+            "description": "Ballet-inspired with wrap tops and delicate shoes.",
+            "gender": [
+                "female"
+            ]
+        },
+        {
+            "name": "ivy league masculine",
+            "description": "Polished collegiate with blazers, oxfords and heritage patterns.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "workwear rugged",
+            "description": "Durable workwear with boots, denim jackets and utility style.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "nordic minimalist",
+            "description": "Scandinavian clean lines with neutral tones and quality fabrics.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "japanese streetwear",
+            "description": "Tokyo-inspired layered street style with oversized silhouettes.",
+            "gender": [
+                "male"
+            ]
+        },
+        {
+            "name": "gentleman classic",
+            "description": "Timeless tailoring with proper accessories and refined details.",
+            "gender": [
+                "male"
+            ]
+        }
+    ],
+    "footwear_styles": [
+        "barefoot",
+        "classic pumps",
+        "stiletto heels",
+        "platform heels",
+        "ankle boots",
+        "knee high boots",
+        "combat boots chunky",
+        "cowboy boots western",
+        "chelsea boots",
+        "doc martens style",
+        "ballet flats",
+        "mary janes",
+        "loafers chunky",
+        "oxfords",
+        "brogues",
+        "white sneakers classic",
+        "chunky sneakers dad shoes",
+        "platform sneakers",
+        "converse high tops",
+        "running shoes athletic",
+        "slides casual",
+        "gladiator sandals",
+        "espadrilles",
+        "dress shoes oxford",
+        "derby shoes",
+        "monk strap",
+        "wing tips",
+        "suede desert boots",
+        "hiking boots",
+        "work boots",
+        "minimalist sneakers"
+    ]
+}

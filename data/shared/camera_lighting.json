@@ -1,0 +1,345 @@
+{
+    "lighting_styles": [
+        {
+            "name": "soft daylight",
+            "description": "Even flattering daylight with soft shadows."
+        },
+        {
+            "name": "window light",
+            "description": "Directional soft light from window, cozy feel."
+        },
+        {
+            "name": "golden hour",
+            "description": "Warm low-angle sunset light with rim glow."
+        },
+        {
+            "name": "blue hour",
+            "description": "Cool twilight ambience with blue tones."
+        },
+        {
+            "name": "low key spotlight",
+            "description": "Focused key light with strong contrast and deep shadows."
+        },
+        {
+            "name": "high key studio",
+            "description": "Bright evenly lit studio with minimal shadows."
+        },
+        {
+            "name": "gelled studio light",
+            "description": "Studio lights with colored gels."
+        },
+        {
+            "name": "rim lighting",
+            "description": "Back/edge light outlining subject from background."
+        },
+        {
+            "name": "neon lighting",
+            "description": "Vibrant neon sources with strong color contrast."
+        },
+        {
+            "name": "cinematic practical lights",
+            "description": "Visible light sources for cinematic mood."
+        },
+        {
+            "name": "mixed color temperature",
+            "description": "Warm and cool lights together for depth."
+        },
+        {
+            "name": "hard sunlight",
+            "description": "Direct harsh sun with sharp shadows."
+        },
+        {
+            "name": "volumetric lighting",
+            "description": "Light beams visible through haze/fog."
+        },
+        {
+            "name": "rembrandt lighting",
+            "description": "Classic portrait with triangular cheek highlight."
+        },
+        {
+            "name": "split lighting",
+            "description": "Face split half-lit, half-shadow for drama."
+        },
+        {
+            "name": "butterfly lighting",
+            "description": "Key above camera creating flattering beauty light."
+        },
+        {
+            "name": "god rays",
+            "description": "Strong radiant beams through clouds/trees."
+        },
+        {
+            "name": "chiaroscuro",
+            "description": "Extreme light/dark contrast, painterly dramatic."
+        },
+        {
+            "name": "bioluminescent glow",
+            "description": "Self-illuminated glow from flora/objects."
+        }
+    ],
+    "camera_angles": [
+        "eye level portrait",
+        "slight high angle",
+        "slight low angle",
+        "dramatic low angle",
+        "top down",
+        "dutch tilt",
+        "close up portrait",
+        "medium shot",
+        "wide establishing shot",
+        "overhead spotlight shot",
+        "tracking side angle",
+        "cinematic backlight frame",
+        "fisheye distortion",
+        "drone shot",
+        "selfie angle"
+    ],
+    "camera_lenses": [
+        {
+            "name": "macro close-up",
+            "description": "Extreme close focus for fine details."
+        },
+        {
+            "name": "headshot",
+            "description": "Tight framing on head and face."
+        },
+        {
+            "name": "shoulder-up portrait",
+            "description": "Classic portrait from shoulders upward."
+        },
+        {
+            "name": "waist-up shot",
+            "description": "Medium portrait showing torso to waist."
+        },
+        {
+            "name": "three-quarter body",
+            "description": "Head to knees for outfit readability."
+        },
+        {
+            "name": "full body",
+            "description": "Full figure from head to toe."
+        },
+        {
+            "name": "environmental long shot",
+            "description": "Wider composition with subject in environment."
+        },
+        {
+            "name": "low angle",
+            "description": "Camera below subject looking up, powerful."
+        },
+        {
+            "name": "high angle",
+            "description": "Camera above subject looking down."
+        },
+        {
+            "name": "top-down",
+            "description": "Overhead view straight down."
+        },
+        {
+            "name": "wide angle",
+            "description": "Wide field of view with more environment."
+        },
+        {
+            "name": "telephoto",
+            "description": "Long lens compression with flattering blur."
+        },
+        {
+            "name": "fish-eye",
+            "description": "Ultra-wide distortion with curved lines."
+        },
+        {
+            "name": "dutch tilt",
+            "description": "Tilted horizon for dynamic composition."
+        },
+        {
+            "name": "over-the-shoulder",
+            "description": "Shot from behind one shoulder."
+        },
+        {
+            "name": "anamorphic",
+            "description": "Cinematic widescreen with oval bokeh."
+        },
+        {
+            "name": "tilt-shift",
+            "description": "Selective focus for miniature effect."
+        },
+        {
+            "name": "35mm film",
+            "description": "35mm film aesthetic with natural grain."
+        },
+        {
+            "name": "85mm portrait",
+            "description": "Classic portrait focal length with creamy blur."
+        },
+        {
+            "name": "50mm prime",
+            "description": "Natural perspective with balanced field of view."
+        }
+    ],
+    "color_palettes": [
+        {
+            "name": "black and white classic",
+            "description": "Monochrome with strong contrast."
+        },
+        {
+            "name": "sepia vintage",
+            "description": "Warm brown tones, antique feel."
+        },
+        {
+            "name": "warm neutrals beige",
+            "description": "Warm beige/cream, cozy minimal."
+        },
+        {
+            "name": "cool neutrals gray",
+            "description": "Cool grays, modern subdued."
+        },
+        {
+            "name": "soft pastels",
+            "description": "Light pastel colors, airy gentle."
+        },
+        {
+            "name": "dusty rose pink",
+            "description": "Muted rosy pinks, romantic modern."
+        },
+        {
+            "name": "sage green natural",
+            "description": "Muted sage, organic calm."
+        },
+        {
+            "name": "butter yellow warm",
+            "description": "Warm pale yellow, cheerful sunlight."
+        },
+        {
+            "name": "lavender dreamy",
+            "description": "Lavender haze, dreamy ethereal."
+        },
+        {
+            "name": "earth tones natural",
+            "description": "Browns, olives, clay, grounded outdoorsy."
+        },
+        {
+            "name": "terracotta warm",
+            "description": "Terracotta and clay, Mediterranean warmth."
+        },
+        {
+            "name": "jewel tones rich",
+            "description": "Saturated emerald/ruby/sapphire, luxurious."
+        },
+        {
+            "name": "teal and orange cinematic",
+            "description": "Cinematic grade with teal shadows and orange highlights."
+        },
+        {
+            "name": "pink and blue vaporwave",
+            "description": "Neon pinks and blues, retro synth."
+        },
+        {
+            "name": "red and black dramatic",
+            "description": "High-contrast red/black, bold graphic."
+        },
+        {
+            "name": "all white clean",
+            "description": "Predominantly white, bright minimal."
+        },
+        {
+            "name": "all black moody",
+            "description": "Black-dominant, dark sleek."
+        },
+        {
+            "name": "golden hour warm",
+            "description": "Warm sunlit amber highlights."
+        },
+        {
+            "name": "blue hour cool",
+            "description": "Cool blue twilight ambience."
+        },
+        {
+            "name": "sunset gradient",
+            "description": "Warm to cool gradient like sunset sky."
+        },
+        {
+            "name": "neon cyberpunk",
+            "description": "Neon magenta/cyan with dark shadows, futuristic."
+        },
+        {
+            "name": "chrome futuristic",
+            "description": "Cool metallics and silvers, reflective sci-fi."
+        },
+        {
+            "name": "90s kodak film",
+            "description": "90s film colors, warm skin tones, gentle grain."
+        },
+        {
+            "name": "80s miami vice",
+            "description": "80s neon pastel: hot pinks, cyan, purple."
+        },
+        {
+            "name": "70s burnt orange",
+            "description": "70s earthy with burnt orange and browns."
+        },
+        {
+            "name": "60s pop art bold",
+            "description": "Bold primary colors, graphic pop-art."
+        },
+        {
+            "name": "noir high contrast",
+            "description": "Deep blacks, bright highlights, stark drama."
+        },
+        {
+            "name": "faded film vintage",
+            "description": "Faded low-saturation nostalgic tones."
+        },
+        {
+            "name": "cross processed",
+            "description": "Shifted hues, punchy contrast, stylized colors."
+        },
+        {
+            "name": "technicolor saturated",
+            "description": "Highly saturated classic cinema colors."
+        }
+    ],
+    "face_angles": [
+        "front view",
+        "three quarter left",
+        "three quarter right",
+        "profile left",
+        "profile right",
+        "looking upward",
+        "looking downward",
+        "over shoulder left",
+        "over shoulder right",
+        "tilted upward glance",
+        "tilted downward glance",
+        "dutch tilt focus"
+    ],
+    "azimuth": [
+        "front view",
+        "front-right quarter view",
+        "right side view",
+        "back-right quarter view",
+        "back view",
+        "back-left quarter view",
+        "left side view",
+        "front-left quarter view"
+    ],
+    "elevation": [
+        "worm's eye view",
+        "low-angle shot",
+        "eye-level shot",
+        "slightly elevated shot",
+        "elevated shot",
+        "high-angle shot",
+        "bird's eye view",
+        "overhead shot"
+    ],
+    "distance": [
+        "extreme close-up",
+        "close-up",
+        "medium close-up",
+        "medium shot",
+        "medium wide shot",
+        "wide shot",
+        "full body shot",
+        "extreme wide shot"
+    ]
+}

@@ -57,43 +57,6 @@ REF_PROMPT_TEMPLATES = {
     ),
 }
 
-# Professional quality closing block
-QUALITY_BLOCK = (
-    "Professional beauty photography, soft diffused studio lighting, gentle rim light, "
-    "high-end fashion magazine style, ultra-sharp details, 8K resolution, cinematic color "
-    "grading, masterpiece, best quality, photorealistic, no deformations, no artifacts."
-)
-
-# Beauty/makeup enhancement templates (keyed by intensity)
-BEAUTY_TEMPLATES = {
-    "full_female": (
-        "Apply amazing professional studio makeup across the entire face: flawless porcelain "
-        "skin with subtle luminous glow, perfect contouring and highlighting on cheekbones "
-        "and jawline, elegant smoky or shimmering eyeshadow blended across the lids, long "
-        "voluminous lashes, beautifully defined and shaped brows, soft natural blush on the "
-        "apples of the cheeks, and bold yet elegant lip color with a satin finish. Captivating "
-        "eyes with perfect catchlights."
-    ),
-    "full_male": (
-        "Clean groomed skin with natural healthy glow, well-defined brows, subtle concealer "
-        "for flawless even skin tone, light matte finish to reduce shine, naturally defined "
-        "jawline and cheekbones. Sharp focused eyes with perfect catchlights."
-    ),
-    "with_style": (
-        "Apply a complete {makeup_style} makeup look across the entire face: perfectly "
-        "prepared flawless skin base with matching finish, full eye makeup (eyeshadow, liner, "
-        "lashes, shaped brows) in the {makeup_style} aesthetic, complementary blush and "
-        "contour, and coordinated lip color. Every feature of the face is unified in a "
-        "cohesive {makeup_style} beauty look. Captivating eyes with perfect catchlights."
-    ),
-    "minimal": (
-        "Flawless skin across the entire face with a natural, healthy glow. Evenly applied "
-        "subtle enhancement — light skin evening, barely-there brow grooming, a hint of "
-        "mascara, soft lip tint — that preserves natural beauty while adding photogenic "
-        "polish to every feature. Perfect catchlights in the eyes."
-    ),
-}
-
 
 class WizdroidCharacterEditNode:
     """🧙 Generate character edit prompts with multiple reference images for image editing models."""
@@ -309,12 +272,6 @@ class WizdroidCharacterEditNode:
         if physical_traits:
             identity_parts.append(f"with {', '.join(physical_traits)}")
         
-        if retain_face == "enabled":
-            identity_parts.append(
-                f"using the precise facial features, skin tone, and identity from image "
-                f"{resolved_input_index} with absolutely zero changes"
-            )
-        
         prompt_parts.append(" ".join(identity_parts))
         
         # === PARAGRAPH 2: OUTFIT / CLOTHING ===
@@ -348,19 +305,10 @@ class WizdroidCharacterEditNode:
         # === PARAGRAPH 3: BEAUTY / MAKEUP & EXPRESSION ===
         beauty_parts = []
         
-        is_male = gender == "male"
-        
         if resolved_makeup_style != "none" and resolved_makeup_style != "no makeup natural":
-            template_text = BEAUTY_TEMPLATES["with_style"].format(makeup_style=resolved_makeup_style)
-            beauty_parts.append(template_text)
+            beauty_parts.append(f"Wearing {resolved_makeup_style} makeup")
         elif resolved_makeup_style == "no makeup natural":
-            beauty_parts.append(BEAUTY_TEMPLATES["minimal"])
-        else:
-            # Gender-appropriate default beauty
-            if is_male:
-                beauty_parts.append(BEAUTY_TEMPLATES["full_male"])
-            else:
-                beauty_parts.append(BEAUTY_TEMPLATES["full_female"])
+            beauty_parts.append("Natural look, no makeup")
         
         # Expression
         if resolved_emotion != "neutral":
@@ -369,7 +317,7 @@ class WizdroidCharacterEditNode:
             )
         else:
             beauty_parts.append(
-                "Sophisticated and captivating expression with engaging eye contact"
+                "Sophisticated and captivating expression"
             )
         
         prompt_parts.append(". ".join(beauty_parts))
@@ -385,9 +333,6 @@ class WizdroidCharacterEditNode:
         
         if scene_parts:
             prompt_parts.append(", ".join(scene_parts))
-        
-        # === QUALITY FLOOR (always appended) ===
-        prompt_parts.append(QUALITY_BLOCK)
         
         prompt = ". ".join(prompt_parts)
         

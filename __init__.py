@@ -84,6 +84,12 @@ _lora_dataset_node = _import_node_module("lora_dataset_node")
 LORA_DATASET_NODE_CLASS_MAPPINGS = _lora_dataset_node.NODE_CLASS_MAPPINGS
 LORA_DATASET_DISPLAY_NAME_MAPPINGS = _lora_dataset_node.NODE_DISPLAY_NAME_MAPPINGS
 
+# === Utility Nodes ===
+
+_utility_nodes = _import_node_module("utility_nodes")
+UTILITY_NODE_CLASS_MAPPINGS = _utility_nodes.NODE_CLASS_MAPPINGS
+UTILITY_DISPLAY_NAME_MAPPINGS = _utility_nodes.NODE_DISPLAY_NAME_MAPPINGS
+
 # === Combined Mappings ===
 
 NODE_CLASS_MAPPINGS = {
@@ -99,6 +105,8 @@ NODE_CLASS_MAPPINGS = {
     **PHOTO_NODE_CLASS_MAPPINGS,
     # Training
     **LORA_DATASET_NODE_CLASS_MAPPINGS,
+    # Utilities
+    **UTILITY_NODE_CLASS_MAPPINGS,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -112,6 +120,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **IMAGE_EDIT_DISPLAY_NAME_MAPPINGS,
     # Analysis
     **PHOTO_DISPLAY_NAME_MAPPINGS,
+    # Utilities
+    **UTILITY_DISPLAY_NAME_MAPPINGS,
     # Training
     **LORA_DATASET_DISPLAY_NAME_MAPPINGS,
 }

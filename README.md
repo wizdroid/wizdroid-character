@@ -20,10 +20,6 @@ Optimized for **consistent character generation across genders** with gender-awa
 ### Training (🧙 Wizdroid/Training)
 - **🧙 Wizdroid: LoRA Dataset Export** - Export image datasets for LoRA training with built-in validation
 
-## 🎨 Fashion Styles Gallery
-
-Browse our [Fashion Styles AI Gallery](https://wizdroid.github.io/wizdroid-character/gallery.html) to explore all 57 fashion aesthetics across different AI image generation models (Flux.1 Dev, SDXL 1.0, Z-Image-Turbo, Qwen Image 202512).
-
 ## 🔄 v2025.12.01 — Architecture Refactor
 
 ### What Changed

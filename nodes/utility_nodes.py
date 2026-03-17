@@ -16,15 +16,17 @@ class WizdroidGenerateFilenameNode:
             "required": {
                 "text": ("STRING", {"multiline": True, "default": ""}),
                 "max_length": ("INT", {"default": 64, "min": 1, "max": 1024, "step": 1}),
+                "case": (["none", "lower", "upper"], {"default": "none"}),
             }
         }
 
-    def generate_filename(self, text: str, max_length: int) -> Tuple[str]:
+    def generate_filename(self, text: str, max_length: int, case: str) -> Tuple[str]:
         """
         Generate a filename from text:
         - Replace non-alphabetic characters with underscores
         - Limit to max_length characters
         - Remove leading/trailing underscores
+        - Apply case conversion (none, lower, upper)
         """
         if not text.strip():
             return ("filename",)
@@ -37,6 +39,12 @@ class WizdroidGenerateFilenameNode:
 
         # Remove leading and trailing underscores
         filename = filename.strip('_')
+
+        # Apply case conversion
+        if case == "lower":
+            filename = filename.lower()
+        elif case == "upper":
+            filename = filename.upper()
 
         # Truncate to max_length
         if len(filename) > max_length:

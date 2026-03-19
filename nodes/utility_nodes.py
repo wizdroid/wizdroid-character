@@ -1,10 +1,11 @@
 import re
 import hashlib
+import time
 from typing import Tuple
 
 
 class WizdroidGenerateFilenameNode:
-    """🧙 Generate a filename from text by replacing non-alphanumeric characters with underscores or using a hash."""
+    """🧙 Generate flexible filenames with timestamps, hashes, prepend/append, and random suffixes."""
 
     CATEGORY = "🧙 Wizdroid/Utilities"
     RETURN_TYPES = ("STRING",)
@@ -16,59 +17,141 @@ class WizdroidGenerateFilenameNode:
         return {
             "required": {
                 "text": ("STRING", {"multiline": True, "default": ""}),
-                "mode": (["text", "hash"], {"default": "text"}),
-                "max_length": ("INT", {"default": 64, "min": 1, "max": 1024, "step": 1}),
+                "mode": (["text", "hash", "timestamp", "timestamp_hash"], {"default": "text"}),
+                "prepend": ("STRING", {"default": ""}),
+                "append": ("STRING", {"default": ""}),
+                "separator": (["_", "-", ""], {"default": "_"}),
+                "include_date_prefix": ("BOOLEAN", {"default": False}),
+                "include_random_suffix": ("BOOLEAN", {"default": False}),
+                "random_suffix_length": ("INT", {"default": 4, "min": 2, "max": 16, "step": 1}),
+                "max_length": ("INT", {"default": 255, "min": 1, "max": 1024, "step": 1}),
                 "case": (["none", "lower", "upper"], {"default": "none"}),
             }
         }
 
-    def generate_filename(self, text: str, mode: str, max_length: int, case: str) -> Tuple[str]:
-        """
-        Generate a filename from text using one of two modes:
-        
-        Mode 'text':
-        - Replace non-alphabetic characters with underscores
-        - Limit to max_length characters
-        - Remove leading/trailing underscores
-        - Apply case conversion (none, lower, upper)
-        
-        Mode 'hash':
-        - Generate MD5 hash of the text
-        - No character limit constraints
-        - Always produces consistent, compact unique identifier
-        - Useful for long prompts without truncation loss
-        """
-        if not text.strip():
-            return ("filename",)
+    @staticmethod
+    def _sanitize_text(text: str) -> str:
+        """Replace non-alphanumeric characters with underscores."""
+        sanitized = re.sub(r'[^a-zA-Z0-9_]', '_', text)
+        sanitized = re.sub(r'_+', '_', sanitized)
+        return sanitized.strip('_')
 
-        if mode == "hash":
-            # Generate hash-based filename
-            hash_digest = hashlib.md5(text.encode()).hexdigest()
-            filename = f"hash_{hash_digest}"
+    @staticmethod
+    def _get_date_prefix() -> str:
+        """Get current date in YYYYMMDD format."""
+        return time.strftime("%Y%m%d")
+
+    @staticmethod
+    def _get_timestamp_suffix(include_ms: bool = False) -> str:
+        """Get current timestamp (epoch). If include_ms, includes milliseconds."""
+        if include_ms:
+            ts = int(time.time() * 1000)
+            return f"ts{ts}"
         else:
-            # Original text-based mode
-            # Replace non-alphanumeric characters (except underscore) with underscore
-            filename = re.sub(r'[^a-zA-Z0-9_]', '_', text)
+            ts = int(time.time())
+            return f"ts{ts}"
 
-            # Replace multiple consecutive underscores with a single underscore
-            filename = re.sub(r'_+', '_', filename)
+    @staticmethod
+    def _get_random_suffix(length: int = 4) -> str:
+        """Generate random hex suffix."""
+        import random
+        hex_chars = "0123456789abcdef"
+        return "".join(random.choice(hex_chars) for _ in range(length))
 
-            # Remove leading and trailing underscores
-            filename = filename.strip('_')
+    def generate_filename(
+        self,
+        text: str,
+        mode: str,
+        prepend: str,
+        append: str,
+        separator: str,
+        include_date_prefix: bool,
+        include_random_suffix: bool,
+        random_suffix_length: int,
+        max_length: int,
+        case: str,
+    ) -> Tuple[str]:
+        """
+        Generate a filename with flexible options.
+        
+        Modes:
+        - 'text': Sanitize and truncate text, optional char limit
+        - 'hash': MD5 hash of text (no truncation)
+        - 'timestamp': Unix timestamp (uses text as fallback if empty)
+        - 'timestamp_hash': Timestamp + hash of text (best for unique, traceable files)
+        
+        Features:
+        - Prepend/Append: Add custom prefixes/suffixes
+        - Date prefix: Automatically prepend YYYYMMDD
+        - Random suffix: Add random hex string for extra uniqueness
+        - Separator: Control how parts are joined
+        - Case conversion: Apply lower/upper casing
+        """
+        parts = []
 
-            # Truncate to max_length
-            if len(filename) > max_length:
-                filename = filename[:max_length].rstrip('_')
+        # 1. Date prefix (if enabled)
+        if include_date_prefix:
+            parts.append(self._get_date_prefix())
 
-        # Apply case conversion (only to text mode, hash is already lowercase)
+        # 2. Prepend text
+        if prepend.strip():
+            prepend_clean = self._sanitize_text(prepend.strip())
+            if prepend_clean:
+                parts.append(prepend_clean)
+
+        # 3. Main content based on mode
+        if mode == "hash":
+            if text.strip():
+                hash_digest = hashlib.md5(text.encode()).hexdigest()
+                parts.append(f"hash{hash_digest}")
+            else:
+                # Fallback: if no text, use timestamp
+                parts.append(self._get_timestamp_suffix())
+        elif mode == "timestamp":
+            parts.append(self._get_timestamp_suffix())
+        elif mode == "timestamp_hash":
+            ts = self._get_timestamp_suffix()
+            if text.strip():
+                hash_digest = hashlib.md5(text.encode()).hexdigest()[:8]  # Short hash
+                parts.append(f"{ts}_{hash_digest}")
+            else:
+                parts.append(ts)
+        else:  # mode == "text"
+            if text.strip():
+                text_clean = self._sanitize_text(text)
+                if len(text_clean) > max_length:
+                    text_clean = text_clean[:max_length].rstrip('_')
+                parts.append(text_clean)
+            else:
+                # Fallback: use timestamp if text is empty
+                parts.append(self._get_timestamp_suffix())
+
+        # 4. Random suffix (if enabled)
+        if include_random_suffix:
+            parts.append(self._get_random_suffix(random_suffix_length))
+
+        # 5. Append text
+        if append.strip():
+            append_clean = self._sanitize_text(append.strip())
+            if append_clean:
+                parts.append(append_clean)
+
+        # 6. Join with separator
+        filename = separator.join(parts)
+
+        # 7. Apply case conversion
         if case == "lower":
             filename = filename.lower()
         elif case == "upper":
             filename = filename.upper()
 
-        # Ensure we have something
+        # 8. Final truncation to max_length
+        if len(filename) > max_length:
+            filename = filename[:max_length].rstrip('_').rstrip('-').rstrip()
+
+        # 9. Ensure we have something
         if not filename:
-            filename = "filename"
+            filename = "file"
 
         return (filename,)
 

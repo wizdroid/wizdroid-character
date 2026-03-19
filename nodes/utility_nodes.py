@@ -90,11 +90,9 @@ class WizdroidGenerateFilenameNode:
         if include_date_prefix:
             parts.append(self._get_date_prefix())
 
-        # 2. Prepend text
+        # 2. Prepend text (NOT sanitized - preserve user's separators)
         if prepend.strip():
-            prepend_clean = self._sanitize_text(prepend.strip())
-            if prepend_clean:
-                parts.append(prepend_clean)
+            parts.append(prepend.strip())
 
         # 3. Main content based on mode
         if mode == "hash":
@@ -127,11 +125,9 @@ class WizdroidGenerateFilenameNode:
         if include_random_suffix:
             parts.append(self._get_random_suffix(random_suffix_length))
 
-        # 5. Append text
+        # 5. Append text (NOT sanitized - preserve user's separators)
         if append.strip():
-            append_clean = self._sanitize_text(append.strip())
-            if append_clean:
-                parts.append(append_clean)
+            parts.append(append.strip())
 
         # 6. Join with underscore
         filename = "_".join(parts)

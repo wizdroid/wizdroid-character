@@ -20,7 +20,6 @@ class WizdroidGenerateFilenameNode:
                 "mode": (["text", "hash", "timestamp", "timestamp_hash"], {"default": "text"}),
                 "prepend": ("STRING", {"default": ""}),
                 "append": ("STRING", {"default": ""}),
-                "separator": (["_", "-", ""], {"default": "_"}),
                 "include_date_prefix": ("BOOLEAN", {"default": False}),
                 "include_random_suffix": ("BOOLEAN", {"default": False}),
                 "random_suffix_length": ("INT", {"default": 4, "min": 2, "max": 16, "step": 1}),
@@ -64,7 +63,6 @@ class WizdroidGenerateFilenameNode:
         mode: str,
         prepend: str,
         append: str,
-        separator: str,
         include_date_prefix: bool,
         include_random_suffix: bool,
         random_suffix_length: int,
@@ -81,10 +79,9 @@ class WizdroidGenerateFilenameNode:
         - 'timestamp_hash': Timestamp + hash of text (best for unique, traceable files)
         
         Features:
-        - Prepend/Append: Add custom prefixes/suffixes
+        - Prepend/Append: Add custom prefixes/suffixes (include separators directly in text)
         - Date prefix: Automatically prepend YYYYMMDD
         - Random suffix: Add random hex string for extra uniqueness
-        - Separator: Control how parts are joined
         - Case conversion: Apply lower/upper casing
         """
         parts = []
@@ -136,8 +133,8 @@ class WizdroidGenerateFilenameNode:
             if append_clean:
                 parts.append(append_clean)
 
-        # 6. Join with separator
-        filename = separator.join(parts)
+        # 6. Join with underscore
+        filename = "_".join(parts)
 
         # 7. Apply case conversion
         if case == "lower":

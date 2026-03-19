@@ -1,9 +1,10 @@
 import re
+import hashlib
 from typing import Tuple
 
 
 class WizdroidGenerateFilenameNode:
-    """🧙 Generate a filename from text by replacing non-alphanumeric characters with underscores."""
+    """🧙 Generate a filename from text by replacing non-alphanumeric characters with underscores or using a hash."""
 
     CATEGORY = "🧙 Wizdroid/Utilities"
     RETURN_TYPES = ("STRING",)
@@ -15,40 +16,55 @@ class WizdroidGenerateFilenameNode:
         return {
             "required": {
                 "text": ("STRING", {"multiline": True, "default": ""}),
+                "mode": (["text", "hash"], {"default": "text"}),
                 "max_length": ("INT", {"default": 64, "min": 1, "max": 1024, "step": 1}),
                 "case": (["none", "lower", "upper"], {"default": "none"}),
             }
         }
 
-    def generate_filename(self, text: str, max_length: int, case: str) -> Tuple[str]:
+    def generate_filename(self, text: str, mode: str, max_length: int, case: str) -> Tuple[str]:
         """
-        Generate a filename from text:
+        Generate a filename from text using one of two modes:
+        
+        Mode 'text':
         - Replace non-alphabetic characters with underscores
         - Limit to max_length characters
         - Remove leading/trailing underscores
         - Apply case conversion (none, lower, upper)
+        
+        Mode 'hash':
+        - Generate MD5 hash of the text
+        - No character limit constraints
+        - Always produces consistent, compact unique identifier
+        - Useful for long prompts without truncation loss
         """
         if not text.strip():
             return ("filename",)
 
-        # Replace non-alphanumeric characters (except underscore) with underscore
-        filename = re.sub(r'[^a-zA-Z0-9_]', '_', text)
+        if mode == "hash":
+            # Generate hash-based filename
+            hash_digest = hashlib.md5(text.encode()).hexdigest()
+            filename = f"hash_{hash_digest}"
+        else:
+            # Original text-based mode
+            # Replace non-alphanumeric characters (except underscore) with underscore
+            filename = re.sub(r'[^a-zA-Z0-9_]', '_', text)
 
-        # Replace multiple consecutive underscores with a single underscore
-        filename = re.sub(r'_+', '_', filename)
+            # Replace multiple consecutive underscores with a single underscore
+            filename = re.sub(r'_+', '_', filename)
 
-        # Remove leading and trailing underscores
-        filename = filename.strip('_')
+            # Remove leading and trailing underscores
+            filename = filename.strip('_')
 
-        # Apply case conversion
+            # Truncate to max_length
+            if len(filename) > max_length:
+                filename = filename[:max_length].rstrip('_')
+
+        # Apply case conversion (only to text mode, hash is already lowercase)
         if case == "lower":
             filename = filename.lower()
         elif case == "upper":
             filename = filename.upper()
-
-        # Truncate to max_length
-        if len(filename) > max_length:
-            filename = filename[:max_length].rstrip('_')
 
         # Ensure we have something
         if not filename:

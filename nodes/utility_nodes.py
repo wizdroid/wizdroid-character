@@ -45,10 +45,10 @@ class WizdroidGenerateFilenameNode:
         """Get current timestamp (epoch). If include_ms, includes milliseconds."""
         if include_ms:
             ts = int(time.time() * 1000)
-            return f"ts{ts}"
+            return str(ts)
         else:
             ts = int(time.time())
-            return f"ts{ts}"
+            return str(ts)
 
     @staticmethod
     def _get_random_suffix(length: int = 4) -> str:
@@ -98,7 +98,7 @@ class WizdroidGenerateFilenameNode:
         if mode == "hash":
             if text.strip():
                 hash_digest = hashlib.md5(text.encode()).hexdigest()
-                parts.append(f"hash{hash_digest}")
+                parts.append(hash_digest)
             else:
                 # Fallback: if no text, use timestamp
                 parts.append(self._get_timestamp_suffix())
@@ -108,7 +108,7 @@ class WizdroidGenerateFilenameNode:
             ts = self._get_timestamp_suffix()
             if text.strip():
                 hash_digest = hashlib.md5(text.encode()).hexdigest()[:8]  # Short hash
-                parts.append(f"{ts}_{hash_digest}")
+                parts.append(hash_digest)
             else:
                 parts.append(ts)
         else:  # mode == "text"

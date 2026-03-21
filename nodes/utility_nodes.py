@@ -129,8 +129,8 @@ class WizdroidGenerateFilenameNode:
         if append.strip():
             parts.append(append.strip())
 
-        # 6. Join with underscore
-        filename = "_".join(parts)
+        # 6. Join all parts
+        filename = "".join(parts)
 
         # 7. Apply case conversion
         if case == "lower":

@@ -1,0 +1,46 @@
+{
+  "scene_types": [
+    {"name": "urban street", "description": "city sidewalks, roads, storefronts, traffic, pedestrians"},
+    {"name": "natural landscape", "description": "open outdoors — fields, cliffs, rivers, sky"},
+    {"name": "interior room", "description": "inside a building — living space, office, hall, corridor"},
+    {"name": "fantasy realm", "description": "magical otherworldly environment with impossible architecture or nature"},
+    {"name": "sci-fi environment", "description": "futuristic setting — space, megastructures, neon infrastructure"},
+    {"name": "historical setting", "description": "period-accurate past environment — ancient, medieval, early modern"},
+    {"name": "underwater", "description": "submerged environment — coral, light rays, marine life, bubbles"},
+    {"name": "aerial / sky", "description": "high altitude perspective — clouds, city from above, open sky"},
+    {"name": "action sequence", "description": "high-stakes physical conflict, chase, escape"},
+    {"name": "dramatic confrontation", "description": "tense face-to-face scene, charged atmosphere"},
+    {"name": "quiet intimate moment", "description": "soft, personal scene — close proximity, gentle gestures"},
+    {"name": "crowd / event scene", "description": "many people gathered — festival, market, protest, ceremony"},
+    {"name": "wilderness / nature", "description": "untouched natural world — forest, mountains, desert, ocean shore"},
+    {"name": "industrial / mechanical", "description": "factories, machinery, pipes, steam, heavy equipment"}
+  ],
+  "environments": [
+    "city downtown", "suburban street", "ancient ruins", "dense forest", "open desert",
+    "tropical beach", "snowy mountain", "damp cave", "lush jungle", "volcanic landscape",
+    "outer space", "space station", "underground metro", "floating platform", "rooftop terrace",
+    "marketplace bazaar", "research laboratory", "abandoned warehouse", "grand palace hall", "seaside cliff"
+  ],
+  "time_of_day": [
+    {"name": "golden hour dawn", "description": "warm low-angle light from the horizon, long soft shadows, orange-gold tones"},
+    {"name": "bright midday", "description": "harsh overhead sun, short shadows, high contrast, vivid saturated colors"},
+    {"name": "overcast day", "description": "soft diffused grey light, no hard shadows, neutral cool tones"},
+    {"name": "golden hour dusk", "description": "warm amber light fading, long dramatic shadows, silhouette potential"},
+    {"name": "blue hour", "description": "soft cool blue twilight, city lights beginning to glow, tranquil atmosphere"},
+    {"name": "night with city lights", "description": "dark sky, neon and artificial light sources, reflective wet surfaces"},
+    {"name": "night with moonlight", "description": "cool silver-blue moonlight, deep shadows, atmospheric and mysterious"},
+    {"name": "night starfield", "description": "clear dark sky abundant with stars, minimal ambient light, silhouettes"}
+  ],
+  "moods": [
+    {"name": "epic cinematic", "description": "grand scale, heroic, sweeping scope, powerful emotional impact"},
+    {"name": "tense thriller", "description": "edge-of-seat suspense, danger close, paranoid energy"},
+    {"name": "romantic", "description": "soft warmth, intimate connection, gentle light, emotional closeness"},
+    {"name": "eerie mysterious", "description": "unsettling stillness, unknown lurking, shadows and suggestion"},
+    {"name": "playful comedic", "description": "lighthearted, bouncy energy, bright colors, casual and fun"},
+    {"name": "melancholic reflective", "description": "quiet sadness, introspection, muted tones, slow pacing"},
+    {"name": "peaceful serene", "description": "calm, unhurried, soft sounds suggested, harmonious and healing"},
+    {"name": "chaotic high-energy", "description": "fast cuts suggested, sensory overload, kinetic and frenetic"},
+    {"name": "cold futuristic", "description": "clinical precision, blue-white tones, detached and sterile"},
+    {"name": "warm nostalgic", "description": "amber glow, soft grain, sentimental memories, gentle movement"}
+  ]
+}

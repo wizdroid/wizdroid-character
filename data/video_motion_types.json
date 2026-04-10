@@ -1,0 +1,21 @@
+{
+  "motion_styles": [
+    {"name": "natural casual", "description": "relaxed, everyday movement with organic weight and pacing"},
+    {"name": "slow and deliberate", "description": "measured, intentional motion with clear weight and control"},
+    {"name": "slow-motion ethereal", "description": "fluid ultra-slow movement, hair and fabric floating, hyper-detailed motion"},
+    {"name": "fast-paced energetic", "description": "quick confident strides, rapid gestures, high-energy movement"},
+    {"name": "floaty weightless", "description": "graceful low-gravity movement, gentle drift, soft landings"},
+    {"name": "fluid graceful", "description": "dance-like flowing motion, smooth arcs, elegant transitions"},
+    {"name": "mechanical robotic", "description": "stiff precise servo-like joint movement, calculated gestures"},
+    {"name": "explosive action", "description": "sudden bursts of power, impact reactions, high-intensity force"},
+    {"name": "subtle breathing", "description": "minimal movement, gentle chest rise, micro-expressions, stillness with life"},
+    {"name": "epic cinematic", "description": "heroic dramatic movement, strong poses held and released, cinematic timing"}
+  ],
+  "motion_phases": [
+    {"name": "entry into frame", "description": "subject moves or appears from outside the frame edge"},
+    {"name": "sustained action", "description": "subject continues an ongoing motion throughout the clip"},
+    {"name": "exit from frame", "description": "subject moves toward and beyond the frame edge"},
+    {"name": "full action sequence", "description": "complete motion arc from start through peak to resolution"},
+    {"name": "reaction moment", "description": "subject reacts to something — turns, pauses, responds expressively"}
+  ]
+}

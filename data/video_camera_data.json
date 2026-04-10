@@ -1,0 +1,42 @@
+{
+  "shot_types": [
+    {"name": "establishing wide shot", "description": "shows the full environment to set location and scale"},
+    {"name": "full body shot", "description": "captures the subject head to toe within the frame"},
+    {"name": "medium shot", "description": "frames the subject from the waist up, balancing detail and context"},
+    {"name": "medium close-up", "description": "chest and shoulders, ideal for conversation and expression"},
+    {"name": "close-up", "description": "face fills the frame, emphasizing emotion and detail"},
+    {"name": "extreme close-up", "description": "tight on a single feature — eyes, hands, object detail"},
+    {"name": "aerial bird's eye", "description": "looking straight down, subjects and environment from above"},
+    {"name": "POV first person", "description": "camera is the character's eyes, immersive perspective"},
+    {"name": "over-the-shoulder", "description": "frames a subject from behind another, conversational tension"},
+    {"name": "two-shot", "description": "two subjects share the frame equally, relationship dynamic"},
+    {"name": "Dutch angle", "description": "tilted frame creates psychological unease or tension"}
+  ],
+  "camera_movements": [
+    {"name": "static hold", "description": "camera is completely still, subjects move within the frame"},
+    {"name": "slow pan left", "description": "camera rotates horizontally to the left, surveying the scene"},
+    {"name": "slow pan right", "description": "camera rotates horizontally to the right"},
+    {"name": "tilt up", "description": "camera rotates upward, revealing height or grandeur"},
+    {"name": "tilt down", "description": "camera rotates downward, grounding or revealing below"},
+    {"name": "dolly push in", "description": "camera physically moves forward toward the subject, building intimacy"},
+    {"name": "dolly pull out", "description": "camera physically moves backward, revealing wider context"},
+    {"name": "crane rise", "description": "camera lifts upward, ascending to show scale or transcendence"},
+    {"name": "crane lower", "description": "camera descends from height down to subject level"},
+    {"name": "tracking shot", "description": "camera moves alongside the subject maintaining relative position"},
+    {"name": "handheld follow", "description": "slightly shaky camera follows subject, raw documentary feel"},
+    {"name": "orbit left", "description": "camera circles around the subject counterclockwise"},
+    {"name": "orbit right", "description": "camera circles around the subject clockwise"},
+    {"name": "whip pan", "description": "rapid horizontal camera rotation creating a blur transition"},
+    {"name": "zoom in", "description": "optical zoom tightens the frame, isolating the subject"},
+    {"name": "slow push and tilt", "description": "combined gentle forward movement with upward tilt, epic reveal feel"}
+  ],
+  "lens_types": [
+    {"name": "ultra-wide angle", "description": "extreme field of view, dramatic perspective distortion, expansive environments"},
+    {"name": "wide angle", "description": "broad field of view, environmental context, slight edge distortion"},
+    {"name": "standard 50mm", "description": "natural human perspective, balanced and neutral"},
+    {"name": "medium telephoto 85mm", "description": "flattering portrait compression, slightly separated subject from background"},
+    {"name": "telephoto 135mm", "description": "strong background compression, subjects pop from blurred surroundings"},
+    {"name": "super telephoto", "description": "extreme compression, stalking/observational feel, distant subjects"},
+    {"name": "macro", "description": "extreme close focus on tiny details, texture becomes landscape"}
+  ]
+}

@@ -38,8 +38,8 @@ class WizdroidCharacterPromptNode:
     """🧙 Generate detailed character prompts for AI image generation using Ollama LLM."""
 
     CATEGORY = "🧙 Wizdroid/Prompts"
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("prompt", "negative_prompt", "preview")
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("prompt", "negative_prompt", "preview", "raw_prompt")
     FUNCTION = "build_prompt"
 
     @classmethod
@@ -310,9 +310,9 @@ class WizdroidCharacterPromptNode:
         # Validate content rating vs selections
         if content_rating == "SFW":
             if resolved.get("image_category") in set(image_nsfw):
-                return ("[ERROR: SFW rating but NSFW image_category selected]", "", "")
+                return ("[ERROR: SFW rating but NSFW image_category selected]", "", "", "")
             if resolved.get("pose_style") in set(nsfw_poses):
-                return ("[ERROR: SFW rating but NSFW pose_style selected]", "", "")
+                return ("[ERROR: SFW rating but NSFW pose_style selected]", "", "", "")
 
         # Smart country selection based on region
         if resolved.get("region") and country == RANDOM_LABEL:
@@ -325,7 +325,7 @@ class WizdroidCharacterPromptNode:
         # Check cache
         cache_key = _cache_key(resolved, prompt_style, retain_face, custom_text, temperature)
         if cache_key in _PROMPT_CACHE:
-            llm_response = _PROMPT_CACHE[cache_key]
+            llm_response, raw_prompt = _PROMPT_CACHE[cache_key]
         else:
             # Extract descriptions for enhanced prompting (from shared data)
             desc_maps = {
@@ -338,7 +338,7 @@ class WizdroidCharacterPromptNode:
                 "color_palette": extract_descriptions(cam_data.get("color_palettes")),
             }
 
-            llm_response = self._invoke_llm(
+            llm_response, raw_prompt = self._invoke_llm(
                 ollama_url, ollama_model, content_rating, prompt_style, retain_face,
                 style_meta, resolved, desc_maps, custom_text, temperature, max_tokens, seed
             )
@@ -346,7 +346,7 @@ class WizdroidCharacterPromptNode:
             # Cache with LRU eviction
             if len(_PROMPT_CACHE) >= _MAX_CACHE_SIZE:
                 _PROMPT_CACHE.pop(next(iter(_PROMPT_CACHE)))
-            _PROMPT_CACHE[cache_key] = llm_response
+            _PROMPT_CACHE[cache_key] = (llm_response, raw_prompt)
 
         negative_prompt = style_meta.get("negative_prompt", "")
         final_prompt = (llm_response or "").strip()
@@ -370,9 +370,9 @@ class WizdroidCharacterPromptNode:
             err = enforce_sfw(final_prompt)
             if err:
                 blocked = "[Blocked: potential NSFW content detected]"
-                return (blocked, negative_prompt, blocked)
+                return (blocked, negative_prompt, blocked, raw_prompt)
 
-        return (final_prompt, negative_prompt, final_prompt)
+        return (final_prompt, negative_prompt, final_prompt, raw_prompt)
 
     @staticmethod
     def _invoke_llm(
@@ -388,8 +388,8 @@ class WizdroidCharacterPromptNode:
         temperature: float,
         max_tokens: int,
         seed: int,
-    ) -> str:
-        """Invoke Ollama LLM to generate prompt."""
+    ) -> Tuple[str, str]:
+        """Invoke Ollama LLM to generate prompt, returning (llm_response, raw_prompt)."""
         img_cat = selections.get("image_category")
 
         # Determine if artistic style
@@ -417,9 +417,6 @@ class WizdroidCharacterPromptNode:
         template = "system_prompts/character_prompt_system_retain_face.txt" if retain_face else "system_prompts/character_prompt_system.txt"
         system_prompt = load_system_prompt_template(template, content_rating, style_directive=style_directive)
 
-        # Build attribute string (excluding image_category which is handled separately)
-        attrs = ", ".join(f"{k}: {v}" for k, v in selections.items() if v and k != "image_category")
-
         # Build context from descriptions
         context_lines = []
         for key, val in selections.items():
@@ -429,11 +426,22 @@ class WizdroidCharacterPromptNode:
         guidance = style_meta.get("guidance", "Comma-separated descriptors")
         token_limit = min(max_tokens, style_meta.get("token_limit", 1024))
 
+        # Build attribute string using only descriptions when available
+        attrs_list = []
+        for k, v in selections.items():
+            if v and k != "image_category":
+                # If we have a description for this value, use it; otherwise use the value name
+                if k in desc_maps and v in desc_maps[k]:
+                    attrs_list.append(f"{k}: {desc_maps[k][v]}")
+                else:
+                    attrs_list.append(f"{k}: {v}")
+        attrs_with_desc = ", ".join(attrs_list)
+
         user_prompt = (
             f"Generate a {prompt_style} {'face-preserving edit' if retain_face else 'image'} prompt.\n"
             f"{'PRIMARY STYLE: ' + img_cat + chr(10) if img_cat else ''}"
             f"{chr(10).join(context_lines) + chr(10) if context_lines else ''}"
-            f"Attributes: {attrs}\n"
+            f"Attributes: {attrs_with_desc}\n"
             f"{f'Notes: {custom_text}' + chr(10) if custom_text else ''}"
             f"Format: {guidance}. Under {token_limit} tokens. Output only the prompt:"
         )
@@ -448,14 +456,14 @@ class WizdroidCharacterPromptNode:
         )
 
         if not ok:
-            return f"[Error: {result}]"
+            return f"[Error: {result}]", user_prompt
 
         # Clean common LLM prefixes
         for prefix in ["Here is", "Here's", "This prompt", "Prompt:", f"{prompt_style}:"]:
             if result.lower().startswith(prefix.lower()):
                 result = result[len(prefix):].lstrip(": ")
 
-        return result or "[Empty response]"
+        return (result or "[Empty response]", user_prompt)
 
 
 NODE_CLASS_MAPPINGS = {"WizdroidCharacterPrompt": WizdroidCharacterPromptNode}

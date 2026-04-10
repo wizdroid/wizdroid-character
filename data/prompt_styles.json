@@ -52,5 +52,29 @@
     "label": "RealVis XL",
     "negative_prompt": "uncanny valley, smeared textures, chromatic noise, awkward pose",
     "token_limit": 130
+  },
+  "WAN-T2V": {
+    "label": "WAN 2.2 Text-to-Video",
+    "guidance": "Cinematic prose paragraph (80-200 words). Lead with subjects and their detailed appearance. Describe motion and physical behavior precisely (weight, speed, direction). Include how the environment evolves over the clip. Specify lighting quality (golden hour, neon, studio diffused). End with camera movement and shot type.",
+    "negative_prompt": "blurry, low quality, watermark, text overlay, static, flat motion, jittery, inconsistent lighting, distorted faces",
+    "token_limit": 200
+  },
+  "WAN-I2V": {
+    "label": "WAN 2.2 Image-to-Video",
+    "guidance": "Cinematic prose paragraph (60-150 words). Begin by naming the visual style or mood. Describe what the existing subject does: motion, expression changes, interactions. Add environmental atmosphere (weather, light shift, ambient elements). Close with camera shot type and movement.",
+    "negative_prompt": "blurry, low quality, watermark, static image, no motion, jittery, distorted",
+    "token_limit": 150
+  },
+  "LTX-T2V": {
+    "label": "LTX-Video Text-to-Video",
+    "guidance": "Single flowing paragraph, chronological, under 200 words. Start DIRECTLY with the main action (no preamble). Follow this order: action, movements/gestures, character/object appearances, background/environment, camera angle/movement, lighting/colors, any changes during the clip. Literal and precise. Think like a cinematographer writing a shot list.",
+    "negative_prompt": "worst quality, inconsistent motion, blurry, jittery, distorted, floating limbs, temporal flickering",
+    "token_limit": 200
+  },
+  "LTX-I2V": {
+    "label": "LTX-Video Image-to-Video",
+    "guidance": "Single flowing paragraph, chronological, under 200 words. Start directly with what the existing subject begins doing. Specify exact movements, gestures, gaze direction, body shifts. Add environmental and ambient changes. State whether the camera holds or moves. Describe light and color throughout.",
+    "negative_prompt": "worst quality, inconsistent motion, blurry, jittery, distorted, static image, no movement",
+    "token_limit": 200
   }
 }

@@ -171,6 +171,7 @@ class WizdroidCharacterEditNode:
         hair_data = DataRegistry.get_hair() or {}
         makeup_data = DataRegistry.get_makeup() or {}
         bg_data = DataRegistry.get_backgrounds() or {}
+        poses_data = DataRegistry.get_poses() or {}
 
         rng = random.Random(seed)
         
@@ -214,7 +215,16 @@ class WizdroidCharacterEditNode:
         resolved_background = self._resolve(background, bg_all + ["none"], rng)
         resolved_outfit_type = self._resolve(outfit_type, outfit_names + ["none"], rng)
         resolved_emotion = self._resolve(emotion, emotion_opts, rng)
-        resolved_pose_style = self._resolve(pose_style, ["none"], rng)
+        pose_opts = poses_data.get("pose_styles", {}).get("sfw", {}).get("any", [])
+        if gender and gender.lower() in ("female", "male"):
+            pose_opts = pose_opts + poses_data.get("pose_styles", {}).get("sfw", {}).get(gender.lower(), [])
+        else:
+            pose_opts = (
+                pose_opts
+                + poses_data.get("pose_styles", {}).get("sfw", {}).get("female", [])
+                + poses_data.get("pose_styles", {}).get("sfw", {}).get("male", [])
+            )
+        resolved_pose_style = self._resolve(pose_style, pose_opts + ["none"], rng)
         resolved_input_index = self._resolve_input_index(input_image_index)
         
         # Build natural language prompt (multi-paragraph, high-fashion quality)

@@ -90,6 +90,48 @@ _utility_nodes = _import_node_module("utility_nodes")
 UTILITY_NODE_CLASS_MAPPINGS = _utility_nodes.NODE_CLASS_MAPPINGS
 UTILITY_DISPLAY_NAME_MAPPINGS = _utility_nodes.NODE_DISPLAY_NAME_MAPPINGS
 
+# === Video Nodes ===
+
+_video_scene_expander_node = _import_node_module("video_scene_expander_node")
+VIDEO_SCENE_EXPANDER_CLASS_MAPPINGS = _video_scene_expander_node.NODE_CLASS_MAPPINGS
+VIDEO_SCENE_EXPANDER_DISPLAY_NAME_MAPPINGS = _video_scene_expander_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_video_prompt_builder_node = _import_node_module("video_prompt_builder_node")
+VIDEO_PROMPT_BUILDER_CLASS_MAPPINGS = _video_prompt_builder_node.NODE_CLASS_MAPPINGS
+VIDEO_PROMPT_BUILDER_DISPLAY_NAME_MAPPINGS = _video_prompt_builder_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_temporal_scene_planner_node = _import_node_module("temporal_scene_planner_node")
+TEMPORAL_SCENE_PLANNER_CLASS_MAPPINGS = _temporal_scene_planner_node.NODE_CLASS_MAPPINGS
+TEMPORAL_SCENE_PLANNER_DISPLAY_NAME_MAPPINGS = _temporal_scene_planner_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_motion_choreographer_node = _import_node_module("motion_choreographer_node")
+MOTION_CHOREOGRAPHER_CLASS_MAPPINGS = _motion_choreographer_node.NODE_CLASS_MAPPINGS
+MOTION_CHOREOGRAPHER_DISPLAY_NAME_MAPPINGS = _motion_choreographer_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_cinematic_shot_designer_node = _import_node_module("cinematic_shot_designer_node")
+CINEMATIC_SHOT_DESIGNER_CLASS_MAPPINGS = _cinematic_shot_designer_node.NODE_CLASS_MAPPINGS
+CINEMATIC_SHOT_DESIGNER_DISPLAY_NAME_MAPPINGS = _cinematic_shot_designer_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_i2v_animation_describer_node = _import_node_module("i2v_animation_describer_node")
+I2V_ANIMATION_DESCRIBER_CLASS_MAPPINGS = _i2v_animation_describer_node.NODE_CLASS_MAPPINGS
+I2V_ANIMATION_DESCRIBER_DISPLAY_NAME_MAPPINGS = _i2v_animation_describer_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_prompt_relay_generator_node = _import_node_module("prompt_relay_generator_node")
+PROMPT_RELAY_GENERATOR_CLASS_MAPPINGS = _prompt_relay_generator_node.NODE_CLASS_MAPPINGS
+PROMPT_RELAY_GENERATOR_DISPLAY_NAME_MAPPINGS = _prompt_relay_generator_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_multi_clip_story_planner_node = _import_node_module("multi_clip_story_planner_node")
+MULTI_CLIP_STORY_PLANNER_CLASS_MAPPINGS = _multi_clip_story_planner_node.NODE_CLASS_MAPPINGS
+MULTI_CLIP_STORY_PLANNER_DISPLAY_NAME_MAPPINGS = _multi_clip_story_planner_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_image_to_video_adapter_node = _import_node_module("image_to_video_adapter_node")
+IMAGE_TO_VIDEO_ADAPTER_CLASS_MAPPINGS = _image_to_video_adapter_node.NODE_CLASS_MAPPINGS
+IMAGE_TO_VIDEO_ADAPTER_DISPLAY_NAME_MAPPINGS = _image_to_video_adapter_node.NODE_DISPLAY_NAME_MAPPINGS
+
+_video_negative_prompt_node = _import_node_module("video_negative_prompt_node")
+VIDEO_NEGATIVE_PROMPT_CLASS_MAPPINGS = _video_negative_prompt_node.NODE_CLASS_MAPPINGS
+VIDEO_NEGATIVE_PROMPT_DISPLAY_NAME_MAPPINGS = _video_negative_prompt_node.NODE_DISPLAY_NAME_MAPPINGS
+
 # === Combined Mappings ===
 
 NODE_CLASS_MAPPINGS = {
@@ -107,6 +149,17 @@ NODE_CLASS_MAPPINGS = {
     **LORA_DATASET_NODE_CLASS_MAPPINGS,
     # Utilities
     **UTILITY_NODE_CLASS_MAPPINGS,
+    # Video
+    **VIDEO_SCENE_EXPANDER_CLASS_MAPPINGS,
+    **VIDEO_PROMPT_BUILDER_CLASS_MAPPINGS,
+    **TEMPORAL_SCENE_PLANNER_CLASS_MAPPINGS,
+    **MOTION_CHOREOGRAPHER_CLASS_MAPPINGS,
+    **CINEMATIC_SHOT_DESIGNER_CLASS_MAPPINGS,
+    **I2V_ANIMATION_DESCRIBER_CLASS_MAPPINGS,
+    **PROMPT_RELAY_GENERATOR_CLASS_MAPPINGS,
+    **MULTI_CLIP_STORY_PLANNER_CLASS_MAPPINGS,
+    **IMAGE_TO_VIDEO_ADAPTER_CLASS_MAPPINGS,
+    **VIDEO_NEGATIVE_PROMPT_CLASS_MAPPINGS,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -124,4 +177,15 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **UTILITY_DISPLAY_NAME_MAPPINGS,
     # Training
     **LORA_DATASET_DISPLAY_NAME_MAPPINGS,
+    # Video
+    **VIDEO_SCENE_EXPANDER_DISPLAY_NAME_MAPPINGS,
+    **VIDEO_PROMPT_BUILDER_DISPLAY_NAME_MAPPINGS,
+    **TEMPORAL_SCENE_PLANNER_DISPLAY_NAME_MAPPINGS,
+    **MOTION_CHOREOGRAPHER_DISPLAY_NAME_MAPPINGS,
+    **CINEMATIC_SHOT_DESIGNER_DISPLAY_NAME_MAPPINGS,
+    **I2V_ANIMATION_DESCRIBER_DISPLAY_NAME_MAPPINGS,
+    **PROMPT_RELAY_GENERATOR_DISPLAY_NAME_MAPPINGS,
+    **MULTI_CLIP_STORY_PLANNER_DISPLAY_NAME_MAPPINGS,
+    **IMAGE_TO_VIDEO_ADAPTER_DISPLAY_NAME_MAPPINGS,
+    **VIDEO_NEGATIVE_PROMPT_DISPLAY_NAME_MAPPINGS,
 }

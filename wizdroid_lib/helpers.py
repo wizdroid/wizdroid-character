@@ -100,7 +100,7 @@ def choose(value: Optional[str], options: List[Any], rng: random.Random, seed: O
     if value == RANDOM_LABEL:
         pool = [opt for opt in normalized if opt != NONE_LABEL]
         if pool:
-            if seed is not None:
+            if seed:
                 # Sequential iteration: use seed as index
                 selection = pool[seed % len(pool)]
             else:
@@ -182,7 +182,7 @@ def choose_for_rating(
         if not pool:
             pool = [opt for opt in (sfw + nsfw) if opt != NONE_LABEL]
         if pool:
-            if seed is not None:
+            if seed:
                 # Sequential iteration: use seed as index
                 return pool[seed % len(pool)]
             else:

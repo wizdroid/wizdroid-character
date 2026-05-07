@@ -64,8 +64,8 @@ class WizdroidVideoPromptBuilderNode:
     """🎬 Build structured video prompts from categorical inputs for WAN 2.2 and LTX-Video."""
 
     CATEGORY = "🧙 Wizdroid/Video"
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("video_prompt", "negative_prompt", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("video_prompt",)
     FUNCTION = "build"
 
     @classmethod
@@ -155,8 +155,7 @@ class WizdroidVideoPromptBuilderNode:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = prompt
 
-        negative = _NEGATIVE_PROMPTS.get(target_model, "blurry, low quality, inconsistent motion")
-        return prompt, negative, prompt
+        return prompt
 
     @staticmethod
     def _invoke_llm(

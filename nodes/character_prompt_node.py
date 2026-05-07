@@ -38,8 +38,8 @@ class WizdroidCharacterPromptNode:
     """🧙 Generate detailed character prompts for AI image generation using Ollama LLM."""
 
     CATEGORY = "🧙 Wizdroid/Prompts"
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("prompt", "negative_prompt", "preview", "raw_prompt")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("prompt",)
     FUNCTION = "build_prompt"
 
     @classmethod
@@ -197,7 +197,7 @@ class WizdroidCharacterPromptNode:
         custom_text_llm: str,
         custom_text_append: str,
         seed: int = 0,
-    ) -> Tuple[str, str, str]:
+    ) -> str:
         # Load data
         opt = DataRegistry.get_character_options()
         styles = DataRegistry.get_prompt_styles()
@@ -310,9 +310,9 @@ class WizdroidCharacterPromptNode:
         # Validate content rating vs selections
         if content_rating == "SFW":
             if resolved.get("image_category") in set(image_nsfw):
-                return ("[ERROR: SFW rating but NSFW image_category selected]", "", "", "")
+                return "[ERROR: SFW rating but NSFW image_category selected]"
             if resolved.get("pose_style") in set(nsfw_poses):
-                return ("[ERROR: SFW rating but NSFW pose_style selected]", "", "", "")
+                return "[ERROR: SFW rating but NSFW pose_style selected]"
 
         # Smart country selection based on region
         if resolved.get("region") and country == RANDOM_LABEL:
@@ -348,8 +348,12 @@ class WizdroidCharacterPromptNode:
                 _PROMPT_CACHE.pop(next(iter(_PROMPT_CACHE)))
             _PROMPT_CACHE[cache_key] = (llm_response, raw_prompt)
 
-        negative_prompt = style_meta.get("negative_prompt", "")
-        final_prompt = (llm_response or "").strip()
+        # Determine final output: use LLM response if available, otherwise fallback to raw prompt
+        if llm_response and llm_response.strip():
+            final_prompt = llm_response.strip()
+        else:
+            # Fallback to raw prompt if LLM failed or returned empty
+            final_prompt = raw_prompt if raw_prompt else "[Error: No prompt generated]"
 
         # Prepend artistic category if needed
         img_cat = resolved.get("image_category")
@@ -369,10 +373,9 @@ class WizdroidCharacterPromptNode:
         if content_rating == "SFW":
             err = enforce_sfw(final_prompt)
             if err:
-                blocked = "[Blocked: potential NSFW content detected]"
-                return (blocked, negative_prompt, blocked, raw_prompt)
+                return "[Blocked: potential NSFW content detected]"
 
-        return (final_prompt, negative_prompt, final_prompt, raw_prompt)
+        return final_prompt
 
     @staticmethod
     def _invoke_llm(

@@ -62,8 +62,8 @@ class WizdroidSceneGeneratorNode:
     """🧙 Generate vivid scene prompts for any imaginable scenario using Ollama LLM."""
     
     CATEGORY = "🧙 Wizdroid/Prompts"
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("scene_prompt", "negative_prompt", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("scene_prompt",)
     FUNCTION = "generate_scene"
 
     @classmethod
@@ -236,7 +236,7 @@ class WizdroidSceneGeneratorNode:
         
         negative_prompt = style_meta.get("negative_prompt", "")
         
-        return scene_prompt, negative_prompt, scene_prompt
+        return scene_prompt
 
     @staticmethod
     def _invoke_llm(

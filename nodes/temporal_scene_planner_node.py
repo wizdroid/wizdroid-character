@@ -35,8 +35,8 @@ class WizdroidTemporalScenePlannerNode:
     """🎬 Plan video prompts with a full beginning-to-end temporal arc."""
 
     CATEGORY = "🧙 Wizdroid/Video"
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("video_prompt", "negative_prompt", "start_description", "end_description", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("video_prompt",)
     FUNCTION = "plan"
 
     @classmethod
@@ -91,9 +91,7 @@ class WizdroidTemporalScenePlannerNode:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = (video_prompt, start_desc, end_desc)
 
-        negative = _NEGATIVE_PROMPTS.get(target_model, "blurry, low quality, inconsistent motion")
-        preview = f"[ARC: {arc_type}]\n{video_prompt}"
-        return video_prompt, negative, start_desc, end_desc, preview
+        return video_prompt
 
     @staticmethod
     def _invoke_llm(

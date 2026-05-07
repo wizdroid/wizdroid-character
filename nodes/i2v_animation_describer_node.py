@@ -28,8 +28,8 @@ class WizdroidI2VAnimationDescriberNode:
     """🎬 Turn a static image description into an I2V animation prompt."""
 
     CATEGORY = "🧙 Wizdroid/Video"
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("animation_prompt", "negative_prompt", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("animation_prompt",)
     FUNCTION = "describe"
 
     @classmethod
@@ -85,8 +85,7 @@ class WizdroidI2VAnimationDescriberNode:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = prompt
 
-        negative = _NEGATIVE_PROMPTS.get(target_model, "worst quality, inconsistent motion, blurry, jittery, distorted")
-        return prompt, negative, prompt
+        return prompt
 
     @staticmethod
     def _invoke_llm(

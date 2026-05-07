@@ -77,8 +77,8 @@ class WizdroidVideoSceneExpanderNode:
     """🎬 Expand short scene ideas into full video prompts for WAN 2.2 and LTX-Video."""
 
     CATEGORY = "🧙 Wizdroid/Video"
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("video_prompt", "negative_prompt", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("video_prompt",)
     FUNCTION = "expand"
 
     @classmethod
@@ -137,8 +137,7 @@ class WizdroidVideoSceneExpanderNode:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = prompt
 
-        negative = _NEGATIVE_PROMPTS.get(target_model, "blurry, low quality, inconsistent motion")
-        return prompt, negative, prompt
+        return prompt
 
     @staticmethod
     def _invoke_llm(

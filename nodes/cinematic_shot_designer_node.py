@@ -57,8 +57,8 @@ class WizdroidCinematicShotDesignerNode:
     """🎬 Design cinematic camera shots and movements for video prompts."""
 
     CATEGORY = "🧙 Wizdroid/Video"
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("shot_description", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("shot_description",)
     FUNCTION = "design"
 
     @classmethod
@@ -127,7 +127,7 @@ class WizdroidCinematicShotDesignerNode:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = desc
 
-        return desc, desc
+        return (desc,)
 
     @staticmethod
     def _invoke_llm(

@@ -131,6 +131,12 @@ class WizdroidMetaPromptNode:
                         "max": 0xFFFFFFFFFFFFFFFF,
                     },
                 ),
+                "output_language": (
+                    ["English", "Deutsch", "中文", "日本語"],
+                    {
+                        "default": "English",
+                    },
+                ),
             },
             "optional": {
                 "max_tokens": (
@@ -171,6 +177,7 @@ class WizdroidMetaPromptNode:
         mythological_element: str,
         visual_style: str,
         seed: int,
+        output_language: str = "English",
         max_tokens: int = 1024,
         temperature: float = 0.8,
     ) -> Tuple[str]:
@@ -235,6 +242,11 @@ class WizdroidMetaPromptNode:
             prompt_input = f"{keyword_payload}\n{context_block}"
         else:
             prompt_input = keyword_payload
+
+        # Add translation instruction if language is not English
+        target_language = output_language.strip() or "English"
+        if target_language.lower() not in ("english", "en"):
+            prompt_input += f"\n\nIMPORTANT: Generate the final prompt entirely in {target_language} language. All output must be in {target_language}."
 
         system_prompt = load_system_prompt_text("system_prompts/meta_prompt_system.txt", content_rating)
         ok, output = generate_text(

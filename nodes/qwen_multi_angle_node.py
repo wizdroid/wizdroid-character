@@ -62,8 +62,8 @@ class WizdroidCharacterEditNode:
     """🧙 Generate character edit prompts with multiple reference images for image editing models."""
 
     CATEGORY = "🧙 Wizdroid/Prompts"
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("prompt", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("prompt",)
     FUNCTION = "generate_prompt"
 
     @classmethod
@@ -387,7 +387,7 @@ class WizdroidCharacterEditNode:
         
         preview = "\n".join(preview_lines)
         
-        return (prompt, preview)
+        return (prompt,)
 
     @staticmethod
     def _resolve(value: str, options: list, rng: random.Random) -> str:

@@ -316,8 +316,8 @@ class WizdroidPhotoAspectNode:
     """🧙 Extract aspects (clothes, pose, style) from images using Ollama vision models."""
 
     CATEGORY = "🧙 Wizdroid/Analysis"
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("extracted_prompt", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("extracted_prompt",)
     FUNCTION = "extract_aspect"
 
     @classmethod
@@ -367,7 +367,7 @@ class WizdroidPhotoAspectNode:
         modes = _get_extraction_modes()
         mode_config = modes.get(extraction_mode) or modes.get("clothes") or {}
         if not mode_config:
-            return ("[ERROR: photo_aspect_modes.json missing or invalid]", "[ERROR: photo_aspect_modes.json missing or invalid]")
+            return ("[ERROR: photo_aspect_modes.json missing or invalid]",)
 
         # Modify prompts for face preservation if enabled
         analysis_prompt = mode_config.get("analysis_prompt", "Describe the image.")
@@ -428,7 +428,7 @@ class WizdroidPhotoAspectNode:
         
         if character_desc.startswith("[ERROR"):
             error_msg = f"Failed to analyze image: {character_desc}"
-            return (error_msg, error_msg)
+            return (error_msg,)
         
         print(f"[PhotoAspectExtractor] Analysis complete")
         print(f"  - Extracted {extraction_mode}: {character_desc[:80]}...")
@@ -541,8 +541,8 @@ Requirements:
             err = enforce_sfw(out)
             if err:
                 blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]"
-                return (blocked, blocked)
-        return (out, out)
+                return (blocked,)
+        return (out,)
     
     def _analyze_single_image(
         self,

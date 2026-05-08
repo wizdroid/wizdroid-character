@@ -31,8 +31,8 @@ class WizdroidPromptRelayGeneratorNode:
     """🎬 Generate time-segmented prompt sequences for WAN Prompt Relay temporal control."""
 
     CATEGORY = "🧙 Wizdroid/Video"
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("segment_1", "segment_2", "segment_3", "segment_4", "timecodes", "preview")
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("segment_1", "segment_2", "segment_3", "segment_4", "timecodes")
     FUNCTION = "generate"
 
     @classmethod
@@ -91,11 +91,7 @@ class WizdroidPromptRelayGeneratorNode:
         while len(segments) < 4:
             segments.append("")
 
-        preview_parts = [f"Timecodes: {timecodes}"]
-        for i, seg in enumerate(segments[:num_segments], 1):
-            preview_parts.append(f"[Segment {i}]\n{seg}")
-
-        return segments[0], segments[1], segments[2], segments[3], timecodes, "\n\n".join(preview_parts)
+        return segments[0], segments[1], segments[2], segments[3], timecodes
 
     @staticmethod
     def _invoke_llm(

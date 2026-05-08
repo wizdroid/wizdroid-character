@@ -29,8 +29,8 @@ class WizdroidPromptCombinerNode:
     """🧙 Combine multiple text prompts into one coherent prompt using Ollama LLM."""
 
     CATEGORY = "🧙 Wizdroid/Prompts"
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("combined_prompt", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("combined_prompt",)
     FUNCTION = "combine_prompts"
 
     @classmethod
@@ -142,7 +142,7 @@ class WizdroidPromptCombinerNode:
 
         if not ok:
             error_msg = f"Failed to combine prompts: {response}"
-            return (error_msg, error_msg)
+            return (error_msg,)
 
         if content_rating == "SFW":
             err = enforce_sfw(response)
@@ -151,9 +151,9 @@ class WizdroidPromptCombinerNode:
                     "PromptCombiner blocked: potential NSFW content detected. "
                     "Switch content_rating to 'Mixed' or 'NSFW' or revise inputs."
                 )
-                return (blocked, blocked)
+                return (blocked,)
 
-        return (response, response)
+        return (response,)
 
 
 NODE_CLASS_MAPPINGS = {

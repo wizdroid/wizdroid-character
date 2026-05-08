@@ -21,8 +21,8 @@ class WizdroidImageEditNode:
     """🧙 Generate prompts for multi-image AI editing models using Ollama LLM."""
 
     CATEGORY = "🧙 Wizdroid/Prompts"
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("edit_prompt", "preview")
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("edit_prompt",)
     FUNCTION = "generate_edit_prompt"
 
     @classmethod
@@ -70,7 +70,7 @@ class WizdroidImageEditNode:
         image_3_description: str,
         additional_instructions: str,
         seed: int = 0,
-    ) -> Tuple[str, str]:
+    ) -> Tuple[str]:
         logger = logging.getLogger(__name__)
 
         # Validate inputs
@@ -80,11 +80,11 @@ class WizdroidImageEditNode:
 
         if not img1:
             error = "[ERROR: Image 1 description is required]"
-            return (error, error)
+            return (error,)
 
         if not img2:
             error = "[ERROR: Image 2 description is required]"
-            return (error, error)
+            return (error,)
 
         # Build the mode-specific guidance
         mode_guidance = self._get_mode_guidance(edit_mode, img1, img2, img3)
@@ -165,9 +165,9 @@ class WizdroidImageEditNode:
 
         if not ok:
             error_msg = f"Failed to generate prompt: {response}"
-            return (error_msg, error_msg)
+            return (error_msg,)
 
-        return (response, response)
+        return (response,)
 
     def _get_mode_guidance(self, edit_mode: str, img1: str, img2: str, img3: str) -> str:
         """Get mode-specific guidance for prompt generation."""

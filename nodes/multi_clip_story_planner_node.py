@@ -41,8 +41,8 @@ class WizdroidMultiClipStoryPlannerNode:
     """🎬 Plan a multi-clip story sequence with individual prompts for each clip."""
 
     CATEGORY = "🧙 Wizdroid/Video"
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("clip_1", "clip_2", "clip_3", "clip_4", "clip_5", "clip_6", "story_summary", "preview")
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("clip_1", "clip_2", "clip_3", "clip_4", "clip_5", "clip_6", "story_summary")
     FUNCTION = "plan"
 
     @classmethod
@@ -104,11 +104,7 @@ class WizdroidMultiClipStoryPlannerNode:
         while len(clips) < 6:
             clips.append("")
 
-        preview_lines = [f"Story: {summary}", ""]
-        for i, clip in enumerate(clips[:num_clips], 1):
-            preview_lines.append(f"[Clip {i}]\n{clip}")
-
-        return (*clips[:6], summary, "\n\n".join(preview_lines))
+        return (*clips[:6], summary)
 
     @staticmethod
     def _invoke_llm(

@@ -243,10 +243,7 @@ class WizdroidMetaPromptNode:
         else:
             prompt_input = keyword_payload
 
-        # Add translation instruction if language is not English
         target_language = output_language.strip() or "English"
-        if target_language.lower() not in ("english", "en"):
-            prompt_input += f"\n\nIMPORTANT: Generate the final prompt entirely in {target_language} language. All output must be in {target_language}."
 
         system_prompt = load_system_prompt_text("system_prompts/meta_prompt_system.txt", content_rating)
         ok, output = generate_text(
@@ -275,6 +272,28 @@ class WizdroidMetaPromptNode:
                     "MetaPrompt blocked: potential NSFW content detected. "
                     "Switch content_rating to 'Mixed' or 'NSFW' or revise keywords.",
                 )
+
+        if target_language.lower() not in ("english", "en"):
+            import requests
+
+            lang_map = {
+                "Deutsch": "de",
+                "中文": "zh-cn",
+                "日本語": "ja"
+            }
+            tl = lang_map.get(target_language, "en")
+
+            if tl != "en":
+                try:
+                    url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl={tl}&dt=t"
+                    response = requests.post(url, data={"q": output}, timeout=10)
+                    if response.status_code == 200:
+                        data = response.json()
+                        output = "".join([segment[0] for segment in data[0] if segment[0]])
+                    else:
+                        print(f"MetaPrompt Translation warning: failed with status {response.status_code}")
+                except Exception as e:
+                    print(f"MetaPrompt Translation error: {e}")
 
         return (output,)
 

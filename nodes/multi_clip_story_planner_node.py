@@ -52,7 +52,6 @@ class WizdroidMultiClipStoryPlannerNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "target_model": (VIDEO_MODELS, {"default": "WAN-T2V"}),
                 "story_concept": ("STRING", {"multiline": True, "default": "", "placeholder": "Describe the story, e.g. 'a detective tracking a thief through a rain-soaked city'"}),
                 "num_clips": ("INT", {"default": 3, "min": 2, "max": 6, "step": 1}),
@@ -67,7 +66,6 @@ class WizdroidMultiClipStoryPlannerNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         story_concept: str,
         num_clips: int,
@@ -84,8 +82,7 @@ class WizdroidMultiClipStoryPlannerNode:
             "genre": story_genre,
             "model": target_model,
             "temp": temperature,
-            "content_rating": content_rating,
-            "seed": seed,
+                        "seed": seed,
         }
 
         cache_key = _cache_key(selections)
@@ -93,7 +90,7 @@ class WizdroidMultiClipStoryPlannerNode:
             clips, summary = _CACHE[cache_key]
         else:
             clips, summary = self._invoke_llm(
-                ollama_url, ollama_model, content_rating, target_model,
+                ollama_url, ollama_model, target_model,
                 story_concept, num_clips, story_genre, temperature, max_tokens,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
@@ -110,7 +107,6 @@ class WizdroidMultiClipStoryPlannerNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         story_concept: str,
         num_clips: int,
@@ -121,7 +117,7 @@ class WizdroidMultiClipStoryPlannerNode:
         model_rules = _MODEL_STYLE_RULES.get(target_model, _MODEL_STYLE_RULES["WAN-T2V"])
         system_prompt = load_system_prompt_template(
             "system_prompts/multi_clip_story_planner_system.txt",
-            content_rating,
+            
             model_style_rules=model_rules,
             num_clips=num_clips,
             story_genre=story_genre,
@@ -153,7 +149,7 @@ class WizdroidMultiClipStoryPlannerNode:
         for i in range(1, num_clips + 1):
             clip = _parse_clip(result, i)
             clip = _clean_output(clip) if clip else ""
-            if content_rating == "SFW" and clip:
+            if clip:
                 if err := enforce_sfw(clip):
                     clip = f"[Blocked: {err}]"
             clips.append(clip or f"[Empty clip {i}]")

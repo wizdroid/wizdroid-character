@@ -91,8 +91,7 @@ class WizdroidImageEditNode:
 
         # Load system prompt (using SFW as default since this is for editing)
         system_prompt = load_system_prompt_text(
-            "system_prompts/qwen_image_edit_system.txt",
-            "SFW",
+            "system_prompts/qwen_image_edit_system.txt"
         )
 
         # Build user prompt

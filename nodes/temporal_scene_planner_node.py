@@ -46,7 +46,6 @@ class WizdroidTemporalScenePlannerNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "target_model": (VIDEO_MODELS, {"default": "WAN-T2V"}),
                 "concept": ("STRING", {"multiline": True, "default": "", "placeholder": "Describe the concept, e.g. 'a samurai facing a setting sun before battle'"}),
                 "arc_type": (ARC_TYPES, {"default": "buildup"}),
@@ -60,7 +59,6 @@ class WizdroidTemporalScenePlannerNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         concept: str,
         arc_type: str,
@@ -75,8 +73,7 @@ class WizdroidTemporalScenePlannerNode:
             "model": target_model,
             "arc": arc_type,
             "temp": temperature,
-            "content_rating": content_rating,
-            "seed": seed,
+                        "seed": seed,
         }
 
         cache_key = _cache_key(selections)
@@ -84,7 +81,7 @@ class WizdroidTemporalScenePlannerNode:
             video_prompt, start_desc, end_desc = _CACHE[cache_key]
         else:
             video_prompt, start_desc, end_desc = self._invoke_llm(
-                ollama_url, ollama_model, content_rating, target_model,
+                ollama_url, ollama_model, target_model,
                 concept, arc_type, temperature, max_tokens,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
@@ -97,7 +94,6 @@ class WizdroidTemporalScenePlannerNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         concept: str,
         arc_type: str,
@@ -107,7 +103,7 @@ class WizdroidTemporalScenePlannerNode:
         model_rules = _MODEL_STYLE_RULES.get(target_model, _MODEL_STYLE_RULES["WAN-T2V"])
         system_prompt = load_system_prompt_template(
             "system_prompts/temporal_scene_planner_system.txt",
-            content_rating,
+            
             model_style_rules=model_rules,
             arc_type=arc_type,
         )
@@ -136,7 +132,7 @@ class WizdroidTemporalScenePlannerNode:
         start_desc = _parse_tagged(result, "START")
         end_desc = _parse_tagged(result, "END")
 
-        if content_rating == "SFW":
+        if True:
             for text in (video_prompt, start_desc, end_desc):
                 if err := enforce_sfw(text):
                     return f"[Blocked: {err}]", "", ""

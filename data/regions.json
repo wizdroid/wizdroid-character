@@ -1,29 +1,56 @@
 {
-  "regions": [
-    "Arctic Regions",
-    "British Isles",
-    "Caribbean",
-    "Central Africa",
-    "Central America",
-    "Central Asia",
-    "East Africa",
-    "East Asia",
-    "Eastern Europe",
-    "Mediterranean",
-    "Middle East",
-    "none",
-    "North Africa",
-    "North America",
-    "Northern Europe",
-    "Oceania",
-    "Pacific Islands",
-    "Scandinavia",
-    "South America",
-    "South Asia",
-    "Southeast Asia",
-    "Southern Africa",
-    "Southern Europe",
-    "West Africa",
-    "Western Europe"
-  ]
+  "regions": {
+    "north_america": [
+      {"name": "North America", "description": "Diverse landscapes from Arctic tundra to tropical beaches, modern cities, vast prairies, and mountain ranges."},
+      {"name": "Pacific Northwest", "description": "Rainforests, volcanoes, coastal fog, evergreen forests, and rugged Pacific coastline."},
+      {"name": "American Southwest", "description": "Desert landscapes, canyons, Native American cultural influences, adobe architecture, and vibrant sunsets."},
+      {"name": "Northeastern US", "description": "Colonial architecture, autumn foliage, urban skylines, and coastal New England charm."},
+      {"name": "Southern US", "description": "Plantation homes, bayous, barbecue culture, Spanish moss, and warm hospitality."},
+      {"name": "Canadian Prairies", "description": "Golden wheat fields, ranching culture, vast horizons, and harsh winters."},
+      {"name": "Mexican Culture", "description": "Colorful colonial cities, Aztec pyramids, vibrant markets, and desert oases."}
+    ],
+    "south_america": [
+      {"name": "South America", "description": "Amazon rainforest, Andean peaks, tango culture, Carnival celebrations, and diverse indigenous heritage."},
+      {"name": "Andean Region", "description": "Incan ruins, high-altitude plateaus, llama herders, colorful woven textiles, and colonial churches."},
+      {"name": "Amazon Basin", "description": "Dense rainforest, indigenous tribes, exotic wildlife, river villages, and shamanic traditions."},
+      {"name": "Pampas Region", "description": "Endless grasslands, gaucho culture, cattle ranches, and dramatic thunderstorms."},
+      {"name": "Brazilian Culture", "description": "Carnival parades, samba rhythms, Copacabana beaches, and tropical exuberance."},
+      {"name": "Patagonia", "description": "Glaciers, fjords, penguins, rugged mountains, and windswept plains."}
+    ],
+    "europe": [
+      {"name": "Western Europe", "description": "Medieval castles, Renaissance art, Gothic cathedrals, wine regions, and cultural sophistication."},
+      {"name": "Northern Europe", "description": "Viking heritage, fjords, midnight sun, hygge lifestyle, and minimalist design."},
+      {"name": "Eastern Europe", "description": "Byzantine churches, communist architecture, folk traditions, and resilient spirit."},
+      {"name": "Southern Europe", "description": "Mediterranean villas, olive groves, passionate culture, and ancient ruins."},
+      {"name": "British Isles", "description": "Stone circles, thatched cottages, afternoon tea, and literary heritage."},
+      {"name": "Scandinavia", "description": "Nordic mythology, sauna culture, design innovation, and natural beauty."},
+      {"name": "Mediterranean", "description": "Azure seas, whitewashed buildings, fresh seafood, and leisurely pace of life."}
+    ],
+    "asia": [
+      {"name": "East Asia", "description": "Ancient temples, tea ceremonies, calligraphy, cherry blossoms, and technological innovation."},
+      {"name": "South Asia", "description": "Spice markets, Mughal palaces, yoga traditions, colorful festivals, and spiritual diversity."},
+      {"name": "Southeast Asia", "description": "Tropical islands, rice terraces, Buddhist temples, street food culture, and vibrant textiles."},
+      {"name": "Central Asia", "description": "Silk Road caravans, nomadic yurts, mountain passes, and ancient trading cities."},
+      {"name": "Middle East", "description": "Desert oases, minarets, bazaars, calligraphy art, and rich storytelling traditions."}
+    ],
+    "africa": [
+      {"name": "North Africa", "description": "Ancient pyramids, Mediterranean ports, desert caravans, and Islamic architecture."},
+      {"name": "West Africa", "description": "Tribal masks, kente cloth, drum circles, and vibrant marketplaces."},
+      {"name": "East Africa", "description": "Savanna wildlife, Maasai warriors, spice islands, and Great Rift Valley."},
+      {"name": "Central Africa", "description": "Dense rainforests, pygmy culture, gorilla habitats, and equatorial climate."},
+      {"name": "Southern Africa", "description": "Safari landscapes, wine estates, mining towns, and diverse wildlife reserves."}
+    ],
+    "oceania": [
+      {"name": "Oceania", "description": "Coral reefs, Aboriginal dreamtime, Maori culture, and island paradises."},
+      {"name": "Pacific Islands", "description": "Volcanic islands, palm-fringed beaches, traditional navigation, and Polynesian heritage."},
+      {"name": "Australian Outback", "description": "Red desert, Aboriginal rock art, kangaroos, and vast cattle stations."},
+      {"name": "New Zealand", "description": "Fiordlands, Maori hangi, sheep farms, and adventure sports culture."}
+    ],
+    "polar_arctic": [
+      {"name": "Arctic Regions", "description": "Ice floes, polar bears, Inuit culture, northern lights, and extreme cold adaptation."}
+    ],
+    "caribbean": [
+      {"name": "Caribbean", "description": "Crystal waters, reggae music, colonial forts, tropical fruits, and island festivals."}
+    ]
+  }
 }

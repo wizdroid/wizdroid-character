@@ -65,7 +65,13 @@ class WizdroidCharacterPromptNode:
 
         # Extract name lists from shared data
         body_types = normalize_option_list(body_data.get("body_types", []))
-        emotions = emotions_data.get("emotions", [])
+        emotions_nested = emotions_data.get("emotions", {})
+        emotions = []
+        if isinstance(emotions_nested, dict):
+            for category in emotions_nested.values():
+                emotions.extend(normalize_option_list(category))
+        else:
+            emotions = normalize_option_list(emotions_nested)
         eye_colors = eye_data.get("eye_colors", [])
         hair_colors = hair_data.get("hair_colors", [])
         hair_styles = (
@@ -111,7 +117,6 @@ class WizdroidCharacterPromptNode:
                 # LLM Settings
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (tuple(styles.keys()), {"default": "SDXL"}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 1024, "min": 50, "max": 2048, "step": 10}),
@@ -162,7 +167,6 @@ class WizdroidCharacterPromptNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         prompt_style: str,
         temperature: float,
         max_tokens: int,
@@ -246,7 +250,13 @@ class WizdroidCharacterPromptNode:
         nsfw_poses = poses_data.get("pose_styles", {}).get("nsfw", [])
 
         # Non-gender-filtered shared data
-        emotions = emotions_data.get("emotions", [])
+        emotions_nested = emotions_data.get("emotions", {})
+        emotions = []
+        if isinstance(emotions_nested, dict):
+            for category in emotions_nested.values():
+                emotions.extend(normalize_option_list(category))
+        else:
+            emotions = normalize_option_list(emotions_nested)
         eye_colors = eye_data.get("eye_colors", [])
         hair_colors = hair_data.get("hair_colors", [])
         hair_styles = hair_data.get("hair_styles", {}).get("any", [])
@@ -273,7 +283,7 @@ class WizdroidCharacterPromptNode:
             return choose(val, opts, rng, seed)
 
         def resolve_rated(val: str, sfw: List[str], nsfw: List[str]) -> Optional[str]:
-            return choose_for_rating(val, sfw, nsfw, content_rating, rng, seed)
+            return choose_for_rating(val, sfw, nsfw, rng, seed)
 
         resolved = {
             "character_name": character_name.strip() or None,
@@ -308,7 +318,7 @@ class WizdroidCharacterPromptNode:
         }
 
         # Validate content rating vs selections
-        if content_rating == "SFW":
+        if True:
             if resolved.get("image_category") in set(image_nsfw):
                 return "[ERROR: SFW rating but NSFW image_category selected]"
             if resolved.get("pose_style") in set(nsfw_poses):
@@ -339,7 +349,7 @@ class WizdroidCharacterPromptNode:
             }
 
             llm_response, raw_prompt = self._invoke_llm(
-                ollama_url, ollama_model, content_rating, prompt_style, retain_face,
+                ollama_url, ollama_model, prompt_style, retain_face,
                 style_meta, resolved, desc_maps, custom_text, temperature, max_tokens, seed
             )
 
@@ -370,7 +380,7 @@ class WizdroidCharacterPromptNode:
             final_prompt = f"{final_prompt.rstrip()}{sep}{append_text}" if final_prompt else append_text
 
         # SFW safety check
-        if content_rating == "SFW":
+        if True:
             err = enforce_sfw(final_prompt)
             if err:
                 return "[Blocked: potential NSFW content detected]"
@@ -381,7 +391,6 @@ class WizdroidCharacterPromptNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         prompt_style: str,
         retain_face: bool,
         style_meta: Dict,
@@ -418,7 +427,7 @@ class WizdroidCharacterPromptNode:
 
         # Load system prompt
         template = "system_prompts/character_prompt_system_retain_face.txt" if retain_face else "system_prompts/character_prompt_system.txt"
-        system_prompt = load_system_prompt_template(template, content_rating, style_directive=style_directive)
+        system_prompt = load_system_prompt_template(template, style_directive=style_directive)
 
         # Build context from descriptions
         context_lines = []

@@ -88,7 +88,6 @@ class WizdroidVideoSceneExpanderNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "target_model": (VIDEO_MODELS, {"default": "WAN-T2V"}),
                 "user_text": ("STRING", {"multiline": True, "default": "", "placeholder": "Describe your scene idea, e.g. 'woman running through a neon city at night'"}),
                 "duration_seconds": ("INT", {"default": 5, "min": 2, "max": 60, "step": 1}),
@@ -103,7 +102,6 @@ class WizdroidVideoSceneExpanderNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         user_text: str,
         duration_seconds: int,
@@ -121,8 +119,7 @@ class WizdroidVideoSceneExpanderNode:
             "intensity": motion_intensity,
             "temp": temperature,
             "max_tokens": max_tokens,
-            "content_rating": content_rating,
-            "seed": seed,
+                        "seed": seed,
         }
 
         cache_key = _cache_key(selections)
@@ -130,7 +127,7 @@ class WizdroidVideoSceneExpanderNode:
             prompt = _CACHE[cache_key]
         else:
             prompt = self._invoke_llm(
-                ollama_url, ollama_model, content_rating, target_model,
+                ollama_url, ollama_model, target_model,
                 user_text, duration_seconds, motion_intensity, temperature, max_tokens,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
@@ -143,7 +140,6 @@ class WizdroidVideoSceneExpanderNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         user_text: str,
         duration_seconds: int,
@@ -154,7 +150,7 @@ class WizdroidVideoSceneExpanderNode:
         model_rules = _MODEL_STYLE_RULES.get(target_model, _MODEL_STYLE_RULES["WAN-T2V"])
         system_prompt = load_system_prompt_template(
             "system_prompts/video_scene_expander_system.txt",
-            content_rating,
+            
             model_style_rules=model_rules,
             duration_seconds=duration_seconds,
         )
@@ -180,7 +176,7 @@ class WizdroidVideoSceneExpanderNode:
 
         result = _clean_output(result)
 
-        if content_rating == "SFW":
+        if True:
             if err := enforce_sfw(result):
                 return f"[Blocked: {err}]"
 

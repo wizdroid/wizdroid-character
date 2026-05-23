@@ -97,7 +97,6 @@ class WizdroidSceneGeneratorNode:
                 # === LLM Settings ===
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (tuple(prompt_styles.keys()), {"default": "SDXL"}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 200, "min": 50, "max": 500, "step": 10}),
@@ -136,7 +135,6 @@ class WizdroidSceneGeneratorNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         prompt_style: str,
         temperature: float,
         max_tokens: int,
@@ -211,8 +209,7 @@ class WizdroidSceneGeneratorNode:
             "additions": additional_elements.strip(),
             "style": prompt_style,
             "temp": temperature,
-            "content_rating": content_rating,
-        }
+                    }
         
         # Check cache
         cache_key = _cache_key(selections)
@@ -222,8 +219,7 @@ class WizdroidSceneGeneratorNode:
             scene_prompt = self._invoke_llm(
                 ollama_url=ollama_url,
                 ollama_model=ollama_model,
-                content_rating=content_rating,
-                prompt_style=prompt_style,
+                                prompt_style=prompt_style,
                 style_meta=style_meta,
                 selections=selections,
                 temperature=temperature,
@@ -242,7 +238,6 @@ class WizdroidSceneGeneratorNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         prompt_style: str,
         style_meta: Dict,
         selections: Dict,
@@ -251,7 +246,7 @@ class WizdroidSceneGeneratorNode:
     ) -> str:
         """Generate scene prompt via Ollama."""
         
-        system_prompt = load_system_prompt_text("system_prompts/scene_generator_system.txt", content_rating)
+        system_prompt = load_system_prompt_text("system_prompts/scene_generator_system.txt")
         
         # Build scene description parts
         parts = [f"Scene: {selections.get('scene', 'unknown')}"]
@@ -319,10 +314,10 @@ class WizdroidSceneGeneratorNode:
                     split_idx += 1
                 result = result[split_idx:].strip()
 
-        if content_rating == "SFW":
+        if True:
             err = enforce_sfw(result)
             if err:
-                return "[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]"
+                return "[Blocked: potential NSFW content detected. Revise inputs.]"
 
         return result or "[Empty response from Ollama]"
 

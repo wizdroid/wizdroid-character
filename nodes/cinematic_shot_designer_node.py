@@ -75,7 +75,6 @@ class WizdroidCinematicShotDesignerNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "subject_description": ("STRING", {"multiline": True, "default": "", "placeholder": "Brief subject hint, e.g. 'a woman standing in a doorway'"}),
                 "shot_type": (with_random(shot_types), {"default": RANDOM_LABEL}),
                 "camera_movement": (with_random(movements), {"default": RANDOM_LABEL}),
@@ -89,7 +88,6 @@ class WizdroidCinematicShotDesignerNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         subject_description: str,
         shot_type: str,
         camera_movement: str,
@@ -111,8 +109,7 @@ class WizdroidCinematicShotDesignerNode:
             "movement": resolved_move,
             "lens": resolved_lens,
             "temp": temperature,
-            "content_rating": content_rating,
-            "seed": seed,
+                        "seed": seed,
         }
 
         cache_key = _cache_key(selections)
@@ -120,7 +117,7 @@ class WizdroidCinematicShotDesignerNode:
             desc = _CACHE[cache_key]
         else:
             desc = self._invoke_llm(
-                ollama_url, ollama_model, content_rating,
+                ollama_url, ollama_model,
                 subject_description, resolved_shot, resolved_move, resolved_lens, temperature,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
@@ -131,12 +128,11 @@ class WizdroidCinematicShotDesignerNode:
 
     @staticmethod
     def _invoke_llm(
-        ollama_url: str, ollama_model: str, content_rating: str,
-        subject: str, shot_type: str, camera_movement: str, lens_type: str, temperature: float,
+        ollama_url: str, ollama_model: str,         subject: str, shot_type: str, camera_movement: str, lens_type: str, temperature: float,
     ) -> str:
         system_prompt = load_system_prompt_template(
             "system_prompts/cinematic_shot_designer_system.txt",
-            content_rating,
+            
             shot_type=shot_type or "medium shot",
             camera_movement=camera_movement or "static hold",
             lens_type=lens_type or "standard 50mm",
@@ -164,7 +160,7 @@ class WizdroidCinematicShotDesignerNode:
 
         result = _clean_output(result)
 
-        if content_rating == "SFW":
+        if True:
             if err := enforce_sfw(result):
                 return f"[Blocked: {err}]"
 

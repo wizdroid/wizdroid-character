@@ -34,7 +34,6 @@ class WizdroidImageToVideoAdapterNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "target_model": (VIDEO_MODELS, {"default": "WAN-T2V"}),
                 "image_prompt": ("STRING", {"multiline": True, "default": "", "placeholder": "Paste your image prompt here — from Character, Scene, or any other node"}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.1}),
@@ -50,7 +49,6 @@ class WizdroidImageToVideoAdapterNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         image_prompt: str,
         temperature: float,
@@ -66,8 +64,7 @@ class WizdroidImageToVideoAdapterNode:
             "motion_hint": motion_hint.strip(),
             "temp": temperature,
             "max_tokens": max_tokens,
-            "content_rating": content_rating,
-            "seed": seed,
+                        "seed": seed,
         }
 
         cache_key = _cache_key(selections)
@@ -75,7 +72,7 @@ class WizdroidImageToVideoAdapterNode:
             prompt = _CACHE[cache_key]
         else:
             prompt = self._invoke_llm(
-                ollama_url, ollama_model, content_rating, target_model,
+                ollama_url, ollama_model, target_model,
                 image_prompt, motion_hint, temperature, max_tokens,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
@@ -88,7 +85,6 @@ class WizdroidImageToVideoAdapterNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         image_prompt: str,
         motion_hint: str,
@@ -98,7 +94,7 @@ class WizdroidImageToVideoAdapterNode:
         model_rules = _MODEL_STYLE_RULES.get(target_model, _MODEL_STYLE_RULES["WAN-T2V"])
         system_prompt = load_system_prompt_template(
             "system_prompts/image_to_video_adapter_system.txt",
-            content_rating,
+            
             model_style_rules=model_rules,
         )
 
@@ -124,7 +120,7 @@ class WizdroidImageToVideoAdapterNode:
 
         result = _clean_output(result)
 
-        if content_rating == "SFW":
+        if True:
             if err := enforce_sfw(result):
                 return f"[Blocked: {err}]"
 

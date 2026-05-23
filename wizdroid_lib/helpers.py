@@ -155,20 +155,15 @@ def split_groups(payload: Any) -> Tuple[List[str], List[str]]:
     return [], []
 
 
-def pool_for_rating(rating: str, sfw: List[str], nsfw: List[str]) -> List[str]:
+def pool_for_rating(sfw: List[str], nsfw: List[str]) -> List[str]:
     """Get appropriate pool based on content rating."""
-    if rating == "SFW":
-        return sfw
-    if rating == "NSFW":
-        return nsfw
-    return sfw + nsfw  # Mixed
+    return sfw
 
 
 def choose_for_rating(
     value: Optional[str],
     sfw: List[str],
     nsfw: List[str],
-    rating: str,
     rng: random.Random,
     seed: Optional[int] = None,
 ) -> Optional[str]:
@@ -178,7 +173,7 @@ def choose_for_rating(
     This allows incrementing seed from 0 to iterate through the list in order.
     """
     if value == RANDOM_LABEL:
-        pool = [opt for opt in pool_for_rating(rating, sfw, nsfw) if opt != NONE_LABEL]
+        pool = [opt for opt in pool_for_rating(sfw, nsfw) if opt != NONE_LABEL]
         if not pool:
             pool = [opt for opt in (sfw + nsfw) if opt != NONE_LABEL]
         if pool:

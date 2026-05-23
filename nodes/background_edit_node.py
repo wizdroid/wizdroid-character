@@ -59,7 +59,6 @@ class WizdroidBackgroundNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (tuple(prompt_styles.keys()), {"default": "SDXL"}),
                 "studio_background": (with_random(studio_backgrounds), {"default": RANDOM_LABEL}),
                 "real_background": (with_random(real_backgrounds), {"default": NONE_LABEL}),
@@ -86,7 +85,6 @@ class WizdroidBackgroundNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         prompt_style: str,
         studio_background: str,
         real_background: str,
@@ -181,7 +179,7 @@ class WizdroidBackgroundNode:
 
         attribute_blob = ", ".join(attr_parts)
 
-        system_prompt = load_system_prompt_text("system_prompts/background_edit_system.txt", content_rating)
+        system_prompt = load_system_prompt_text("system_prompts/background_edit_system.txt")
 
         user_prompt = (
             f"Create a {prompt_style} surreal background without any humans."
@@ -209,10 +207,10 @@ class WizdroidBackgroundNode:
         else:
             bg_prompt, style_hint = raw, ""
 
-        if content_rating == "SFW":
+        if True:
             err = enforce_sfw(bg_prompt)
             if err:
-                return ("[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]", "")
+                return ("[Blocked: potential NSFW content detected. Revise inputs.]", "")
 
         return bg_prompt.strip(), style_hint.strip()
 

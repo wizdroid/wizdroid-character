@@ -79,7 +79,13 @@ class WizdroidCharacterEditNode:
         bg_data = DataRegistry.get_backgrounds() or {}
         poses_data = DataRegistry.get_poses() or {}
 
-        emotions = emotions_data.get("emotions", [])
+        emotions_nested = emotions_data.get("emotions", {})
+        emotions = []
+        if isinstance(emotions_nested, dict):
+            for category in emotions_nested.values():
+                emotions.extend(normalize_option_list(category))
+        else:
+            emotions = normalize_option_list(emotions_nested)
         body_types = normalize_option_list(body_data.get("body_types", []))
         skin_tones = skin_data.get("skin_tones", [])
         eye_colors = eye_data.get("eye_colors", [])
@@ -178,7 +184,13 @@ class WizdroidCharacterEditNode:
         azimuth_opts = cam.get("azimuth", ["front view"])
         elevation_opts = cam.get("elevation", ["eye-level shot"])
         distance_opts = cam.get("distance", ["medium shot"])
-        emotion_opts = emotions_data.get("emotions", [])
+        emotions_nested = emotions_data.get("emotions", {})
+        emotion_opts = []
+        if isinstance(emotions_nested, dict):
+            for category in emotions_nested.values():
+                emotion_opts.extend(normalize_option_list(category))
+        else:
+            emotion_opts = normalize_option_list(emotions_nested)
         body_opts = normalize_option_list(
             filter_by_gender(body_data.get("body_types", []), gender)
         )

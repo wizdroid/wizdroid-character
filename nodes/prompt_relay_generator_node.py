@@ -42,7 +42,6 @@ class WizdroidPromptRelayGeneratorNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "concept": ("STRING", {"multiline": True, "default": "", "placeholder": "Describe the full scene concept, e.g. 'a butterfly emerging from a cocoon in a sunlit forest'"}),
                 "num_segments": ("INT", {"default": 3, "min": 2, "max": 4, "step": 1}),
                 "total_duration_seconds": ("INT", {"default": 10, "min": 3, "max": 60, "step": 1}),
@@ -56,7 +55,6 @@ class WizdroidPromptRelayGeneratorNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         concept: str,
         num_segments: int,
         total_duration_seconds: int,
@@ -71,8 +69,7 @@ class WizdroidPromptRelayGeneratorNode:
             "num_segments": num_segments,
             "duration": total_duration_seconds,
             "temp": temperature,
-            "content_rating": content_rating,
-            "seed": seed,
+                        "seed": seed,
         }
 
         cache_key = _cache_key(selections)
@@ -80,7 +77,7 @@ class WizdroidPromptRelayGeneratorNode:
             segments, timecodes = _CACHE[cache_key]
         else:
             segments, timecodes = self._invoke_llm(
-                ollama_url, ollama_model, content_rating,
+                ollama_url, ollama_model,
                 concept, num_segments, total_duration_seconds, temperature, max_tokens,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
@@ -97,7 +94,6 @@ class WizdroidPromptRelayGeneratorNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         concept: str,
         num_segments: int,
         total_duration: int,
@@ -106,7 +102,7 @@ class WizdroidPromptRelayGeneratorNode:
     ):
         system_prompt = load_system_prompt_template(
             "system_prompts/prompt_relay_system.txt",
-            content_rating,
+            
             num_segments=num_segments,
         )
 
@@ -139,7 +135,7 @@ class WizdroidPromptRelayGeneratorNode:
         for i in range(1, num_segments + 1):
             seg = _parse_segment(result, i)
             seg = _clean_output(seg) if seg else ""
-            if content_rating == "SFW" and seg:
+            if seg:
                 if err := enforce_sfw(seg):
                     seg = f"[Blocked: {err}]"
             segments.append(seg or f"[Empty segment {i}]")

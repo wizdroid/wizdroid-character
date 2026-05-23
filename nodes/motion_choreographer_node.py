@@ -73,7 +73,6 @@ class WizdroidMotionChoreographerNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "subject_description": ("STRING", {"multiline": True, "default": "", "placeholder": "Describe the subject, e.g. 'an elderly monk in brown robes'"}),
                 "motion_style": (with_random(motion_styles), {"default": RANDOM_LABEL}),
                 "motion_phase": (with_random(motion_phases), {"default": "sustained action"}),
@@ -86,7 +85,6 @@ class WizdroidMotionChoreographerNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         subject_description: str,
         motion_style: str,
         motion_phase: str,
@@ -108,8 +106,7 @@ class WizdroidMotionChoreographerNode:
             "style": resolved_style,
             "phase": resolved_phase,
             "temp": temperature,
-            "content_rating": content_rating,
-            "seed": seed,
+                        "seed": seed,
         }
 
         cache_key = _cache_key(selections)
@@ -117,7 +114,7 @@ class WizdroidMotionChoreographerNode:
             desc = _CACHE[cache_key]
         else:
             desc = self._invoke_llm(
-                ollama_url, ollama_model, content_rating,
+                ollama_url, ollama_model,
                 subject_description, resolved_style, resolved_phase, temperature,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
@@ -130,7 +127,6 @@ class WizdroidMotionChoreographerNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         subject: str,
         motion_style: str,
         motion_phase: str,
@@ -138,7 +134,7 @@ class WizdroidMotionChoreographerNode:
     ) -> str:
         system_prompt = load_system_prompt_template(
             "system_prompts/motion_choreographer_system.txt",
-            content_rating,
+            
             motion_style=motion_style or "natural casual",
             motion_phase=motion_phase or "sustained action",
         )
@@ -164,7 +160,7 @@ class WizdroidMotionChoreographerNode:
 
         result = _clean_output(result)
 
-        if content_rating == "SFW":
+        if True:
             if err := enforce_sfw(result):
                 return f"[Blocked: {err}]"
 

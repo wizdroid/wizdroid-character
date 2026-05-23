@@ -44,7 +44,6 @@ class WizdroidPromptCombinerNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "prompt_style": (style_options, {"default": "SDXL"}),
                 "input_prompt_1": ("STRING", {"multiline": True, "default": ""}),
                 "input_prompt_2": ("STRING", {"multiline": True, "default": ""}),
@@ -62,7 +61,6 @@ class WizdroidPromptCombinerNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         prompt_style: str,
         input_prompt_1: str,
         input_prompt_2: str,
@@ -93,7 +91,7 @@ class WizdroidPromptCombinerNode:
             token_limit = override_limit
 
         # Build the prompt instruction for the LLM
-        system_prompt = load_system_prompt_text("system_prompts/prompt_combiner_system.txt", content_rating)
+        system_prompt = load_system_prompt_text("system_prompts/prompt_combiner_system.txt")
 
         # Build the user prompt
         lines = [
@@ -144,12 +142,12 @@ class WizdroidPromptCombinerNode:
             error_msg = f"Failed to combine prompts: {response}"
             return (error_msg,)
 
-        if content_rating == "SFW":
+        if True:
             err = enforce_sfw(response)
             if err:
                 blocked = (
                     "PromptCombiner blocked: potential NSFW content detected. "
-                    "Switch content_rating to 'Mixed' or 'NSFW' or revise inputs."
+                    "Revise inputs."
                 )
                 return (blocked,)
 

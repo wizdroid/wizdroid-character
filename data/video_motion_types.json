@@ -9,13 +9,38 @@
     {"name": "mechanical robotic", "description": "stiff precise servo-like joint movement, calculated gestures"},
     {"name": "explosive action", "description": "sudden bursts of power, impact reactions, high-intensity force"},
     {"name": "subtle breathing", "description": "minimal movement, gentle chest rise, micro-expressions, stillness with life"},
-    {"name": "epic cinematic", "description": "heroic dramatic movement, strong poses held and released, cinematic timing"}
+    {"name": "epic cinematic", "description": "heroic dramatic movement, strong poses held and released, cinematic timing"},
+    {"name": "jerky mechanical", "description": "stuttering motion, gear-like movements, industrial precision"},
+    {"name": "glitchy digital", "description": "erratic pixelated movement, frame skips, corrupted animation"},
+    {"name": "liquid flowing", "description": "melted, amorphous motion, shape-shifting fluidity"},
+    {"name": "puppet-like", "description": "jointed marionette movement, exaggerated articulation"},
+    {"name": "ghostly ethereal", "description": "translucent drifting, spectral movement, otherworldly grace"},
+    {"name": "animalistic predatory", "description": "stalking motion, sudden pounces, feral intensity"},
+    {"name": "dance rhythmic", "description": "choreographed steps, musical timing, expressive body language"},
+    {"name": "combat martial", "description": "trained fighting movements, precise strikes, defensive positioning"},
+    {"name": "intimate tender", "description": "gentle touches, close proximity movement, emotional physicality"},
+    {"name": "chaotic random", "description": "unpredictable flailing, accidental motion, comedic clumsiness"},
+    {"name": "hypnotic mesmerizing", "description": "repetitive swaying, trance-like motion, captivating rhythm"},
+    {"name": "powerful dominant", "description": "commanding presence, forceful gestures, authoritative movement"},
+    {"name": "vulnerable hesitant", "description": "uncertain steps, protective postures, timid body language"},
+    {"name": "celebratory joyful", "description": "exuberant leaps, triumphant poses, enthusiastic energy"},
+    {"name": "meditative calm", "description": "centered movement, mindful gestures, peaceful flow"}
   ],
   "motion_phases": [
     {"name": "entry into frame", "description": "subject moves or appears from outside the frame edge"},
     {"name": "sustained action", "description": "subject continues an ongoing motion throughout the clip"},
     {"name": "exit from frame", "description": "subject moves toward and beyond the frame edge"},
     {"name": "full action sequence", "description": "complete motion arc from start through peak to resolution"},
-    {"name": "reaction moment", "description": "subject reacts to something — turns, pauses, responds expressively"}
+    {"name": "reaction moment", "description": "subject reacts to something — turns, pauses, responds expressively"},
+    {"name": "approach and engage", "description": "subject moves closer to interact with another element or person"},
+    {"name": "retreat and withdraw", "description": "subject moves away or disengages from interaction"},
+    {"name": "transformation change", "description": "subject undergoes physical or positional transformation"},
+    {"name": "interaction exchange", "description": "back-and-forth movement between multiple subjects"},
+    {"name": "exploration discovery", "description": "subject investigates or discovers elements in the environment"},
+    {"name": "performance display", "description": "subject demonstrates skill, dance, or expressive movement"},
+    {"name": "rest and recovery", "description": "subject settles into stillness after activity"},
+    {"name": "anticipation buildup", "description": "preparatory movement building toward an action"},
+    {"name": "climax peak", "description": "most intense moment of movement in the sequence"},
+    {"name": "resolution settle", "description": "movement winds down to completion or new state"}
   ]
 }

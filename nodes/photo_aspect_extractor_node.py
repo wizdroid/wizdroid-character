@@ -344,7 +344,6 @@ class WizdroidPhotoAspectNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0]}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "extraction_mode": (mode_keys, {"default": mode_keys[0]}),
                 "retain_face": ("BOOLEAN", {"default": False}),
                 "retain_pose_and_camera": ("BOOLEAN", {"default": True}),
@@ -357,7 +356,6 @@ class WizdroidPhotoAspectNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         extraction_mode: str,
         retain_face: bool,
         retain_pose_and_camera: bool,
@@ -416,7 +414,7 @@ class WizdroidPhotoAspectNode:
         # Analyze character image
         print(f"[PhotoAspectExtractor] Analyzing character image...")
 
-        analysis_system = load_system_prompt_text("system_prompts/photo_aspect_analysis_system.txt", content_rating)
+        analysis_system = load_system_prompt_text("system_prompts/photo_aspect_analysis_system.txt")
         
         character_desc = self._analyze_single_image(
             ollama_url,
@@ -491,7 +489,7 @@ Requirements:
 - Keep within 100 tokens
 - No meta commentary, just the description"""
 
-        system_prompt = apply_content_policy(system_prompt, content_rating)
+        system_prompt = apply_content_policy(system_prompt)
         
         # Ensure URL has the /api/generate endpoint for synthesis
         synthesis_url = ollama_url
@@ -537,10 +535,10 @@ Requirements:
         if prefix_parts:
             print("[PhotoAspectExtractor] Added prompt prefixes")
 
-        if content_rating == "SFW":
+        if True:
             err = enforce_sfw(out)
             if err:
-                blocked = "[Blocked: potential NSFW content detected. Switch content_rating to 'Mixed' or 'NSFW'.]"
+                blocked = "[Blocked: potential NSFW content detected. Revise inputs.]"
                 return (blocked,)
         return (out,)
     
@@ -557,7 +555,7 @@ Requirements:
             # Backward-compatible default for internal callers that predate the
             # explicit 'system' parameter (e.g. LoRA dataset export tooling).
             # Keep it safely scoped to SFW unless the caller explicitly supplies a policy.
-            system = load_system_prompt_text("system_prompts/photo_aspect_analysis_system.txt", "SFW only")
+            system = load_system_prompt_text("system_prompts/photo_aspect_analysis_system.txt")
 
         # Ensure URL has the /api/generate endpoint
         if not ollama_url.endswith("/api/generate"):

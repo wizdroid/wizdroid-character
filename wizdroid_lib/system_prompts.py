@@ -27,12 +27,12 @@ def load_policy_map() -> Dict[str, str]:
     return out
 
 
-def apply_content_policy(system_prompt: str, content_rating: str) -> str:
+def apply_content_policy(system_prompt: str) -> str:
     """Append a data-driven content policy block to a system prompt."""
 
     base = (system_prompt or "").strip()
     policies = load_policy_map()
-    policy = policies.get(content_rating) or policies.get("SFW only") or ""
+    policy = policies.get("SFW only") or ""
     policy = policy.strip()
 
     if not policy:
@@ -43,16 +43,16 @@ def apply_content_policy(system_prompt: str, content_rating: str) -> str:
     return f"{base}\n\n{policy}"
 
 
-def load_system_prompt_text(relative_name: str, content_rating: str) -> str:
+def load_system_prompt_text(relative_name: str) -> str:
     """Load a system prompt from data/ and append the content policy."""
 
     raw = load_text(relative_name)
-    return apply_content_policy(raw, content_rating)
+    return apply_content_policy(raw)
 
 
-def load_system_prompt_template(relative_name: str, content_rating: str, **kwargs: Any) -> str:
+def load_system_prompt_template(relative_name: str, **kwargs: Any) -> str:
     """Load a templated system prompt and format it with kwargs."""
 
     raw = load_text(relative_name)
     formatted = raw.format(**kwargs)
-    return apply_content_policy(formatted, content_rating)
+    return apply_content_policy(formatted)

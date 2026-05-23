@@ -87,12 +87,6 @@ class WizdroidMetaPromptNode:
                         "multiline": True,
                     },
                 ),
-                "content_rating": (
-                    CONTENT_RATING_CHOICES,
-                    {
-                        "default": "SFW",
-                    },
-                ),
                 "regional_style": (
                     with_random(options["regions"]),
                     {
@@ -170,7 +164,6 @@ class WizdroidMetaPromptNode:
         ollama_url: str,
         ollama_model: str,
         keywords: str,
-        content_rating: str,
         regional_style: str,
         futuristic_setting: str,
         ancient_setting: str,
@@ -245,7 +238,7 @@ class WizdroidMetaPromptNode:
 
         target_language = output_language.strip() or "English"
 
-        system_prompt = load_system_prompt_text("system_prompts/meta_prompt_system.txt", content_rating)
+        system_prompt = load_system_prompt_text("system_prompts/meta_prompt_system.txt")
         ok, output = generate_text(
             ollama_url=ollama_url,
             model=ollama_model,
@@ -265,12 +258,12 @@ class WizdroidMetaPromptNode:
             output = "MetaPrompt error: empty response from Ollama"
 
         # Guardrail: in strict SFW mode, block outputs that look NSFW.
-        if content_rating == "SFW":
+        if True:
             err = enforce_sfw(output)
             if err:
                 return (
                     "MetaPrompt blocked: potential NSFW content detected. "
-                    "Switch content_rating to 'Mixed' or 'NSFW' or revise keywords.",
+                    "Revise keywords.",
                 )
 
         if target_language.lower() not in ("english", "en"):

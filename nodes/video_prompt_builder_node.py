@@ -87,7 +87,6 @@ class WizdroidVideoPromptBuilderNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "target_model": (VIDEO_MODELS, {"default": "WAN-T2V"}),
                 "subject_description": ("STRING", {"multiline": True, "default": "", "placeholder": "Describe the main subject, e.g. 'a young woman in a red coat'"}),
                 "scene_type": (with_random(scene_types), {"default": RANDOM_LABEL}),
@@ -106,7 +105,6 @@ class WizdroidVideoPromptBuilderNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         subject_description: str,
         scene_type: str,
@@ -141,15 +139,14 @@ class WizdroidVideoPromptBuilderNode:
             "mood": resolved_mood,
             "duration": duration_seconds,
             "target_model": target_model,
-            "content_rating": content_rating,
-            "temp": temperature,
+                        "temp": temperature,
         }
 
         cache_key = _cache_key(selections)
         if cache_key in _CACHE:
             prompt = _CACHE[cache_key]
         else:
-            prompt = self._invoke_llm(ollama_url, ollama_model, content_rating, target_model,
+            prompt = self._invoke_llm(ollama_url, ollama_model, target_model,
                                       selections, temperature, max_tokens)
             if len(_CACHE) >= _MAX_CACHE_SIZE:
                 _CACHE.pop(next(iter(_CACHE)))
@@ -161,7 +158,6 @@ class WizdroidVideoPromptBuilderNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         selections: Dict,
         temperature: float,
@@ -170,7 +166,7 @@ class WizdroidVideoPromptBuilderNode:
         model_rules = _MODEL_STYLE_RULES.get(target_model, _MODEL_STYLE_RULES["WAN-T2V"])
         system_prompt = load_system_prompt_template(
             "system_prompts/video_prompt_builder_system.txt",
-            content_rating,
+            
             model_style_rules=model_rules,
             duration_seconds=selections.get("duration", 5),
         )
@@ -207,7 +203,7 @@ class WizdroidVideoPromptBuilderNode:
 
         result = _clean_output(result)
 
-        if content_rating == "SFW":
+        if True:
             if err := enforce_sfw(result):
                 return f"[Blocked: {err}]"
 

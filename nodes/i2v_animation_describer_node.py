@@ -39,7 +39,6 @@ class WizdroidI2VAnimationDescriberNode:
             "required": {
                 "ollama_url": ("STRING", {"default": DEFAULT_OLLAMA_URL}),
                 "ollama_model": (tuple(ollama_models), {"default": ollama_models[0] if ollama_models else ""}),
-                "content_rating": (CONTENT_RATING_CHOICES, {"default": "SFW"}),
                 "target_model": (I2V_MODELS, {"default": "WAN-I2V"}),
                 "image_description": ("STRING", {"multiline": True, "default": "", "placeholder": "Paste the image description here, or wire from Photo Aspect Extractor output"}),
                 "animation_focus": (ANIMATION_FOCUS_OPTIONS, {"default": "both"}),
@@ -53,7 +52,6 @@ class WizdroidI2VAnimationDescriberNode:
         self,
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         image_description: str,
         animation_focus: str,
@@ -69,8 +67,7 @@ class WizdroidI2VAnimationDescriberNode:
             "focus": animation_focus,
             "temp": temperature,
             "max_tokens": max_tokens,
-            "content_rating": content_rating,
-            "seed": seed,
+                        "seed": seed,
         }
 
         cache_key = _cache_key(selections)
@@ -78,7 +75,7 @@ class WizdroidI2VAnimationDescriberNode:
             prompt = _CACHE[cache_key]
         else:
             prompt = self._invoke_llm(
-                ollama_url, ollama_model, content_rating, target_model,
+                ollama_url, ollama_model, target_model,
                 image_description, animation_focus, temperature, max_tokens,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
@@ -91,7 +88,6 @@ class WizdroidI2VAnimationDescriberNode:
     def _invoke_llm(
         ollama_url: str,
         ollama_model: str,
-        content_rating: str,
         target_model: str,
         image_description: str,
         animation_focus: str,
@@ -101,7 +97,7 @@ class WizdroidI2VAnimationDescriberNode:
         model_rules = _MODEL_STYLE_RULES.get(target_model, _MODEL_STYLE_RULES["WAN-I2V"])
         system_prompt = load_system_prompt_template(
             "system_prompts/i2v_animation_system.txt",
-            content_rating,
+            
             model_style_rules=model_rules,
             animation_focus=animation_focus,
         )
@@ -127,7 +123,7 @@ class WizdroidI2VAnimationDescriberNode:
 
         result = _clean_output(result)
 
-        if content_rating == "SFW":
+        if True:
             if err := enforce_sfw(result):
                 return f"[Blocked: {err}]"
 

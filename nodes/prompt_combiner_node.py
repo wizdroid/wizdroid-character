@@ -2,7 +2,7 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
 from wizdroid_lib.ollama_client import collect_models, generate_text
@@ -47,6 +47,10 @@ class WizdroidPromptCombinerNode:
                 "prompt_style": (style_options, {"default": "SDXL"}),
                 "input_prompt_1": ("STRING", {"multiline": True, "default": ""}),
                 "input_prompt_2": ("STRING", {"multiline": True, "default": ""}),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
             },
             "optional": {
                 "input_prompt_3": ("STRING", {"multiline": True, "default": ""}),
@@ -67,6 +71,10 @@ class WizdroidPromptCombinerNode:
         input_prompt_3: str = "",
         input_prompt_4: str = "",
         input_prompt_5: str = "",
+        use_ai: bool = True,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
         custom_instructions: str = "",
         token_limit_override: str = "",
     ) -> Tuple[str]:
@@ -117,6 +125,11 @@ class WizdroidPromptCombinerNode:
             "Output only the final combined prompt text:"
         ])
 
+        # Spiciness tone
+        if spiciness > 0:
+            tones = ["", "mildly suggestive", "playful sensuality", "romantic intimacy", "sensual and warm", "openly sensual", "boldly erotic", "unabashedly erotic", "raw and explicit", "extremely explicit", "MAXIMUM SPICINESS"]
+            lines.append(f"\nTone: {tones[spiciness]}. Adjust the combined prompt's tone accordingly.")
+
         user_prompt = "\n".join(lines)
 
         logger = logging.getLogger(__name__)
@@ -126,23 +139,30 @@ class WizdroidPromptCombinerNode:
         for i, prompt in enumerate(input_prompts, 1):
             logger.debug(f"[PromptCombiner] Input {i}: {prompt[:50]}...")
 
-        ok, response = generate_text(
-            ollama_url=ollama_url,
-            model=ollama_model,
-            prompt=user_prompt,
-            system=system_prompt,
-            options={
-                "temperature": 0.7,
-                "num_predict": int(token_limit) if isinstance(token_limit, int) else 512,
-            },
-            timeout=120,
-        )
+        if not use_ai:
+            # Template mode: concatenate inputs with custom instructions
+            parts = list(input_prompts)
+            if custom_instructions.strip():
+                parts.append(custom_instructions.strip())
+            response = ", ".join(parts)
+        else:
+            ok, response = generate_text(
+                ollama_url=ollama_url,
+                model=ollama_model,
+                prompt=user_prompt,
+                system=system_prompt,
+                options={
+                    "temperature": 0.7,
+                    "num_predict": int(token_limit) if isinstance(token_limit, int) else 512,
+                },
+                timeout=120,
+            )
 
-        if not ok:
-            error_msg = f"Failed to combine prompts: {response}"
-            return (error_msg,)
+            if not ok:
+                error_msg = f"Failed to combine prompts: {response}"
+                return (error_msg,)
 
-        if True:
+        if spiciness == 0:
             err = enforce_sfw(response)
             if err:
                 blocked = (

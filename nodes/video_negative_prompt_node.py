@@ -1,7 +1,5 @@
 from typing import Dict, List
 
-from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
-
 from .video_scene_expander_node import VIDEO_MODELS, _NEGATIVE_PROMPTS
 
 # === Model-specific base negatives ===

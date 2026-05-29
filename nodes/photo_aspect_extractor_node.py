@@ -21,7 +21,7 @@ try:
 except ImportError:  # pragma: no cover
     requests = None
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
 from wizdroid_lib.system_prompts import apply_content_policy, load_system_prompt_text
@@ -535,11 +535,10 @@ Requirements:
         if prefix_parts:
             print("[PhotoAspectExtractor] Added prompt prefixes")
 
-        if True:
-            err = enforce_sfw(out)
-            if err:
-                blocked = "[Blocked: potential NSFW content detected. Revise inputs.]"
-                return (blocked,)
+        err = enforce_sfw(out)
+        if err:
+            blocked = "[Blocked: potential NSFW content detected. Revise inputs.]"
+            return (blocked,)
         return (out,)
     
     def _analyze_single_image(
@@ -554,7 +553,7 @@ Requirements:
         if system is None:
             # Backward-compatible default for internal callers that predate the
             # explicit 'system' parameter (e.g. LoRA dataset export tooling).
-            # Keep it safely scoped to SFW unless the caller explicitly supplies a policy.
+            # Keep it safely scoped by default content policy
             system = load_system_prompt_text("system_prompts/photo_aspect_analysis_system.txt")
 
         # Ensure URL has the /api/generate endpoint

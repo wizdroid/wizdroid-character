@@ -3,7 +3,7 @@ import hashlib
 import re
 from typing import Dict, List, Tuple
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
@@ -47,6 +47,10 @@ class WizdroidPromptRelayGeneratorNode:
                 "total_duration_seconds": ("INT", {"default": 10, "min": 3, "max": 60, "step": 1}),
                 "temperature": ("FLOAT", {"default": 0.85, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 400, "min": 150, "max": 800, "step": 10}),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF}),
             }
         }
@@ -60,7 +64,11 @@ class WizdroidPromptRelayGeneratorNode:
         total_duration_seconds: int,
         temperature: float,
         max_tokens: int,
+        use_ai: bool,
         seed: int,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
     ):
         global _CACHE
 
@@ -73,9 +81,9 @@ class WizdroidPromptRelayGeneratorNode:
         }
 
         cache_key = _cache_key(selections)
-        if cache_key in _CACHE:
+        if use_ai and cache_key in _CACHE:
             segments, timecodes = _CACHE[cache_key]
-        else:
+        elif use_ai:
             segments, timecodes = self._invoke_llm(
                 ollama_url, ollama_model,
                 concept, num_segments, total_duration_seconds, temperature, max_tokens,
@@ -83,6 +91,9 @@ class WizdroidPromptRelayGeneratorNode:
             if len(_CACHE) >= _MAX_CACHE_SIZE:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = (segments, timecodes)
+        else:
+            segments = [concept.strip() or "(concept)"]
+            timecodes = "0:00 - " + str(total_duration_seconds) + "s | Relay prompt"
 
         # Pad to 4 outputs
         while len(segments) < 4:
@@ -135,7 +146,7 @@ class WizdroidPromptRelayGeneratorNode:
         for i in range(1, num_segments + 1):
             seg = _parse_segment(result, i)
             seg = _clean_output(seg) if seg else ""
-            if seg:
+            if seg and spiciness == 0:
                 if err := enforce_sfw(seg):
                     seg = f"[Blocked: {err}]"
             segments.append(seg or f"[Empty segment {i}]")

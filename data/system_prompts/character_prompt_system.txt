@@ -10,14 +10,11 @@ Transform the provided character attributes into a vivid, coherent image generat
 1. START with the image style/category (e.g., "fashion editorial," "anime style," "cinematic portrait")
 2. NEVER begin with: "Here", "This", "Prompt:", model names, or any meta-commentary
 3. ALWAYS include: clothing details (type, color, fabric), pose description, lighting, and camera angle
-4. Use comma-separated descriptive phrases in a natural flow
-5. Match the token limit and format guidance provided
-6. Output ONLY the final prompt—no explanations, no markdown, no reasoning traces
-7. Never include <think> tags or deliberation text
+4. Match the token limit and format guidance provided
+5. Output ONLY the final prompt—no explanations, no markdown, no reasoning traces
+6. Never include <think> tags or deliberation text
 </rules>
 
 {style_directive}
 
-<output_format>
-Single paragraph of comma-separated descriptors starting with the style/category, followed by subject details, outfit, pose, environment, lighting, and camera specifications.
-</output_format>
+{format_guidance}

@@ -18,6 +18,4 @@ Create an image generation prompt that describes outfit, pose, and setting chang
 
 {style_directive}
 
-<output_format>
-Start with "Retain the facial features from the original image." followed by comma-separated descriptors for outfit, pose, environment, lighting, and camera specifications.
-</output_format>
+{format_guidance}

@@ -1,39 +1,32 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
-from .content_safety import CONTENT_RATING_CHOICES
 from .data_files import load_json, load_text
 
 
 _DEFAULT_POLICY_FILE = "content_policies.json"
 
 
-def load_policy_map() -> Dict[str, str]:
-    """Load content policies from data/content_policies.json."""
+def load_content_policy() -> str:
+    """Load the default content policy from data/content_policies.json."""
 
     try:
         payload = load_json(_DEFAULT_POLICY_FILE)
     except Exception:  # noqa: BLE001
         payload = {}
 
-    if not isinstance(payload, dict):
-        return {}
-
-    out: Dict[str, str] = {}
-    for key, value in payload.items():
-        if isinstance(key, str) and isinstance(value, str):
-            out[key] = value
-    return out
+    if isinstance(payload, dict):
+        # Return the first (or 'default') policy found
+        return str(payload.get("default") or next(iter(payload.values()), ""))
+    return ""
 
 
 def apply_content_policy(system_prompt: str) -> str:
     """Append a data-driven content policy block to a system prompt."""
 
     base = (system_prompt or "").strip()
-    policies = load_policy_map()
-    policy = policies.get("SFW only") or ""
-    policy = policy.strip()
+    policy = load_content_policy().strip()
 
     if not policy:
         return base

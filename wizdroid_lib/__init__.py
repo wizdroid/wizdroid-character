@@ -9,7 +9,6 @@ This module provides centralized utilities for:
 """
 
 from .constants import (
-    CONTENT_RATING_CHOICES,
     DEFAULT_OLLAMA_URL,
     NONE_LABEL,
     RANDOM_LABEL,
@@ -20,7 +19,6 @@ from .content_safety import enforce_sfw, looks_nsfw
 
 __all__ = [
     # Constants
-    "CONTENT_RATING_CHOICES",
     "DEFAULT_OLLAMA_URL",
     "NONE_LABEL",
     "RANDOM_LABEL",

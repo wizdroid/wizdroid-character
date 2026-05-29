@@ -2,7 +2,7 @@ import random
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json, load_shared
 from wizdroid_lib.helpers import choose, choose_tuple, with_random, with_random_tuple
@@ -75,6 +75,10 @@ class WizdroidBackgroundNode:
                 "color_palette": (with_random(color_palettes), {"default": RANDOM_LABEL}),
                 "camera_lens": (with_random(camera_lenses), {"default": RANDOM_LABEL}),
                 "custom_notes": ("STRING", {"multiline": True, "default": ""}),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
             },
             "optional": {
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "widget": "seed"}),
@@ -101,6 +105,10 @@ class WizdroidBackgroundNode:
         color_palette: str,
         camera_lens: str,
         custom_notes: str,
+        use_ai: bool,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
         seed: int = 0,
     ) -> Tuple[str, str]:
         prompt_styles = DataRegistry.get_prompt_styles() or {}
@@ -185,29 +193,37 @@ class WizdroidBackgroundNode:
             f"Create a {prompt_style} surreal background without any humans."
             f" Attributes: {attribute_blob}."
             " Keep emphasis on atmosphere, lighting, geography, architecture, and creature presence."
+            f"{'' if spiciness == 0 else f' Tone: {['','mildly suggestive','playful sensuality','romantic intimacy','sensual and warm','openly sensual','boldly erotic','unabashedly erotic','raw and explicit','extremely explicit','MAXIMUM SPICINESS'][spiciness]}.'}"
         )
 
-        ok, raw = generate_text(
-            ollama_url=ollama_url,
-            model=ollama_model,
-            prompt=user_prompt,
-            system=system_prompt,
-            options={
-                "temperature": 0.85,
-                "num_predict": 512,
-            },
-            timeout=120,
-        )
-
-        if not ok:
-            return (f"[Error: {raw}]", "")
-
-        if "\n" in raw:
-            bg_prompt, style_hint = raw.split("\n", 1)
+        if not use_ai:
+            # Template mode: format attributes directly
+            bg_prompt = attribute_blob
+            if bg_prompt:
+                bg_prompt = bg_prompt[0].upper() + bg_prompt[1:]
+            return (bg_prompt, "")
         else:
-            bg_prompt, style_hint = raw, ""
+            ok, raw = generate_text(
+                ollama_url=ollama_url,
+                model=ollama_model,
+                prompt=user_prompt,
+                system=system_prompt,
+                options={
+                    "temperature": 0.85,
+                    "num_predict": 512,
+                },
+                timeout=120,
+            )
 
-        if True:
+            if not ok:
+                return (f"[Error: {raw}]", "")
+
+            if "\n" in raw:
+                bg_prompt, style_hint = raw.split("\n", 1)
+            else:
+                bg_prompt, style_hint = raw, ""
+
+        if spiciness == 0:
             err = enforce_sfw(bg_prompt)
             if err:
                 return ("[Blocked: potential NSFW content detected. Revise inputs.]", "")

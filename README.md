@@ -61,7 +61,7 @@ data/
 │   ├── hair.json                # Colors + gender-specific styles
 │   ├── skin_tones.json          # 40 skin tones
 │   ├── makeup.json              # Gender-tagged makeup styles
-│   ├── poses.json               # SFW/NSFW + gender-specific poses
+│   ├── poses.json               # Gender-specific poses
 │   ├── backgrounds.json         # Studio/real/imaginative
 │   ├── camera_lighting.json     # Lighting, camera, color palettes
 │   ├── fashion.json             # Outfits, styles, footwear (gender-tagged)

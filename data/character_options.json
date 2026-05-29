@@ -1,6 +1,5 @@
 {
-  "image_category": {
-    "sfw": [
+  "image_category": [
       {"name": "fashion editorial", "description": "High-end magazine styling with art-directed lighting and bold wardrobe."},
       {"name": "beauty close-up", "description": "Tight portrait focused on makeup, skin texture, and facial details."},
       {"name": "studio lookbook", "description": "Clean catalog-style studio shots showcasing outfits clearly."},
@@ -49,15 +48,12 @@
       {"name": "soviet poster art", "description": "Bold propaganda-style with limited palette and heroic angles."},
       {"name": "pulp fiction cover", "description": "Retro paperback drama with high-contrast noir mood."},
       {"name": "noir detective scene", "description": "Film-noir shadows with smoke, fog, and urban tension."},
-      {"name": "retro sci-fi illustration", "description": "Vintage optimistic futurism with mid-century design."}
-    ],
-    "nsfw": [
+      {"name": "retro sci-fi illustration", "description": "Vintage optimistic futurism with mid-century design."},
       {"name": "erotic art piece", "description": "Sensual adult artwork; tasteful and non-graphic."},
       {"name": "fine art nude photography", "description": "Adult fine art nude; tasteful, non-pornographic."},
       {"name": "hentai", "description": "Adult anime-style erotic; non-graphic language."},
       {"name": "ecchi", "description": "Suggestive anime with playful eroticism; non-explicit."},
       {"name": "adult vtuber model", "description": "Adult stylized avatar; non-graphic and tasteful."},
-      {"name": "nsfw 3D character render", "description": "Adult CGI character; tasteful and non-explicit."},
       {"name": "adult game character art", "description": "Adult game key art; non-graphic styling."},
       {"name": "pin-up art", "description": "Retro glamour illustration with playful vintage pose."},
       {"name": "dark feminine glamour", "description": "Elegant edgy beauty with mysterious vibe."},
@@ -67,24 +63,16 @@
       {"name": "sci-fi pin-up art", "description": "Futuristic retro pin-up with playful sci-fi pose."},
       {"name": "adult comic book art", "description": "Mature graphic novel style; non-explicit."},
       {"name": "erotic surrealism", "description": "Abstract sensual imagery with dreamlike symbolism."},
-      {"name": "nsfw digital painting", "description": "Adult painterly artwork with artistic texture."},
-      {"name": "nsfw anime style", "description": "Adult 2D anime; non-graphic and stylized."},
-      {"name": "nsfw semi-real anime", "description": "Adult anime-inspired with realistic rendering."},
-      {"name": "nsfw instagram aesthetic", "description": "Adult curated lifestyle; tasteful styling."},
-      {"name": "nsfw tiktok content", "description": "Adult creator vibe; non-graphic framing."},
-      {"name": "nsfw film photography aesthetic", "description": "Adult analog film look; nostalgic tone."}
-    ]
-  },
+      {"name": "digital painting (artistic)", "description": "Painterly adult artwork with artistic texture."},
+      {"name": "erotic anime style", "description": "Adult 2D anime; non-graphic and stylized."},
+      {"name": "erotic semi-real anime", "description": "Adult anime-inspired with realistic rendering."},
+      {"name": "boudoir instagram aesthetic", "description": "Adult curated lifestyle; tasteful styling."},
+      {"name": "boudoir tiktok content", "description": "Adult creator vibe; non-graphic framing."},
+      {"name": "boudoir film photography", "description": "Adult analog film look; nostalgic tone."}
+  ],
   "gender": [
-    {"name": "female", "description": "Traditional feminine presentation with curves, soft features, and feminine styling."},
-    {"name": "male", "description": "Traditional masculine presentation with broader shoulders, defined features, and masculine styling."},
-    {"name": "non-binary", "description": "Gender-neutral or androgynous presentation blending or transcending traditional gender norms."},
-    {"name": "trans feminine", "description": "Transgender woman presentation with feminine features and gender-affirming characteristics."},
-    {"name": "trans masculine", "description": "Transgender man presentation with masculine features and gender-affirming characteristics."},
-    {"name": "genderfluid", "description": "Fluid gender expression that may change between masculine, feminine, and neutral presentations."},
-    {"name": "agender", "description": "Lack of gender identity with neutral presentation and minimal gender markers."},
-    {"name": "bigender", "description": "Two gender identities, often presenting as both masculine and feminine simultaneously or alternately."},
-    {"name": "two-spirit", "description": "Indigenous concept of two spirits within one person, often combining masculine and feminine qualities."}
+    {"name": "female", "description": "Feminine presentation with curves, soft features, and feminine styling."},
+    {"name": "male", "description": "Masculine presentation with broader shoulders, defined features, and masculine styling."}
   ],
   "race": [
     {"name": "african diaspora", "description": "African heritage with diverse skin tones from deep ebony to warm browns, varied facial features, and cultural influences from African, African-American, Afro-Caribbean, and Afro-Latinx backgrounds."},
@@ -243,8 +231,7 @@
     "overhead spotlight shot", "tracking side angle", "cinematic backlight frame",
     "fisheye distortion", "drone shot", "selfie angle"
   ],
-  "pose_style": {
-    "sfw": [
+  "pose_style": [
       "standing three-quarter, hand on hip, relaxed gaze",
       "standing straight, arms at sides, confident direct gaze",
       "contrapposto classical, hip shifted, timeless elegance",
@@ -292,9 +279,7 @@
       "70s disco pose, dramatic head turn",
       "90s supermodel, fierce shoulder-first stride",
       "y2k paris hilton, peace sign, playful pout",
-      "myspace angle, camera held high, emo tilt"
-    ],
-    "nsfw": [
+      "myspace angle, camera held high, emo tilt",
       "lying on back, relaxed, soft gaze",
       "lying on back, knees bent, intimate expression",
       "lying on back, one knee raised, inviting gaze",
@@ -315,8 +300,7 @@
       "silk sheets tangled, morning after aesthetic",
       "window light silhouette, sheer fabric, artistic",
       "vanity mirror reflection, intimate moment"
-    ]
-  },
+  ],
   "makeup_style": [
     {"name": "no makeup natural", "description": "Bare skin, minimal product, understated finish."},
     {"name": "bare minimum tinted moisturizer", "description": "Sheer coverage with natural brows and lashes."},

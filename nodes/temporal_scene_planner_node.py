@@ -3,7 +3,7 @@ import hashlib
 import re
 from typing import Dict
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
@@ -51,6 +51,10 @@ class WizdroidTemporalScenePlannerNode:
                 "arc_type": (ARC_TYPES, {"default": "buildup"}),
                 "temperature": ("FLOAT", {"default": 0.85, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 300, "min": 100, "max": 600, "step": 10}),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF}),
             }
         }
@@ -64,7 +68,11 @@ class WizdroidTemporalScenePlannerNode:
         arc_type: str,
         temperature: float,
         max_tokens: int,
+        use_ai: bool,
         seed: int,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
     ):
         global _CACHE
 
@@ -77,18 +85,22 @@ class WizdroidTemporalScenePlannerNode:
         }
 
         cache_key = _cache_key(selections)
-        if cache_key in _CACHE:
+        if use_ai and cache_key in _CACHE:
             video_prompt, start_desc, end_desc = _CACHE[cache_key]
-        else:
+        elif use_ai:
             video_prompt, start_desc, end_desc = self._invoke_llm(
                 ollama_url, ollama_model, target_model,
-                concept, arc_type, temperature, max_tokens,
+                concept, arc_type, temperature, max_tokens, spiciness,
             )
             if len(_CACHE) >= _MAX_CACHE_SIZE:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = (video_prompt, start_desc, end_desc)
+        else:
+            video_prompt = concept.strip() or "(concept)"
+            start_desc = ""
+            end_desc = ""
 
-        return video_prompt
+        return (video_prompt,)
 
     @staticmethod
     def _invoke_llm(
@@ -99,6 +111,7 @@ class WizdroidTemporalScenePlannerNode:
         arc_type: str,
         temperature: float,
         max_tokens: int,
+        spiciness: int = 0,
     ):
         model_rules = _MODEL_STYLE_RULES.get(target_model, _MODEL_STYLE_RULES["WAN-T2V"])
         system_prompt = load_system_prompt_template(
@@ -111,7 +124,8 @@ class WizdroidTemporalScenePlannerNode:
         user_prompt = (
             f"Concept: {concept.strip() or '(no input — create a compelling cinematic arc)'}\n"
             f"Target model: {target_model}\n"
-            f"Arc type: {arc_type}\n\n"
+            f"Arc type: {arc_type}\n"
+            f"{'' if spiciness == 0 else f'Tone: {['','mildly suggestive','playful sensuality','romantic intimacy','sensual and warm','openly sensual','boldly erotic','unabashedly erotic','raw and explicit','extremely explicit','MAXIMUM SPICINESS'][spiciness]}.\\n'}"
             f"Generate the temporal video prompt with [PROMPT], [START], and [END] sections:"
         )
 
@@ -132,10 +146,9 @@ class WizdroidTemporalScenePlannerNode:
         start_desc = _parse_tagged(result, "START")
         end_desc = _parse_tagged(result, "END")
 
-        if True:
-            for text in (video_prompt, start_desc, end_desc):
-                if err := enforce_sfw(text):
-                    return f"[Blocked: {err}]", "", ""
+        for text in (video_prompt, start_desc, end_desc):
+            if spiciness == 0 and (err := enforce_sfw(text)):
+                return f"[Blocked: {err}]", "", ""
 
         return (
             video_prompt or "[Empty response from Ollama]",

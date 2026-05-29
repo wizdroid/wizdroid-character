@@ -1,27 +1,33 @@
 {
   "Flux": {
     "guidance": "Natural language paragraph (2-4 sentences). Focus on texture, lighting, and atmosphere. Describe the subject, then the environment. End with technical camera details.",
-    "label": "Flux.1",
+    "label": "Flux.1 Dev/Schnell",
     "negative_prompt": "flat lighting, static, dull colors, artifacting, blur",
     "token_limit": 255
   },
   "SD3": {
     "guidance": "Natural, conversational paragraph. Focus on prompt adherence and spatial relationships. Describe subject, action, and setting clearly. Mention text elements if any.",
-    "label": "Stable Diffusion 3",
+    "label": "Stable Diffusion 3.0",
     "negative_prompt": "deformed, distorted, disfigured, bad anatomy, bad eyes",
     "token_limit": 255
   },
+  "SD3.5": {
+    "guidance": "Detailed descriptive paragraph (3-5 sentences). Focus on prompt coherence, spatial relationships, and rich visual details. Describe subject, action, setting, lighting, and atmosphere.",
+    "label": "Stable Diffusion 3.5",
+    "negative_prompt": "deformed, distorted, disfigured, bad anatomy, bad eyes, blurry",
+    "token_limit": 255
+  },
   "HiDream": {
-    "guidance": "Whimsical paragraph (3-4 sentences) with dreamlike qualities, textures, and fantastical details.",
-    "label": "HiDream",
-    "negative_prompt": "mundane, low detail, flat shadows, inconsistent perspective",
-    "token_limit": 130
+    "guidance": "Rich descriptive paragraph (3-4 sentences). Detail subject appearance, lighting, materials, and atmosphere. Use vivid sensory language and concrete visual details.",
+    "label": "HiDream I2V",
+    "negative_prompt": "mundane, low detail, flat shadows, inconsistent perspective, low contrast",
+    "token_limit": 160
   },
   "Qwen": {
-    "guidance": "Semicolon-separated clauses: appearance; outfit; pose; environment; lighting; camera.",
-    "label": "Qwen",
-    "negative_prompt": "noise, bad hands, unbalanced composition, low detail",
-    "token_limit": 100
+    "guidance": "Detailed natural language paragraph (3-5 sentences). Describe subject, outfit, pose, environment, lighting, and camera in a flowing narrative. Qwen benefits from rich contextual descriptions.",
+    "label": "Qwen2.5 / Qwen2-VL",
+    "negative_prompt": "noise, bad hands, unbalanced composition, low detail, distortion",
+    "token_limit": 200
   },
   "SD": {
     "guidance": "Single line, comma-separated tags. Order: subject, outfit, pose, environment, lighting, camera, style.",
@@ -52,6 +58,48 @@
     "label": "RealVis XL",
     "negative_prompt": "uncanny valley, smeared textures, chromatic noise, awkward pose",
     "token_limit": 130
+  },
+  "PixArtSigma": {
+    "guidance": "Comma-separated descriptive phrases. Start with subject and style, then appearance, outfit, pose, environment, lighting, camera angle. PixArt-Σ excels with clean, structured descriptions.",
+    "label": "PixArt-Σ",
+    "negative_prompt": "blurry, low quality, distorted, extra limbs, bad anatomy, watermark",
+    "token_limit": 200
+  },
+  "PlaygroundV25": {
+    "guidance": "Detailed natural language paragraph (3-4 sentences). Focus on aesthetic quality, composition, and style consistency. Describe subject, outfit, environment, and mood. Playground v2.5 responds well to descriptive prose.",
+    "label": "Playground v2.5",
+    "negative_prompt": "low quality, blurry, oversaturated, bad anatomy, distorted, watermark",
+    "token_limit": 180
+  },
+  "HunyuanDiT": {
+    "guidance": "Detailed descriptive paragraph (3-5 sentences). Hunyuan excels with rich color descriptions and atmospheric detail. Structure: subject, clothing, pose, background, lighting, emotional tone, camera work.",
+    "label": "Hunyuan DiT",
+    "negative_prompt": "blurry, low quality, distorted, bad anatomy, extra limbs, watermark, text",
+    "token_limit": 200
+  },
+  "Kolors": {
+    "guidance": "Natural language paragraph (2-4 sentences). Kolors benefits from clear subject descriptions with vivid color and lighting cues. Describe subject, outfit, environment, and atmosphere.",
+    "label": "Kolors",
+    "negative_prompt": "blurry, low quality, distorted, bad anatomy, oversaturated, watermark",
+    "token_limit": 200
+  },
+  "AuraFlow": {
+    "guidance": "Natural language paragraph (2-4 sentences). Focus on clear subject description, composition, and visual style. Describe the scene in a flowing narrative format.",
+    "label": "AuraFlow",
+    "negative_prompt": "blurry, low quality, distorted, bad anatomy, watermark, low contrast",
+    "token_limit": 200
+  },
+  "ZImage": {
+    "guidance": "Natural language paragraph (3-5 sentences). Z.I.M responds best to vivid, cinematic descriptions. Structure: subject appearance, outfit/styling, pose/action, environment, lighting/atmosphere, camera angle. Use rich sensory language.",
+    "label": "Z.I.M (Z Image)",
+    "negative_prompt": "blurry, low quality, distorted, bad anatomy, oversaturated, watermark, text artifacts",
+    "token_limit": 255
+  },
+  "CogVideoX": {
+    "label": "CogVideoX (THUDM)",
+    "guidance": "Single flowing prose paragraph (100-200 words). Start with subject and action, then environment, lighting, and camera movement. Be precise about motion dynamics and temporal changes.",
+    "negative_prompt": "blurry, low quality, watermark, static, jittery, inconsistent motion, distorted faces, flickering",
+    "token_limit": 200
   },
   "WAN-T2V": {
     "label": "WAN 2.2 Text-to-Video",

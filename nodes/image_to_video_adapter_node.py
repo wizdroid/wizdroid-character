@@ -2,7 +2,7 @@ import json
 import hashlib
 from typing import Dict
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
@@ -38,6 +38,10 @@ class WizdroidImageToVideoAdapterNode:
                 "image_prompt": ("STRING", {"multiline": True, "default": "", "placeholder": "Paste your image prompt here — from Character, Scene, or any other node"}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 250, "min": 80, "max": 500, "step": 10}),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF}),
             },
             "optional": {
@@ -53,7 +57,11 @@ class WizdroidImageToVideoAdapterNode:
         image_prompt: str,
         temperature: float,
         max_tokens: int,
+        use_ai: bool,
         seed: int,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
         motion_hint: str = "",
     ):
         global _CACHE
@@ -68,9 +76,9 @@ class WizdroidImageToVideoAdapterNode:
         }
 
         cache_key = _cache_key(selections)
-        if cache_key in _CACHE:
+        if use_ai and cache_key in _CACHE:
             prompt = _CACHE[cache_key]
-        else:
+        elif use_ai:
             prompt = self._invoke_llm(
                 ollama_url, ollama_model, target_model,
                 image_prompt, motion_hint, temperature, max_tokens,
@@ -78,8 +86,10 @@ class WizdroidImageToVideoAdapterNode:
             if len(_CACHE) >= _MAX_CACHE_SIZE:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = prompt
+        else:
+            prompt = image_prompt.strip() or "(image prompt)"
 
-        return prompt
+        return (prompt,)
 
     @staticmethod
     def _invoke_llm(
@@ -120,9 +130,8 @@ class WizdroidImageToVideoAdapterNode:
 
         result = _clean_output(result)
 
-        if True:
-            if err := enforce_sfw(result):
-                return f"[Blocked: {err}]"
+        if err := enforce_sfw(result):
+            return f"[Blocked: {err}]"
 
         return result or "[Empty response from Ollama]"
 

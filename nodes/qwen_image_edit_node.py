@@ -54,6 +54,10 @@ class WizdroidImageEditNode:
                     "default": "",
                     "placeholder": "Any additional editing instructions or constraints"
                 }),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
             },
             "optional": {
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "widget": "seed"}),
@@ -69,6 +73,10 @@ class WizdroidImageEditNode:
         image_2_description: str,
         image_3_description: str,
         additional_instructions: str,
+        use_ai: bool = True,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
         seed: int = 0,
     ) -> Tuple[str]:
         logger = logging.getLogger(__name__)
@@ -89,7 +97,7 @@ class WizdroidImageEditNode:
         # Build the mode-specific guidance
         mode_guidance = self._get_mode_guidance(edit_mode, img1, img2, img3)
 
-        # Load system prompt (using SFW as default since this is for editing)
+        # Load default system prompt for editing
         system_prompt = load_system_prompt_text(
             "system_prompts/qwen_image_edit_system.txt"
         )
@@ -148,6 +156,14 @@ class WizdroidImageEditNode:
         if img3:
             logger.debug(f"[QwenImageEdit] Image 3: {img3[:50]}...")
         logger.debug(f"[QwenImageEdit] Using model: {ollama_model}")
+
+        if not use_ai:
+            # Template mode: concatenate image descriptions with edit mode
+            descs = [d for d in [img1, img2, img3] if d]
+            tmpl = f"Edit mode: {edit_mode}. " + " | ".join(descs)
+            if additional_instructions.strip():
+                tmpl += "; " + additional_instructions.strip()
+            return (tmpl,)
 
         ok, response = generate_text(
             ollama_url=ollama_url,

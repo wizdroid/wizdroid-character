@@ -4,7 +4,7 @@ import hashlib
 from typing import Any, Dict, List, Optional, Tuple
 import logging
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
 from wizdroid_lib.helpers import choose, with_random
@@ -116,6 +116,7 @@ class WizdroidSceneGeneratorNode:
                 "chaos_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
                 "detail_level": ("INT", {"default": 7, "min": 1, "max": 10, "step": 1}),
                 "cinematic": ("BOOLEAN", {"default": True}),
+                "use_ai": ("BOOLEAN", {"default": True}),
                 
                 # === Additional Elements ===
                 "include_characters": ("BOOLEAN", {"default": True}),
@@ -125,6 +126,8 @@ class WizdroidSceneGeneratorNode:
                 
                 # === Custom Additions ===
                 "additional_elements": ("STRING", {"multiline": True, "default": "", "placeholder": "Add specific elements: 'giant tentacles, floating debris, red emergency lights'"}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF}),
             },
             "optional": {
@@ -153,7 +156,10 @@ class WizdroidSceneGeneratorNode:
         include_vehicles: bool,
         include_effects: bool,
         additional_elements: str,
+        use_ai: bool,
         seed: int,
+        spiciness: int = 0,
+        fantasy: int = 0,
     ):
         global _SCENE_DATA_CACHE, _PROMPT_STYLES_CACHE
         rng = random.Random(seed)
@@ -211,28 +217,42 @@ class WizdroidSceneGeneratorNode:
             "temp": temperature,
                     }
         
-        # Check cache
-        cache_key = _cache_key(selections)
-        if cache_key in _SCENE_CACHE:
-            scene_prompt = _SCENE_CACHE[cache_key]
+        # Check cache or use template mode
+        if not use_ai:
+            # Template mode: build verbose prompt from selections
+            tmpl = [resolved_scene]
+            for key in ("mood", "time", "weather", "population"):
+                if v := selections.get(key):
+                    tmpl.append(f"{v}")
+            if selections.get("cinematic"):
+                tmpl.append("cinematic composition")
+            tmpl.append(f"chaos {selections.get('chaos', 5)}/10")
+            if add := selections.get("additions"):
+                tmpl.append(add)
+            scene_prompt = ", ".join(tmpl)
+            if scene_prompt:
+                scene_prompt = scene_prompt[0].upper() + scene_prompt[1:]
         else:
-            scene_prompt = self._invoke_llm(
-                ollama_url=ollama_url,
-                ollama_model=ollama_model,
-                                prompt_style=prompt_style,
-                style_meta=style_meta,
-                selections=selections,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-            # Cache with size limit
-            if len(_SCENE_CACHE) >= _MAX_CACHE_SIZE:
-                _SCENE_CACHE.pop(next(iter(_SCENE_CACHE)))
-            _SCENE_CACHE[cache_key] = scene_prompt
+            cache_key = _cache_key(selections)
+            if cache_key in _SCENE_CACHE:
+                scene_prompt = _SCENE_CACHE[cache_key]
+            else:
+                scene_prompt = self._invoke_llm(
+                    ollama_url=ollama_url,
+                    ollama_model=ollama_model,
+                    prompt_style=prompt_style,
+                    style_meta=style_meta,
+                    selections=selections,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+                if len(_SCENE_CACHE) >= _MAX_CACHE_SIZE:
+                    _SCENE_CACHE.pop(next(iter(_SCENE_CACHE)))
+                _SCENE_CACHE[cache_key] = scene_prompt
         
         negative_prompt = style_meta.get("negative_prompt", "")
         
-        return scene_prompt
+        return (scene_prompt,)
 
     @staticmethod
     def _invoke_llm(
@@ -314,10 +334,9 @@ class WizdroidSceneGeneratorNode:
                     split_idx += 1
                 result = result[split_idx:].strip()
 
-        if True:
-            err = enforce_sfw(result)
-            if err:
-                return "[Blocked: potential NSFW content detected. Revise inputs.]"
+        err = enforce_sfw(result)
+        if err:
+            return "[Blocked: potential NSFW content detected. Revise inputs.]"
 
         return result or "[Empty response from Ollama]"
 

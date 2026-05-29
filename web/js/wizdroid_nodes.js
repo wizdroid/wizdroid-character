@@ -148,14 +148,14 @@ const SEASONAL_THEME = getSeasonalTheme();
 // Map node types to their categories
 const NODE_CATEGORIES = {
     // Prompts
-    "WizdroidCharacterPrompt": "prompts",
+    "WizdroidCharacterPromptMale": "prompts",
+    "WizdroidCharacterPromptFemale": "prompts",
     "WizdroidSceneGenerator": "prompts",
     "WizdroidBackground": "prompts",
     "WizdroidMetaPrompt": "prompts",
     "WizdroidPromptCombiner": "prompts",
     "WizdroidImageEdit": "prompts",
     "WizdroidCharacterEdit": "prompts",
-    "WizdroidContestPrompt": "prompts",
     
     // Training
     "WizdroidLoRADataset": "training",

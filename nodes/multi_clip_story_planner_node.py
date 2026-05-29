@@ -3,7 +3,7 @@ import hashlib
 import re
 from typing import Dict, List, Tuple
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
@@ -58,6 +58,10 @@ class WizdroidMultiClipStoryPlannerNode:
                 "story_genre": (STORY_GENRES, {"default": "drama"}),
                 "temperature": ("FLOAT", {"default": 0.85, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 600, "min": 200, "max": 1200, "step": 50}),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF}),
             }
         }
@@ -72,7 +76,11 @@ class WizdroidMultiClipStoryPlannerNode:
         story_genre: str,
         temperature: float,
         max_tokens: int,
+        use_ai: bool,
         seed: int,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
     ):
         global _CACHE
 
@@ -86,9 +94,9 @@ class WizdroidMultiClipStoryPlannerNode:
         }
 
         cache_key = _cache_key(selections)
-        if cache_key in _CACHE:
+        if use_ai and cache_key in _CACHE:
             clips, summary = _CACHE[cache_key]
-        else:
+        elif use_ai:
             clips, summary = self._invoke_llm(
                 ollama_url, ollama_model, target_model,
                 story_concept, num_clips, story_genre, temperature, max_tokens,
@@ -96,6 +104,9 @@ class WizdroidMultiClipStoryPlannerNode:
             if len(_CACHE) >= _MAX_CACHE_SIZE:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = (clips, summary)
+        else:
+            clips = [story_concept.strip() or "(story concept)"]
+            summary = story_concept.strip() or "(story concept)"
 
         # Ensure exactly 6 outputs
         while len(clips) < 6:

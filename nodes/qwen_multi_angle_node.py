@@ -99,9 +99,9 @@ class WizdroidCharacterEditNode:
         outfit_names = normalize_option_list(fashion_data.get("fashion_outfits", []))
         style_names = normalize_option_list(fashion_data.get("fashion_styles", []))
         pose_all = (
-            poses_data.get("pose_styles", {}).get("sfw", {}).get("any", [])
-            + poses_data.get("pose_styles", {}).get("sfw", {}).get("female", [])
-            + poses_data.get("pose_styles", {}).get("sfw", {}).get("male", [])
+            poses_data.get("pose_styles", {}).get("any", [])
+            + poses_data.get("pose_styles", {}).get("female", [])
+            + poses_data.get("pose_styles", {}).get("male", [])
         )
 
         azimuth = cam.get("azimuth", ["front view"])
@@ -227,14 +227,14 @@ class WizdroidCharacterEditNode:
         resolved_background = self._resolve(background, bg_all + ["none"], rng)
         resolved_outfit_type = self._resolve(outfit_type, outfit_names + ["none"], rng)
         resolved_emotion = self._resolve(emotion, emotion_opts, rng)
-        pose_opts = poses_data.get("pose_styles", {}).get("sfw", {}).get("any", [])
+        pose_opts = poses_data.get("pose_styles", {}).get("any", [])
         if gender and gender.lower() in ("female", "male"):
-            pose_opts = pose_opts + poses_data.get("pose_styles", {}).get("sfw", {}).get(gender.lower(), [])
+            pose_opts = pose_opts + poses_data.get("pose_styles", {}).get(gender.lower(), [])
         else:
             pose_opts = (
                 pose_opts
-                + poses_data.get("pose_styles", {}).get("sfw", {}).get("female", [])
-                + poses_data.get("pose_styles", {}).get("sfw", {}).get("male", [])
+                + poses_data.get("pose_styles", {}).get("female", [])
+                + poses_data.get("pose_styles", {}).get("male", [])
             )
         resolved_pose_style = self._resolve(pose_style, pose_opts + ["none"], rng)
         resolved_input_index = self._resolve_input_index(input_image_index)

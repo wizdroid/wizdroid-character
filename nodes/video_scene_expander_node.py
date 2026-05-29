@@ -2,14 +2,14 @@ import json
 import hashlib
 from typing import Dict, Optional, Tuple
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
 
 # === Constants ===
 
-VIDEO_MODELS = ("WAN-T2V", "WAN-I2V", "LTX-T2V", "LTX-I2V")
+VIDEO_MODELS = ("WAN-T2V", "WAN-I2V", "LTX-T2V", "LTX-I2V", "CogVideoX", "CogVideoX-I2V", "Mochi", "Kling-T2V", "Kling-I2V", "PyramidFlow")
 MOTION_INTENSITIES = ("calm", "moderate", "dynamic", "explosive")
 
 _MODEL_STYLE_RULES: Dict[str, str] = {
@@ -38,6 +38,42 @@ _MODEL_STYLE_RULES: Dict[str, str] = {
         "begins doing. Specify exact movements, gestures, gaze direction, body shifts. Add environmental and "
         "ambient changes. State whether the camera holds or moves — be specific. Describe light and color throughout."
     ),
+    "CogVideoX": (
+        "Target model: CogVideoX (THUDM). "
+        "Write detailed cinematic prose (80-180 words). Start with the main subject and action. Describe motion "
+        "smoothly with attention to fluidity and temporal coherence. Include environmental details that evolve. "
+        "Specify lighting, atmosphere, and camera movement. CogVideoX works best with clear, unambiguous descriptions."
+    ),
+    "CogVideoX-I2V": (
+        "Target model: CogVideoX Image-to-Video. "
+        "Write detailed prose (60-150 words). Begin with the existing scene's mood or style. Describe what the "
+        "subject does — movements, gestures, expressions. Add evolving environmental elements and light changes. "
+        "End with camera shot type and any camera movement."
+    ),
+    "Mochi": (
+        "Target model: Mochi (Genmo). "
+        "Write vivid, motion-focused prose (80-160 words). Mochi excels with dynamic motion and flowing actions. "
+        "Describe subject appearance and movement with emphasis on fluid, continuous motion. Include environmental "
+        "context, lighting, and camera perspective. Keep descriptions cinematic and energetic."
+    ),
+    "Kling-T2V": (
+        "Target model: Kling 1.6 Text-to-Video (Kuaishou). "
+        "Write cinematic paragraph (80-200 words). Lead with striking subject visuals. Describe motion with "
+        "realistic physical detail. Include environmental evolution, lighting quality, and atmospheric elements. "
+        "Kling excels with rich detail and high visual fidelity. End with camera movement and shot type."
+    ),
+    "Kling-I2V": (
+        "Target model: Kling 1.6 Image-to-Video (Kuaishou). "
+        "Write cinematic prose (60-150 words). Begin by acknowledging the existing image's style. Describe the "
+        "subject's motion, expression changes, and interactions with the environment. Add ambient evolution "
+        "(weather, light shifts). Close with camera shot type and movement."
+    ),
+    "PyramidFlow": (
+        "Target model: Pyramid Flow. "
+        "Write detailed prose (80-180 words). Pyramid Flow benefits from clear spatial descriptions and "
+        "well-defined subject actions. Describe subject appearance, precise motion, environment details, "
+        "lighting quality, and camera angle. Be specific about how elements move and change over time."
+    ),
 }
 
 _NEGATIVE_PROMPTS: Dict[str, str] = {
@@ -45,6 +81,12 @@ _NEGATIVE_PROMPTS: Dict[str, str] = {
     "WAN-I2V": "blurry, low quality, watermark, static image, no motion, jittery, distorted",
     "LTX-T2V": "worst quality, inconsistent motion, blurry, jittery, distorted, floating limbs, temporal flickering",
     "LTX-I2V": "worst quality, inconsistent motion, blurry, jittery, distorted, static image, no movement",
+    "CogVideoX": "blurry, low quality, watermark, static, jittery, inconsistent motion, distorted faces, flickering",
+    "CogVideoX-I2V": "blurry, low quality, watermark, static image, no motion, jittery, distorted",
+    "Mochi": "blurry, low quality, watermark, static, jittery, inconsistent motion, distorted anatomy",
+    "Kling-T2V": "blurry, low quality, watermark, static, flat motion, jittery, distorted faces, oversaturated",
+    "Kling-I2V": "blurry, low quality, watermark, static image, no motion, jittery, distorted",
+    "PyramidFlow": "blurry, low quality, watermark, static, jittery, inconsistent motion, distorted faces",
 }
 
 # === Caching ===
@@ -94,6 +136,10 @@ class WizdroidVideoSceneExpanderNode:
                 "motion_intensity": (MOTION_INTENSITIES, {"default": "moderate"}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "max_tokens": ("INT", {"default": 250, "min": 80, "max": 500, "step": 10}),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF}),
             }
         }
@@ -108,7 +154,11 @@ class WizdroidVideoSceneExpanderNode:
         motion_intensity: str,
         temperature: float,
         max_tokens: int,
+        use_ai: bool,
         seed: int,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
     ):
         global _CACHE
 
@@ -123,9 +173,9 @@ class WizdroidVideoSceneExpanderNode:
         }
 
         cache_key = _cache_key(selections)
-        if cache_key in _CACHE:
+        if use_ai and cache_key in _CACHE:
             prompt = _CACHE[cache_key]
-        else:
+        elif use_ai:
             prompt = self._invoke_llm(
                 ollama_url, ollama_model, target_model,
                 user_text, duration_seconds, motion_intensity, temperature, max_tokens,
@@ -133,8 +183,10 @@ class WizdroidVideoSceneExpanderNode:
             if len(_CACHE) >= _MAX_CACHE_SIZE:
                 _CACHE.pop(next(iter(_CACHE)))
             _CACHE[cache_key] = prompt
+        else:
+            prompt = user_text.strip() or "(description)"
 
-        return prompt
+        return (prompt,)
 
     @staticmethod
     def _invoke_llm(
@@ -176,9 +228,8 @@ class WizdroidVideoSceneExpanderNode:
 
         result = _clean_output(result)
 
-        if True:
-            if err := enforce_sfw(result):
-                return f"[Blocked: {err}]"
+        if err := enforce_sfw(result):
+            return f"[Blocked: {err}]"
 
         return result or "[Empty response from Ollama]"
 

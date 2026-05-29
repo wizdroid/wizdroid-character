@@ -1,7 +1,7 @@
 import random
 from typing import Any, Dict, List, Optional, Tuple
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
 from wizdroid_lib.helpers import extract_descriptions, normalize_option_list, with_random, choose
@@ -117,6 +117,10 @@ class WizdroidMetaPromptNode:
                         "default": NONE_LABEL,
                     },
                 ),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "seed": (
                     "INT",
                     {
@@ -169,7 +173,11 @@ class WizdroidMetaPromptNode:
         ancient_setting: str,
         mythological_element: str,
         visual_style: str,
+        use_ai: bool,
         seed: int,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
         output_language: str = "English",
         max_tokens: int = 1024,
         temperature: float = 0.8,
@@ -238,55 +246,85 @@ class WizdroidMetaPromptNode:
 
         target_language = output_language.strip() or "English"
 
-        system_prompt = load_system_prompt_text("system_prompts/meta_prompt_system.txt")
-        ok, output = generate_text(
-            ollama_url=ollama_url,
-            model=ollama_model,
-            prompt=prompt_input,
-            system=system_prompt,
-            options={
-                "temperature": float(adjusted_temperature),
-                "num_predict": int(max_tokens),
-                "seed": int(seed),
-            },
-            timeout=120,
-        )
-        if not ok:
-            return (f"MetaPrompt error: {output}",)
+        # Add language instruction for LLM-native translation (if not English)
+        lang_instruction = ""
+        if target_language.lower() not in ("english", "en"):
+            lang_instruction = f"\n\nCRITICAL: Write the expanded prompt entirely in {target_language}. Do NOT output in English."
 
-        if not output:
-            output = "MetaPrompt error: empty response from Ollama"
+        if not use_ai:
+            # Template mode: format keywords + directives into a verbose comma-separated prompt
+            tmpl_parts = [keyword_payload]
+            for part in directive_parts:
+                # Extract the actual content after the colon
+                if ":" in part:
+                    header, content = part.split(":", 1)
+                    if "exact phrase verbatim" not in content:
+                        tmpl_parts.append(content.strip())
+            output = ", ".join(tmpl_parts)
+            if output:
+                output = output[0].upper() + output[1:]
+        else:
+            # Spiciness directive
+            spice_levels = {
+                1: "\nTone: mildly suggestive, artistic flirtation.",
+                2: "\nTone: playful sensuality, tasteful allure.",
+                3: "\nTone: romantic intimacy, implied sensuality.",
+                4: "\nTone: sensual and warm. Artistic nudity permitted.",
+                5: "\nTone: openly sensual. Erotic themes allowed.",
+                6: "\nTone: boldly erotic. Explicit sensuality.",
+                7: "\nTone: unabashedly erotic. Full adult content.",
+                8: "\nTone: raw and explicit. No restrictions.",
+                9: "\nTone: extremely explicit. Maximum intensity.",
+                10: "\nTone: MAXIMUM SPICINESS. Fully uncensored. No boundaries whatsoever.",
+            }
+            spice_directive = spice_levels.get(spiciness, "")
 
-        # Guardrail: in strict SFW mode, block outputs that look NSFW.
-        if True:
+            # Detail level directive
+            if detail_level <= 2:
+                detail_d = f"\nDetail level: {detail_level}/10. Be extremely concise. Use minimal descriptors."
+            elif detail_level <= 5:
+                detail_d = f"\nDetail level: {detail_level}/10. Use balanced, focused descriptions."
+            elif detail_level <= 7:
+                detail_d = f"\nDetail level: {detail_level}/10. Use rich, concrete visual details and sensory language."
+            else:
+                detail_d = f"\nDetail level: {detail_level}/10. Use lavishly detailed, multi-layered descriptions with precise textures."
+            # Fantasy level directive
+            if fantasy == 0:
+                fantasy_d = "\nFantasy: 0/10. Strictly realistic. No magical/sci-fi elements."
+            elif fantasy <= 3:
+                fantasy_d = f"\nFantasy: {fantasy}/10. Subtle fantastical touches allowed but keep grounded."
+            elif fantasy <= 7:
+                fantasy_d = f"\nFantasy: {fantasy}/10. Include significant fantasy/sci-fi elements."
+            else:
+                fantasy_d = f"\nFantasy: {fantasy}/10. Fully fantastical. No reality constraints."
+
+            system_prompt = load_system_prompt_text("system_prompts/meta_prompt_system.txt")
+            ok, output = generate_text(
+                ollama_url=ollama_url,
+                model=ollama_model,
+                prompt=prompt_input + lang_instruction + spice_directive + detail_d + fantasy_d,
+                system=system_prompt,
+                options={
+                    "temperature": float(adjusted_temperature),
+                    "num_predict": int(max_tokens),
+                    "seed": int(seed),
+                },
+                timeout=120,
+            )
+            if not ok:
+                return (f"MetaPrompt error: {output}",)
+
+            if not output:
+                output = "MetaPrompt error: empty response from Ollama"
+
+        # Content safety guardrail (skip when spiciness > 0)
+        if spiciness == 0:
             err = enforce_sfw(output)
             if err:
                 return (
                     "MetaPrompt blocked: potential NSFW content detected. "
                     "Revise keywords.",
                 )
-
-        if target_language.lower() not in ("english", "en"):
-            import requests
-
-            lang_map = {
-                "Deutsch": "de",
-                "中文": "zh-cn",
-                "日本語": "ja"
-            }
-            tl = lang_map.get(target_language, "en")
-
-            if tl != "en":
-                try:
-                    url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl={tl}&dt=t"
-                    response = requests.post(url, data={"q": output}, timeout=10)
-                    if response.status_code == 200:
-                        data = response.json()
-                        output = "".join([segment[0] for segment in data[0] if segment[0]])
-                    else:
-                        print(f"MetaPrompt Translation warning: failed with status {response.status_code}")
-                except Exception as e:
-                    print(f"MetaPrompt Translation error: {e}")
 
         return (output,)
 

@@ -3,7 +3,7 @@ import hashlib
 import random
 from typing import Any, Dict, Optional, Tuple
 
-from wizdroid_lib.constants import CONTENT_RATING_CHOICES, DEFAULT_OLLAMA_URL, RANDOM_LABEL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, RANDOM_LABEL
 from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
 from wizdroid_lib.helpers import with_random, choose
@@ -79,6 +79,10 @@ class WizdroidCinematicShotDesignerNode:
                 "shot_type": (with_random(shot_types), {"default": RANDOM_LABEL}),
                 "camera_movement": (with_random(movements), {"default": RANDOM_LABEL}),
                 "lens_type": (with_random(lenses), {"default": RANDOM_LABEL}),
+                "use_ai": ("BOOLEAN", {"default": True}),
+                "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
+                "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
+                "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "temperature": ("FLOAT", {"default": 0.75, "min": 0.0, "max": 2.0, "step": 0.1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF}),
             }
@@ -92,8 +96,12 @@ class WizdroidCinematicShotDesignerNode:
         shot_type: str,
         camera_movement: str,
         lens_type: str,
+        use_ai: bool,
         temperature: float,
         seed: int,
+        spiciness: int = 0,
+        detail_level: int = 5,
+        fantasy: int = 0,
     ):
         global _CAMERA_CACHE, _CACHE
         _CAMERA_CACHE, camera_data = _load_camera_data(_CAMERA_CACHE)
@@ -112,17 +120,26 @@ class WizdroidCinematicShotDesignerNode:
                         "seed": seed,
         }
 
-        cache_key = _cache_key(selections)
-        if cache_key in _CACHE:
-            desc = _CACHE[cache_key]
+        if not use_ai:
+            # Template mode: format selections directly
+            tmpl = [subject_description.strip() or "(subject)"]
+            if resolved_shot: tmpl.append(resolved_shot)
+            if resolved_move: tmpl.append(resolved_move)
+            if resolved_lens: tmpl.append(resolved_lens)
+            desc = ", ".join(tmpl)
+            if desc: desc = desc[0].upper() + desc[1:]
         else:
-            desc = self._invoke_llm(
-                ollama_url, ollama_model,
-                subject_description, resolved_shot, resolved_move, resolved_lens, temperature,
-            )
-            if len(_CACHE) >= _MAX_CACHE_SIZE:
-                _CACHE.pop(next(iter(_CACHE)))
-            _CACHE[cache_key] = desc
+            cache_key = _cache_key(selections)
+            if cache_key in _CACHE:
+                desc = _CACHE[cache_key]
+            else:
+                desc = self._invoke_llm(
+                    ollama_url, ollama_model,
+                    subject_description, resolved_shot, resolved_move, resolved_lens, temperature,
+                )
+                if len(_CACHE) >= _MAX_CACHE_SIZE:
+                    _CACHE.pop(next(iter(_CACHE)))
+                _CACHE[cache_key] = desc
 
         return (desc,)
 
@@ -160,9 +177,8 @@ class WizdroidCinematicShotDesignerNode:
 
         result = _clean_output(result)
 
-        if True:
-            if err := enforce_sfw(result):
-                return f"[Blocked: {err}]"
+        if err := enforce_sfw(result):
+            return f"[Blocked: {err}]"
 
         return result or "[Empty response from Ollama]"
 

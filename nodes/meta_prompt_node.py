@@ -38,11 +38,18 @@ def _should_echo_style_label(style_name: str) -> bool:
 def _get_meta_options() -> Dict[str, Any]:
     region_payload = load_json("regions.json")
     meta_payload = load_json("meta_prompt_options.json")
+    prompt_styles_payload = load_json("prompt_styles.json")
 
     visual_payload = _flatten_style_payload(meta_payload.get("visual_styles", []))
     futuristic_payload = meta_payload.get("futuristic_settings", [])
     ancient_payload = meta_payload.get("ancient_eras", [])
     mythology_payload = meta_payload.get("mythological_elements", [])
+
+    # Build prompt style list (exclude video-only models)
+    prompt_styles = {k: v for k, v in prompt_styles_payload.items()
+                     if not k.startswith(("WAN-", "LTX-", "CogVideo", "Mochi", "Kling-", "PyramidFlow"))}
+    style_keys = list(prompt_styles.keys())
+    style_labels = [prompt_styles[k]["label"] for k in style_keys]
 
     return {
         "regions": list(region_payload.get("regions", [])),
@@ -54,6 +61,8 @@ def _get_meta_options() -> Dict[str, Any]:
         "futuristic_desc_map": extract_descriptions(futuristic_payload),
         "ancient_desc_map": extract_descriptions(ancient_payload),
         "mythology_desc_map": extract_descriptions(mythology_payload),
+        "prompt_styles": prompt_styles,
+        "prompt_style_keys": style_keys,
     }
 
 
@@ -117,11 +126,12 @@ class WizdroidMetaPromptNode:
                         "default": NONE_LABEL,
                     },
                 ),
+                "prompt_style": (tuple(options["prompt_style_keys"]), {"default": "SDXL"}),
                 "use_ai": ("BOOLEAN", {"default": True}),
                 "spiciness": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
                 "detail_level": ("INT", {"default": 5, "min": 0, "max": 10, "step": 1}),
                 "fantasy": ("INT", {"default": 0, "min": 0, "max": 10, "step": 1}),
-                "seed": (
+                "noise_seed": (
                     "INT",
                     {
                         "default": 0,
@@ -173,11 +183,12 @@ class WizdroidMetaPromptNode:
         ancient_setting: str,
         mythological_element: str,
         visual_style: str,
+        prompt_style: str,
         use_ai: bool,
-        seed: int,
         spiciness: int = 0,
         detail_level: int = 5,
         fantasy: int = 0,
+        noise_seed: int = 0,
         output_language: str = "English",
         max_tokens: int = 1024,
         temperature: float = 0.8,
@@ -185,15 +196,15 @@ class WizdroidMetaPromptNode:
         """Call Ollama to expand user keywords into a detailed prompt."""
 
         # Use seed to introduce slight variation for batch mode consistency
-        rng = random.Random(seed)
+        rng = random.Random(noise_seed)
         meta_options = _get_meta_options()
 
         selected_directives = {
-            "region": choose(regional_style, meta_options["regions"], rng, seed),
-            "futuristic": choose(futuristic_setting, meta_options["futuristic_settings"], rng, seed),
-            "ancient": choose(ancient_setting, meta_options["ancient_eras"], rng, seed),
-            "mythology": choose(mythological_element, meta_options["mythological_elements"], rng, seed),
-            "style": choose(visual_style, meta_options["visual_styles"], rng, seed),
+            "region": choose(regional_style, meta_options["regions"], rng, noise_seed),
+            "futuristic": choose(futuristic_setting, meta_options["futuristic_settings"], rng, noise_seed),
+            "ancient": choose(ancient_setting, meta_options["ancient_eras"], rng, noise_seed),
+            "mythology": choose(mythological_element, meta_options["mythological_elements"], rng, noise_seed),
+            "style": choose(visual_style, meta_options["visual_styles"], rng, noise_seed),
         }
 
         directive_parts: List[str] = []
@@ -266,48 +277,55 @@ class WizdroidMetaPromptNode:
         else:
             # Spiciness directive
             spice_levels = {
-                1: "\nTone: mildly suggestive, artistic flirtation.",
-                2: "\nTone: playful sensuality, tasteful allure.",
-                3: "\nTone: romantic intimacy, implied sensuality.",
-                4: "\nTone: sensual and warm. Artistic nudity permitted.",
-                5: "\nTone: openly sensual. Erotic themes allowed.",
-                6: "\nTone: boldly erotic. Explicit sensuality.",
-                7: "\nTone: unabashedly erotic. Full adult content.",
-                8: "\nTone: raw and explicit. No restrictions.",
-                9: "\nTone: extremely explicit. Maximum intensity.",
-                10: "\nTone: MAXIMUM SPICINESS. Fully uncensored. No boundaries whatsoever.",
+                1: "\nINSTRUCTION - Tone: mildly suggestive, artistic flirtation.",
+                2: "\nINSTRUCTION - Tone: playful sensuality, tasteful allure.",
+                3: "\nINSTRUCTION - Tone: romantic intimacy, implied sensuality.",
+                4: "\nINSTRUCTION - Tone: sensual and warm. Artistic nudity permitted.",
+                5: "\nINSTRUCTION - Tone: openly sensual. Erotic themes allowed.",
+                6: "\nINSTRUCTION - Tone: boldly erotic. Explicit sensuality.",
+                7: "\nINSTRUCTION - Tone: unabashedly erotic. Full adult content.",
+                8: "\nINSTRUCTION - Tone: raw and explicit. No restrictions.",
+                9: "\nINSTRUCTION - Tone: extremely explicit. Maximum intensity.",
+                10: "\nINSTRUCTION - Tone: MAXIMUM SPICINESS. Fully uncensored. No boundaries whatsoever.",
             }
             spice_directive = spice_levels.get(spiciness, "")
 
             # Detail level directive
             if detail_level <= 2:
-                detail_d = f"\nDetail level: {detail_level}/10. Be extremely concise. Use minimal descriptors."
+                detail_d = f"\nINSTRUCTION - Write at detail level {detail_level}/10: Be extremely concise with minimal descriptors."
             elif detail_level <= 5:
-                detail_d = f"\nDetail level: {detail_level}/10. Use balanced, focused descriptions."
+                detail_d = f"\nINSTRUCTION - Write at detail level {detail_level}/10: Use balanced, focused descriptions."
             elif detail_level <= 7:
-                detail_d = f"\nDetail level: {detail_level}/10. Use rich, concrete visual details and sensory language."
+                detail_d = f"\nINSTRUCTION - Write at detail level {detail_level}/10: Use rich, concrete visual details and sensory language."
             else:
-                detail_d = f"\nDetail level: {detail_level}/10. Use lavishly detailed, multi-layered descriptions with precise textures."
+                detail_d = f"\nINSTRUCTION - Write at detail level {detail_level}/10: Use lavishly detailed, multi-layered descriptions."
             # Fantasy level directive
             if fantasy == 0:
-                fantasy_d = "\nFantasy: 0/10. Strictly realistic. No magical/sci-fi elements."
+                fantasy_d = "\nINSTRUCTION - Realism: Strictly realistic. No magical/sci-fi/fantasy elements."
             elif fantasy <= 3:
-                fantasy_d = f"\nFantasy: {fantasy}/10. Subtle fantastical touches allowed but keep grounded."
+                fantasy_d = f"\nINSTRUCTION - Fantasy level {fantasy}/10: Subtle fantastical touches allowed but keep grounded."
             elif fantasy <= 7:
-                fantasy_d = f"\nFantasy: {fantasy}/10. Include significant fantasy/sci-fi elements."
+                fantasy_d = f"\nINSTRUCTION - Fantasy level {fantasy}/10: Include significant fantasy/sci-fi elements."
             else:
-                fantasy_d = f"\nFantasy: {fantasy}/10. Fully fantastical. No reality constraints."
+                fantasy_d = f"\nINSTRUCTION - Fantasy level {fantasy}/10: Fully fantastical. No reality constraints."
+
+            # Style-specific format guidance
+            meta_style_options = meta_options.get("prompt_styles", {})
+            style_meta = meta_style_options.get(prompt_style, meta_style_options.get("SDXL", {}))
+            style_guidance = style_meta.get("guidance", "Natural flowing sentence or comma-separated phrases")
+            style_token_limit = min(int(max_tokens), style_meta.get("token_limit", 512))
+            style_directive = f"\nFormat: {style_guidance}. Keep under {style_token_limit} tokens."
 
             system_prompt = load_system_prompt_text("system_prompts/meta_prompt_system.txt")
             ok, output = generate_text(
                 ollama_url=ollama_url,
                 model=ollama_model,
-                prompt=prompt_input + lang_instruction + spice_directive + detail_d + fantasy_d,
+                prompt=prompt_input + lang_instruction + spice_directive + detail_d + fantasy_d + style_directive,
                 system=system_prompt,
                 options={
                     "temperature": float(adjusted_temperature),
                     "num_predict": int(max_tokens),
-                    "seed": int(seed),
+                    "seed": int(noise_seed),
                 },
                 timeout=120,
             )

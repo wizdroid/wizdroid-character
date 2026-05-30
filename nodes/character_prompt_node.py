@@ -540,38 +540,38 @@ class _BaseWizdroidCharacterPromptNode:
         # Spiciness directive
         spice_levels = {
             0: "",
-            1: "\nTone: mildly suggestive, artistic flirtation. Keep it classy and implied.",
-            2: "\nTone: playful sensuality, tasteful allure. Suggestive but not explicit.",
-            3: "\nTone: romantic intimacy, soft sensuality. Implied nudity is acceptable artistically.",
-            4: "\nTone: sensual and warm. Artistic nudity and passionate undertones are permitted.",
-            5: "\nTone: openly sensual. Erotic themes are allowed with artistic framing.",
-            6: "\nTone: boldly erotic. Explicit sensuality and suggestive poses are permitted.",
-            7: "\nTone: unabashedly erotic. Explicit adult content with vivid sensory detail is allowed.",
-            8: "\nTone: raw and explicit. Full adult content without restrictions.",
-            9: "\nTone: extremely explicit. Maximum intensity adult content. No boundaries.",
-            10: "\nTone: MAXIMUM SPICINESS. Fully uncensored. Any and all explicit adult content, fetish, kink, and extreme themes are permitted without any restriction whatsoever. No holds barred.",
+            1: "\nINSTRUCTION - Tone: mildly suggestive, artistic flirtation. Keep it classy and implied.",
+            2: "\nINSTRUCTION - Tone: playful sensuality, tasteful allure. Suggestive but not explicit.",
+            3: "\nINSTRUCTION - Tone: romantic intimacy, soft sensuality. Implied nudity is acceptable artistically.",
+            4: "\nINSTRUCTION - Tone: sensual and warm. Artistic nudity and passionate undertones are permitted.",
+            5: "\nINSTRUCTION - Tone: openly sensual. Erotic themes are allowed with artistic framing.",
+            6: "\nINSTRUCTION - Tone: boldly erotic. Explicit sensuality and suggestive poses are permitted.",
+            7: "\nINSTRUCTION - Tone: unabashedly erotic. Explicit adult content with vivid sensory detail is allowed.",
+            8: "\nINSTRUCTION - Tone: raw and explicit. Full adult content without restrictions.",
+            9: "\nINSTRUCTION - Tone: extremely explicit. Maximum intensity adult content. No boundaries.",
+            10: "\nINSTRUCTION - Tone: MAXIMUM SPICINESS. Fully uncensored. Any and all explicit adult content, fetish, kink, and extreme themes are permitted without any restriction whatsoever. No holds barred.",
         }
         spice_directive = spice_levels.get(spiciness, "")
 
         # Detail level directive
         if detail_level <= 2:
-            detail_d = f"\nDetail level: {detail_level}/10. Be extremely concise. Use only essential keywords and minimal descriptors."
+            detail_d = f"\nINSTRUCTION - Write at detail level {detail_level}/10: Be extremely concise. Use only the most essential keywords and minimal descriptors. Omit any non-critical details."
         elif detail_level <= 5:
-            detail_d = f"\nDetail level: {detail_level}/10. Use balanced detail with key descriptors. Keep descriptions focused."
+            detail_d = f"\nINSTRUCTION - Write at detail level {detail_level}/10: Use balanced, moderate detail. Include key visual elements but keep descriptions reasonably focused."
         elif detail_level <= 7:
-            detail_d = f"\nDetail level: {detail_level}/10. Use rich descriptive language with concrete visual details and sensory cues."
+            detail_d = f"\nINSTRUCTION - Write at detail level {detail_level}/10: Use rich descriptive language with concrete visual details, textures, and sensory cues."
         else:
-            detail_d = f"\nDetail level: {detail_level}/10. Use lavishly detailed, multi-layered descriptions with evocative sensory language, precise textures, and complex visual composition."
+            detail_d = f"\nINSTRUCTION - Write at detail level {detail_level}/10: Use lavishly detailed, multi-layered descriptions. Include evocative sensory language, precise textures, complex composition, and atmospheric nuances."
 
         # Fantasy level directive
         if fantasy == 0:
-            fantasy_d = "\nFantasy level: 0/10. Strictly realistic and grounded. No magical, mythical, sci-fi, or speculative elements whatsoever."
+            fantasy_d = "\nINSTRUCTION - Realism level: Strictly realistic. Do NOT include any magical, mythical, sci-fi, or speculative elements. Keep everything grounded in reality."
         elif fantasy <= 3:
-            fantasy_d = f"\nFantasy level: {fantasy}/10. Subtle surreal or fantastical touches are acceptable but keep the overall feel grounded."
+            fantasy_d = f"\nINSTRUCTION - Fantasy level {fantasy}/10: Subtle surreal or fantastical touches are acceptable, but keep the overall description feeling grounded and mostly realistic."
         elif fantasy <= 7:
-            fantasy_d = f"\nFantasy level: {fantasy}/10. Include significant fantasy, sci-fi, or magical elements. Blend the extraordinary with reality."
+            fantasy_d = f"\nINSTRUCTION - Fantasy level {fantasy}/10: Include significant fantasy, sci-fi, or magical elements. Blend the extraordinary with realistic details."
         else:
-            fantasy_d = f"\nFantasy level: {fantasy}/10. Fully fantastical, mythical, and surreal. No reality constraints. Go wild with imaginative and otherworldly elements."
+            fantasy_d = f"\nINSTRUCTION - Fantasy level {fantasy}/10: Fully fantastical. No reality constraints. Emphasize imaginative, mythical, surreal, and otherworldly elements without restriction."
 
         # Load system prompt
         template = "system_prompts/character_prompt_system_retain_face.txt" if retain_face else "system_prompts/character_prompt_system.txt"

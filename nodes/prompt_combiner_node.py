@@ -128,7 +128,7 @@ class WizdroidPromptCombinerNode:
         # Spiciness tone
         if spiciness > 0:
             tones = ["", "mildly suggestive", "playful sensuality", "romantic intimacy", "sensual and warm", "openly sensual", "boldly erotic", "unabashedly erotic", "raw and explicit", "extremely explicit", "MAXIMUM SPICINESS"]
-            lines.append(f"\nTone: {tones[spiciness]}. Adjust the combined prompt's tone accordingly.")
+            lines.append(f"\nINSTRUCTION - Tone: {tones[spiciness]}. Adjust the combined prompt's tone accordingly.")
 
         user_prompt = "\n".join(lines)
 

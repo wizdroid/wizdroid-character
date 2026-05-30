@@ -125,7 +125,7 @@ class WizdroidTemporalScenePlannerNode:
             f"Concept: {concept.strip() or '(no input — create a compelling cinematic arc)'}\n"
             f"Target model: {target_model}\n"
             f"Arc type: {arc_type}\n"
-            f"{'' if spiciness == 0 else f'Tone: {['','mildly suggestive','playful sensuality','romantic intimacy','sensual and warm','openly sensual','boldly erotic','unabashedly erotic','raw and explicit','extremely explicit','MAXIMUM SPICINESS'][spiciness]}.\\n'}"
+            f"{'' if spiciness == 0 else f'INSTRUCTION - Tone: {['','mildly suggestive','playful sensuality','romantic intimacy','sensual and warm','openly sensual','boldly erotic','unabashedly erotic','raw and explicit','extremely explicit','MAXIMUM SPICINESS'][spiciness]}.\\n'}"
             f"Generate the temporal video prompt with [PROMPT], [START], and [END] sections:"
         )
 

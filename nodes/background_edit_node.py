@@ -193,7 +193,7 @@ class WizdroidBackgroundNode:
             f"Create a {prompt_style} surreal background without any humans."
             f" Attributes: {attribute_blob}."
             " Keep emphasis on atmosphere, lighting, geography, architecture, and creature presence."
-            f"{'' if spiciness == 0 else f' Tone: {['','mildly suggestive','playful sensuality','romantic intimacy','sensual and warm','openly sensual','boldly erotic','unabashedly erotic','raw and explicit','extremely explicit','MAXIMUM SPICINESS'][spiciness]}.'}"
+            f"{'' if spiciness == 0 else f' INSTRUCTION - Tone: {['','mildly suggestive','playful sensuality','romantic intimacy','sensual and warm','openly sensual','boldly erotic','unabashedly erotic','raw and explicit','extremely explicit','MAXIMUM SPICINESS'][spiciness]}.'}"
         )
 
         if not use_ai:

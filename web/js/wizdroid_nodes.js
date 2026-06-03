@@ -156,6 +156,8 @@ const NODE_CATEGORIES = {
     "WizdroidPromptCombiner": "prompts",
     "WizdroidImageEdit": "prompts",
     "WizdroidCharacterEdit": "prompts",
+    "WizdroidStyleTransferNode": "prompts",
+    "WizdroidPhotographyStyleNode": "prompts",
     
     // Training
     "WizdroidLoRADataset": "training",
@@ -475,6 +477,251 @@ app.registerExtension({
                     }, 100);
                 }
             }
+        };
+    }
+});
+
+// ──────────────────────────────────────────────
+// Style Transfer Thumbnail Display
+// ──────────────────────────────────────────────
+
+// Map style names to thumbnail filenames
+const STYLE_TRANSFER_THUMBNAILS = {
+    "American Comic Book": "american_comic.png",
+    "Manga": "manga.png",
+    "Graphic Novel": "graphic_novel.png",
+    "Comic Strip": "comic_strip.png",
+    "Golden Age Comic": "golden_age_comic.png",
+    "Ligne Claire (European Comic)": "ligne_claire.png",
+    "Studio Ghibli Anime": "ghibli.png",
+    "Shonen Anime": "shonen.png",
+    "Shojo Anime": "shojo.png",
+    "Retro Anime (80s-90s)": "retro_anime.png",
+    "Cel-Shaded Anime": "cel_shaded.png",
+    "Mecha Anime": "mecha.png",
+    "Anime Key Visual": "key_visual.png",
+    "Seinen (Dark Manga)": "seinen.png",
+    "Webtoon Style": "webtoon.png",
+    "Digital Painting": "digital_painting.png",
+    "Cyberpunk Comic": "cyberpunk_comic.png",
+    "Superhero Comic": "superhero_comic.png",
+    "Dark Gothic Fantasy Comic": "dark_gothic_fantasy.png",
+};
+
+// Base URL for extension-served images
+function getThumbnailUrl(filename) {
+    if (!filename) return null;
+    return `/extensions/wizdroid-character/images/${filename}`;
+}
+
+app.registerExtension({
+    name: "Wizdroid.StyleTransferThumbnail",
+
+    async beforeRegisterNodeDef(nodeType, nodeData, app) {
+        if (nodeData.name !== "WizdroidStyleTransferNode") return;
+
+        const onNodeCreated = nodeType.prototype.onNodeCreated;
+        nodeType.prototype.onNodeCreated = function () {
+            if (onNodeCreated) {
+                onNodeCreated.apply(this, arguments);
+            }
+
+            const node = this;
+
+            // Find the style combo widget
+            const styleWidget = node.widgets?.find(w => w.name === "style");
+            if (!styleWidget) return;
+
+            // Create thumbnail image element
+            const img = document.createElement("img");
+            img.style.width = "100%";
+            img.style.maxWidth = "280px";
+            img.style.height = "auto";
+            img.style.display = "none";
+            img.style.margin = "8px auto 4px auto";
+            img.style.borderRadius = "8px";
+            img.style.border = "2px solid rgba(155, 89, 182, 0.3)";
+            img.style.objectFit = "cover";
+            img.style.boxShadow = "0 2px 12px rgba(0,0,0,0.3)";
+            img.alt = "Style preview";
+            img.loading = "lazy";
+
+            // Fallback: hide if image fails to load
+            img.onerror = function () {
+                this.style.display = "none";
+            };
+
+            // Function to update thumbnail based on selected style
+            const updateThumbnail = (styleName) => {
+                const filename = STYLE_TRANSFER_THUMBNAILS[styleName];
+                const url = getThumbnailUrl(filename);
+                if (url) {
+                    img.src = url;
+                    img.style.display = "block";
+                } else {
+                    img.style.display = "none";
+                }
+            };
+
+            // Handle "Random" — pick a random thumbnail key
+            const getEffectiveStyle = (val) => {
+                if (val === "Random") {
+                    const keys = Object.keys(STYLE_TRANSFER_THUMBNAILS);
+                    return keys[Math.floor(Math.random() * keys.length)];
+                }
+                return val;
+            };
+
+            // Add the DOM widget to show the image
+            const thumbWidget = node.addDOMWidget("thumbnail_preview", "preview", img, {
+                serialize: false,
+                hideOnZoom: false,
+                getValue() { return ""; },
+                setValue(v) {},
+            });
+
+            // Set the display area size
+            thumbWidget.computeSize = function (width) {
+                return [280, 175];
+            };
+
+            // Override the original size to make room
+            const origComputeSize = node.computeSize;
+            node.computeSize = function (targetWidth) {
+                const size = origComputeSize ? origComputeSize.call(this, targetWidth) : [300, 100];
+                size[1] += 190; // Add space for the thumbnail
+                return size;
+            };
+
+            // Listen for style changes
+            const originalCallback = styleWidget.callback;
+            styleWidget.callback = function (val) {
+                if (originalCallback) originalCallback.call(this, val);
+                updateThumbnail(getEffectiveStyle(val));
+            };
+
+            // Initial thumbnail load
+            setTimeout(() => {
+                const val = styleWidget.value || "Random";
+                updateThumbnail(getEffectiveStyle(val));
+            }, 200);
+
+            // Force a resize to accommodate the thumbnail
+            setTimeout(() => {
+                node.setSize(node.computeSize());
+                node.setDirtyCanvas(true);
+            }, 250);
+        };
+    }
+});
+
+// ──────────────────────────────────────────────
+// Photography Style Thumbnail Display
+// ──────────────────────────────────────────────
+
+const PHOTOGRAPHY_THUMBNAILS = {
+    "Film Noir": "film_noir.png",
+    "Vintage Polaroid": "vintage_polaroid.png",
+    "HDR Photography": "hdr.png",
+    "Tilt-Shift Photography": "tilt_shift.png",
+    "Macro Photography": "macro.png",
+    "Long Exposure": "long_exposure.png",
+    "Neon Noir": "neon_noir.png",
+    "Glamour Photography": "glamour.png",
+    "Cinematic Photography": "cinematic.png",
+    "Silhouette": "silhouette.png",
+    "Analog Film": "analog_film.png",
+    "iPhone Photography": "iphone.png",
+    "Dark Moody Atmosphere": "dark_moody.png",
+    "Volumetric Lighting": "volumetric_lighting.png",
+    "Knolling Photography": "knolling.png",
+};
+
+app.registerExtension({
+    name: "Wizdroid.PhotographyThumbnail",
+
+    async beforeRegisterNodeDef(nodeType, nodeData, app) {
+        if (nodeData.name !== "WizdroidPhotographyStyleNode") return;
+
+        const onNodeCreated = nodeType.prototype.onNodeCreated;
+        nodeType.prototype.onNodeCreated = function () {
+            if (onNodeCreated) {
+                onNodeCreated.apply(this, arguments);
+            }
+
+            const node = this;
+            const styleWidget = node.widgets?.find(w => w.name === "style");
+            if (!styleWidget) return;
+
+            const img = document.createElement("img");
+            img.style.width = "100%";
+            img.style.maxWidth = "280px";
+            img.style.height = "auto";
+            img.style.display = "none";
+            img.style.margin = "8px auto 4px auto";
+            img.style.borderRadius = "8px";
+            img.style.border = "2px solid rgba(52, 152, 219, 0.3)";
+            img.style.objectFit = "cover";
+            img.style.boxShadow = "0 2px 12px rgba(0,0,0,0.3)";
+            img.alt = "Style preview";
+            img.loading = "lazy";
+
+            img.onerror = function () {
+                this.style.display = "none";
+            };
+
+            const updateThumbnail = (styleName) => {
+                const filename = PHOTOGRAPHY_THUMBNAILS[styleName];
+                const url = getThumbnailUrl(filename);
+                if (url) {
+                    img.src = url;
+                    img.style.display = "block";
+                } else {
+                    img.style.display = "none";
+                }
+            };
+
+            const getEffectiveStyle = (val) => {
+                if (val === "Random") {
+                    const keys = Object.keys(PHOTOGRAPHY_THUMBNAILS);
+                    return keys[Math.floor(Math.random() * keys.length)];
+                }
+                return val;
+            };
+
+            const thumbWidget = node.addDOMWidget("thumbnail_preview", "preview", img, {
+                serialize: false,
+                hideOnZoom: false,
+                getValue() { return ""; },
+                setValue(v) {},
+            });
+
+            thumbWidget.computeSize = function (width) {
+                return [280, 175];
+            };
+
+            const origComputeSize = node.computeSize;
+            node.computeSize = function (targetWidth) {
+                const size = origComputeSize ? origComputeSize.call(this, targetWidth) : [300, 100];
+                size[1] += 190;
+                return size;
+            };
+
+            const originalCallback = styleWidget.callback;
+            styleWidget.callback = function (val) {
+                if (originalCallback) originalCallback.call(this, val);
+                updateThumbnail(getEffectiveStyle(val));
+            };
+
+            setTimeout(() => {
+                const val = styleWidget.value || "Random";
+                updateThumbnail(getEffectiveStyle(val));
+            }, 200);
+
+            setTimeout(() => {
+                node.setSize(node.computeSize());
+                node.setDirtyCanvas(true);
+            }, 250);
         };
     }
 });

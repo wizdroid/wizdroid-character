@@ -5,11 +5,11 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import filter_by_gender
 from wizdroid_lib.registry import DataRegistry
 from wizdroid_lib.helpers import (
     choose,
+    clean_llm_response,
     extract_descriptions,
     normalize_option_list,
     split_groups,
@@ -352,12 +352,6 @@ class _BaseWizdroidCharacterPromptNode:
             sep = " " if final_prompt.endswith(",") else ", "
             final_prompt = f"{final_prompt.rstrip()}{sep}{append_text}" if final_prompt else append_text
 
-        # Content safety check (skip when spiciness > 0)
-        if spiciness == 0:
-            err = enforce_sfw(final_prompt)
-            if err:
-                return ("[Blocked: potential NSFW content detected]",)
-
         return (final_prompt,)
 
     @staticmethod
@@ -622,6 +616,9 @@ class _BaseWizdroidCharacterPromptNode:
         for prefix in ["Here is", "Here's", "This prompt", "Prompt:", f"{prompt_style}:"]:
             if result.lower().startswith(prefix.lower()):
                 result = result[len(prefix):].lstrip(": ")
+
+        # Strip translation annotations that some LLMs append, e.g. (Translated: ...)
+        result = clean_llm_response(result)
 
         return (result or "[Empty response]", user_prompt)
 

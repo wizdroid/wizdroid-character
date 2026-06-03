@@ -4,7 +4,6 @@ import re
 from typing import Dict
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
 
@@ -145,10 +144,6 @@ class WizdroidTemporalScenePlannerNode:
         video_prompt = _parse_tagged(result, "PROMPT") or _clean_output(result)
         start_desc = _parse_tagged(result, "START")
         end_desc = _parse_tagged(result, "END")
-
-        for text in (video_prompt, start_desc, end_desc):
-            if spiciness == 0 and (err := enforce_sfw(text)):
-                return f"[Blocked: {err}]", "", ""
 
         return (
             video_prompt or "[Empty response from Ollama]",

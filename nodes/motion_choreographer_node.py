@@ -3,7 +3,6 @@ import hashlib
 from typing import Any, Dict, Optional, Tuple
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
 from wizdroid_lib.helpers import with_random, choose
 from wizdroid_lib.ollama_client import collect_models, generate_text
@@ -175,9 +174,6 @@ class WizdroidMotionChoreographerNode:
             return f"[Error: {result}]"
 
         result = _clean_output(result)
-
-        if err := enforce_sfw(result):
-            return f"[Blocked: {err}]"
 
         return result or "[Empty response from Ollama]"
 

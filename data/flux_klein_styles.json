@@ -1,0 +1,97 @@
+[
+  {
+    "style_description": "Rendered in modern American comic book style, with bold ink outlines, flat vibrant colors, halftone dot shading, action-oriented composition, strong silhouettes, and dynamic framing. Style: American comic book.",
+    "name": "American Comic Book",
+    "thumbnail": "american_comic.png"
+  },
+  {
+    "style_description": "Illustrated in classic manga style, with screentone textures for shading, clean linework, panel-like framing, speed lines, and high-contrast visual storytelling. Style: Manga.",
+    "name": "Manga",
+    "thumbnail": "manga.png"
+  },
+  {
+    "style_description": "Depicted as a graphic novel illustration, with sophisticated compositions, muted or moody color palettes, detailed cross-hatching and ink wash shading, thick textured paper grain, and a strong sense of atmosphere. Style: Graphic novel.",
+    "name": "Graphic Novel",
+    "thumbnail": "graphic_novel.png"
+  },
+  {
+    "style_description": "In the style of a classic Sunday comic strip, with thick consistent linework, bright primary colors, minimal or abstract backgrounds, and a lighthearted nostalgic tone. Style: Comic strip.",
+    "name": "Comic Strip",
+    "thumbnail": "comic_strip.png"
+  },
+  {
+    "style_description": "Rendered as a vintage Golden Age comic from the 1940s, with pulp-inspired saturated colors, coarse newsprint texture, heavy shadows, chiaroscuro inking, and cyan-magenta-yellow overprints with visible misregistration. Style: Golden Age comic.",
+    "name": "Golden Age Comic",
+    "thumbnail": "golden_age_comic.png"
+  },
+  {
+    "style_description": "Illustrated in French-Belgian bande dessin\u00e9e style, with clean ligne claire (clear line) artwork, flat uniform colors, minimal shading, meticulously detailed backgrounds, and carefully balanced storyboard-like composition. Style: Ligne claire.",
+    "name": "Ligne Claire (European Comic)",
+    "thumbnail": "ligne_claire.png"
+  },
+  {
+    "style_description": "In the style of a Studio Ghibli animated film, with soft watercolor-like backgrounds, gentle pastel colors, warm natural lighting, and meticulously hand-crafted details. Style: Studio Ghibli anime.",
+    "name": "Studio Ghibli Anime",
+    "thumbnail": "ghibli.png"
+  },
+  {
+    "style_description": "Depicted in modern shonen anime style, with high-contrast cel shading, vibrant colors, sharp angular linework, action sequences, motion lines, impact frames, speed effects, and lighting with strong highlights. Style: Shonen anime.",
+    "name": "Shonen Anime",
+    "thumbnail": "shonen.png"
+  },
+  {
+    "style_description": "Illustrated in shojo anime style, with soft delicate linework, pastel and sparkly color palettes, large luminous eyes with starry highlights, romantic dreamy compositions, flowers, ribbons, floating sparkles, and softly blurred ethereal backgrounds. Style: Shojo anime.",
+    "name": "Shojo Anime",
+    "thumbnail": "shojo.png"
+  },
+  {
+    "style_description": "In the style of retro 1980s and 1990s anime, with hand-painted cels, visible brushstrokes, vibrant limited color palettes, grainy film texture, sharp angular features, distinct highlight shapes, detailed mechanical elements, deep shadows, and neon accents. Style: Retro anime.",
+    "name": "Retro Anime (80s-90s)",
+    "thumbnail": "retro_anime.png"
+  },
+  {
+    "style_description": "Rendered in cel-shaded anime art style, mimicking hand-drawn animation frames with flat even colors, bold black outlines, simplified shading with sharp shadow boundaries, and lighting simplified into two or three distinct tonal layers. Style: Cel-shaded anime.",
+    "name": "Cel-Shaded Anime",
+    "thumbnail": "cel_shaded.png"
+  },
+  {
+    "style_description": "Depicted in mecha anime style, featuring giant robots or mechanical exoskeletons with sharp geometric designs, metallic surfaces, glowing energy accents, low-angle shots emphasizing scale, lighting with lens flares, explosive action with beam trajectories and smoke trails, and technical precision on cockpits, thrusters, and mechanical joints. Style: Mecha anime.",
+    "name": "Mecha Anime",
+    "thumbnail": "mecha.png"
+  },
+  {
+    "style_description": "Illustrated in anime key visual or promotional poster style, with highly polished digital painting techniques, volumetric lighting, intricate costume details, perfectly balanced composition, realistic fabric textures, shiny hair highlights, glowing eyes, depth of field, and lens flares. Style: Anime key visual.",
+    "name": "Anime Key Visual",
+    "thumbnail": "key_visual.png"
+  },
+  {
+    "style_description": "In the style of dark seinen manga or anime, with heavy cross-hatching, deep black shadows, gritty textures, muted desaturated color palette, highly detailed wrinkled fabrics and weathered environments, and realistic proportions. Style: Seinen manga.",
+    "name": "Seinen (Dark Manga)",
+    "thumbnail": "seinen.png"
+  },
+  {
+    "style_description": "Depicted as a Korean webtoon-style digital comic, with vertical scrolling composition, soft gradient shading instead of hard cel shadows, vibrant pastel colors, simplified expressive designs, glossy highlights, glowing skin, fashionable clothing, colorful lightly detailed backgrounds, and sparkle or heart embellishments. Style: Webtoon.",
+    "name": "Webtoon Style",
+    "thumbnail": "webtoon.png"
+  },
+  {
+    "style_description": "Rendered as a digital painting, with smooth brushstroke textures, soft lighting, painterly blending, rich color gradients, artistic depth of field, and polished modern illustration finish. Style: Digital painting.",
+    "name": "Digital Painting",
+    "thumbnail": "digital_painting.png"
+  },
+  {
+    "style_description": "Rendered in cyberpunk comic style, with neon glowing accents, futuristic technology aesthetics, high-contrast lighting, cybernetic detailing, rain-slicked reflective surfaces, and urban dystopian atmosphere. Style: Cyberpunk comic.",
+    "name": "Cyberpunk Comic",
+    "thumbnail": "cyberpunk_comic.png"
+  },
+  {
+    "style_description": "Rendered in superhero comic style, with clean digital linework, vibrant costume colors, low-angle framing, dynamic anatomy, sky or cityscape backgrounds, and polished modern DC/Marvel comic aesthetic. Style: Superhero comic.",
+    "name": "Superhero Comic",
+    "thumbnail": "superhero_comic.png"
+  },
+  {
+    "style_description": "Rendered in dark gothic fantasy comic style, with monochrome or desaturated tones, heavy ink shadows, heightened contrast, mystical and occult elements, elaborate line detail, and atmospheric horror-fantasy aesthetic. Style: Dark gothic fantasy comic.",
+    "name": "Dark Gothic Fantasy Comic",
+    "thumbnail": "dark_gothic_fantasy.png"
+  }
+]

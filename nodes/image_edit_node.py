@@ -99,7 +99,7 @@ class WizdroidImageEditNode:
 
         # Load default system prompt for editing
         system_prompt = load_system_prompt_text(
-            "system_prompts/qwen_image_edit_system.txt"
+            "system_prompts/image_edit_system.txt"
         )
 
         # Build user prompt
@@ -150,12 +150,12 @@ class WizdroidImageEditNode:
 
         user_prompt = "\n".join(lines)
 
-        logger.debug(f"[QwenImageEdit] Edit mode: {edit_mode}")
-        logger.debug(f"[QwenImageEdit] Image 1: {img1[:50]}...")
-        logger.debug(f"[QwenImageEdit] Image 2: {img2[:50]}...")
+        logger.debug(f"[ImageEdit] Edit mode: {edit_mode}")
+        logger.debug(f"[ImageEdit] Image 1: {img1[:50]}...")
+        logger.debug(f"[ImageEdit] Image 2: {img2[:50]}...")
         if img3:
-            logger.debug(f"[QwenImageEdit] Image 3: {img3[:50]}...")
-        logger.debug(f"[QwenImageEdit] Using model: {ollama_model}")
+            logger.debug(f"[ImageEdit] Image 3: {img3[:50]}...")
+        logger.debug(f"[ImageEdit] Using model: {ollama_model}")
 
         if not use_ai:
             # Template mode: concatenate image descriptions with edit mode

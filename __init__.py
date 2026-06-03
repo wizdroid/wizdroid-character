@@ -48,7 +48,7 @@ _character_prompt_node = _import_node_module("character_prompt_node")
 CHARACTER_NODE_CLASS_MAPPINGS = _character_prompt_node.NODE_CLASS_MAPPINGS
 CHARACTER_DISPLAY_NAME_MAPPINGS = _character_prompt_node.NODE_DISPLAY_NAME_MAPPINGS
 
-_character_edit_node = _import_node_module("qwen_multi_angle_node")
+_character_edit_node = _import_node_module("multi_angle_node")
 CHARACTER_EDIT_NODE_CLASS_MAPPINGS = _character_edit_node.NODE_CLASS_MAPPINGS
 CHARACTER_EDIT_DISPLAY_NAME_MAPPINGS = _character_edit_node.NODE_DISPLAY_NAME_MAPPINGS
 
@@ -68,7 +68,7 @@ _prompt_combiner_node = _import_node_module("prompt_combiner_node")
 COMBINER_NODE_CLASS_MAPPINGS = _prompt_combiner_node.NODE_CLASS_MAPPINGS
 COMBINER_DISPLAY_NAME_MAPPINGS = _prompt_combiner_node.NODE_DISPLAY_NAME_MAPPINGS
 
-_image_edit_node = _import_node_module("qwen_image_edit_node")
+_image_edit_node = _import_node_module("image_edit_node")
 IMAGE_EDIT_NODE_CLASS_MAPPINGS = _image_edit_node.NODE_CLASS_MAPPINGS
 IMAGE_EDIT_DISPLAY_NAME_MAPPINGS = _image_edit_node.NODE_DISPLAY_NAME_MAPPINGS
 
@@ -132,6 +132,18 @@ _video_negative_prompt_node = _import_node_module("video_negative_prompt_node")
 VIDEO_NEGATIVE_PROMPT_CLASS_MAPPINGS = _video_negative_prompt_node.NODE_CLASS_MAPPINGS
 VIDEO_NEGATIVE_PROMPT_DISPLAY_NAME_MAPPINGS = _video_negative_prompt_node.NODE_DISPLAY_NAME_MAPPINGS
 
+# === Style Transfer Node ===
+
+_style_transfer_node = _import_node_module("style_transfer_node")
+STYLE_TRANSFER_NODE_CLASS_MAPPINGS = _style_transfer_node.NODE_CLASS_MAPPINGS
+STYLE_TRANSFER_NODE_DISPLAY_NAME_MAPPINGS = _style_transfer_node.NODE_DISPLAY_NAME_MAPPINGS
+
+# === Photography Style Node ===
+
+_photography_style_node = _import_node_module("photography_style_node")
+PHOTOGRAPHY_STYLE_NODE_CLASS_MAPPINGS = _photography_style_node.NODE_CLASS_MAPPINGS
+PHOTOGRAPHY_STYLE_NODE_DISPLAY_NAME_MAPPINGS = _photography_style_node.NODE_DISPLAY_NAME_MAPPINGS
+
 # === Combined Mappings ===
 
 NODE_CLASS_MAPPINGS = {
@@ -160,6 +172,10 @@ NODE_CLASS_MAPPINGS = {
     **MULTI_CLIP_STORY_PLANNER_CLASS_MAPPINGS,
     **IMAGE_TO_VIDEO_ADAPTER_CLASS_MAPPINGS,
     **VIDEO_NEGATIVE_PROMPT_CLASS_MAPPINGS,
+    # Style Transfer
+    **STYLE_TRANSFER_NODE_CLASS_MAPPINGS,
+    # Photography Style
+    **PHOTOGRAPHY_STYLE_NODE_CLASS_MAPPINGS,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -188,4 +204,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     **MULTI_CLIP_STORY_PLANNER_DISPLAY_NAME_MAPPINGS,
     **IMAGE_TO_VIDEO_ADAPTER_DISPLAY_NAME_MAPPINGS,
     **VIDEO_NEGATIVE_PROMPT_DISPLAY_NAME_MAPPINGS,
+    # Photography Style
+    **PHOTOGRAPHY_STYLE_NODE_DISPLAY_NAME_MAPPINGS,
+    # Style Transfer
+    **STYLE_TRANSFER_NODE_DISPLAY_NAME_MAPPINGS,
 }

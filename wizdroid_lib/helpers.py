@@ -3,9 +3,55 @@
 from __future__ import annotations
 
 import random
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from .constants import NONE_LABEL, RANDOM_LABEL
+
+# ---------------------------------------------------------------------------
+# Regex to strip translation annotations that some LLMs append, e.g.
+#   (Translated: original text)  |  （翻译：原文）  |  [翻訳: ...]
+# The pattern matches parenthesized/bracketed annotations with common
+# "translated" keywords across multiple languages.
+# ---------------------------------------------------------------------------
+_TRANSLATION_LABELS = (
+    "Translated",
+    "Translation",
+    "翻译",
+    "翻訳",
+    "Übersetzung",
+    "Traducción",
+    "Traduction",
+    "Traduzione",
+    "Перевод",
+    "번역",
+    "ترجمة",
+    "अनुवाद",
+)
+_TRANSLATION_PATTERN = re.compile(
+    r"\s*[\(\[\（]"
+    + r"(?:" + "|".join(re.escape(label) for label in _TRANSLATION_LABELS) + r")"
+    + r"\s*[:：]?\s*"
+    + r"[^\)\]\）]*"
+    + r"[\)\]\）]",
+    flags=re.IGNORECASE,
+)
+
+
+def clean_llm_response(text: str) -> str:
+    """Strip translation annotations that some LLMs append to translated output.
+
+    Some models, when asked to output in a non-English language, also append
+    the original English text wrapped in an annotation like:
+        (Translated: original English text)
+    or:
+        （翻译：原始英文文本）
+
+    This function removes those trailing annotations.
+    """
+    if not text:
+        return text
+    return _TRANSLATION_PATTERN.sub("", text).strip()
 
 
 def option_name(item: Any) -> Optional[str]:

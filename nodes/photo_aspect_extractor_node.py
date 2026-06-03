@@ -22,9 +22,8 @@ except ImportError:  # pragma: no cover
     requests = None
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
-from wizdroid_lib.system_prompts import apply_content_policy, load_system_prompt_text
+from wizdroid_lib.system_prompts import load_system_prompt_text
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
@@ -489,8 +488,6 @@ Requirements:
 - Keep within 100 tokens
 - No meta commentary, just the description"""
 
-        system_prompt = apply_content_policy(system_prompt)
-        
         # Ensure URL has the /api/generate endpoint for synthesis
         synthesis_url = ollama_url
         if not synthesis_url.endswith("/api/generate"):
@@ -535,10 +532,6 @@ Requirements:
         if prefix_parts:
             print("[PhotoAspectExtractor] Added prompt prefixes")
 
-        err = enforce_sfw(out)
-        if err:
-            blocked = "[Blocked: potential NSFW content detected. Revise inputs.]"
-            return (blocked,)
         return (out,)
     
     def _analyze_single_image(

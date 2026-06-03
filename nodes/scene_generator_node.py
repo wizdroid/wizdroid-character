@@ -5,9 +5,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import logging
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
-from wizdroid_lib.helpers import choose, with_random
+from wizdroid_lib.helpers import choose, clean_llm_response, with_random
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_text
 from wizdroid_lib.paths import DATA_DIR
@@ -334,9 +333,8 @@ class WizdroidSceneGeneratorNode:
                     split_idx += 1
                 result = result[split_idx:].strip()
 
-        err = enforce_sfw(result)
-        if err:
-            return "[Blocked: potential NSFW content detected. Revise inputs.]"
+        # Strip translation annotations that some LLMs append, e.g. (Translated: ...)
+        result = clean_llm_response(result)
 
         return result or "[Empty response from Ollama]"
 

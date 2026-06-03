@@ -4,7 +4,6 @@ import re
 from typing import Dict, List, Tuple
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
 
@@ -160,9 +159,6 @@ class WizdroidMultiClipStoryPlannerNode:
         for i in range(1, num_clips + 1):
             clip = _parse_clip(result, i)
             clip = _clean_output(clip) if clip else ""
-            if clip:
-                if err := enforce_sfw(clip):
-                    clip = f"[Blocked: {err}]"
             clips.append(clip or f"[Empty clip {i}]")
 
         return clips, summary or "(no summary)"

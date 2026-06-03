@@ -26,7 +26,7 @@ ALL_NODE_MODULES = [
     "temporal_scene_planner_node",
     "multi_clip_story_planner_node",
     "prompt_relay_generator_node",
-    "qwen_image_edit_node",
+    "image_edit_node",
     "video_negative_prompt_node",
     "photo_aspect_extractor_node",
 ]
@@ -35,7 +35,6 @@ ALL_NODE_MODULES = [
 ALL_DATA_FILES = [
     "character_options.json",
     "prompt_styles.json",
-    "content_policies.json",
     "regions.json",
     "countries.json",
     "cultures.json",

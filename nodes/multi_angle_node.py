@@ -12,8 +12,6 @@ Supports camera positioning for multi-angle editing:
 - 8 Azimuths (horizontal rotation)
 - 4 Elevations (vertical angle)
 - 8 Distances
-
-Merged from character_edit_node.py + qwen_multi_angle_node.py
 """
 
 from typing import Tuple

@@ -2,9 +2,8 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
-from wizdroid_lib.helpers import extract_descriptions, normalize_option_list, with_random, choose
+from wizdroid_lib.helpers import choose, clean_llm_response, extract_descriptions, normalize_option_list, with_random
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_text
 
@@ -335,14 +334,8 @@ class WizdroidMetaPromptNode:
             if not output:
                 output = "MetaPrompt error: empty response from Ollama"
 
-        # Content safety guardrail (skip when spiciness > 0)
-        if spiciness == 0:
-            err = enforce_sfw(output)
-            if err:
-                return (
-                    "MetaPrompt blocked: potential NSFW content detected. "
-                    "Revise keywords.",
-                )
+            # Strip translation annotations that some LLMs append, e.g. (Translated: ...)
+            output = clean_llm_response(output)
 
         return (output,)
 

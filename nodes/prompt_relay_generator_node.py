@@ -4,7 +4,6 @@ import re
 from typing import Dict, List, Tuple
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
 
@@ -146,9 +145,6 @@ class WizdroidPromptRelayGeneratorNode:
         for i in range(1, num_segments + 1):
             seg = _parse_segment(result, i)
             seg = _clean_output(seg) if seg else ""
-            if seg and spiciness == 0:
-                if err := enforce_sfw(seg):
-                    seg = f"[Blocked: {err}]"
             segments.append(seg or f"[Empty segment {i}]")
 
         return segments, timecodes

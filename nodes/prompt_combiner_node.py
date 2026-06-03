@@ -3,8 +3,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import logging
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json
+from wizdroid_lib.helpers import clean_llm_response
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_text
 
@@ -162,14 +162,8 @@ class WizdroidPromptCombinerNode:
                 error_msg = f"Failed to combine prompts: {response}"
                 return (error_msg,)
 
-        if spiciness == 0:
-            err = enforce_sfw(response)
-            if err:
-                blocked = (
-                    "PromptCombiner blocked: potential NSFW content detected. "
-                    "Revise inputs."
-                )
-                return (blocked,)
+        # Strip translation annotations that some LLMs append, e.g. (Translated: ...)
+        response = clean_llm_response(response)
 
         return (response,)
 

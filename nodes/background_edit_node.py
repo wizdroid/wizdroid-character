@@ -3,7 +3,6 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
-from wizdroid_lib.content_safety import enforce_sfw
 from wizdroid_lib.data_files import load_json, load_shared
 from wizdroid_lib.helpers import choose, choose_tuple, with_random, with_random_tuple
 from wizdroid_lib.ollama_client import collect_models, generate_text
@@ -222,11 +221,6 @@ class WizdroidBackgroundNode:
                 bg_prompt, style_hint = raw.split("\n", 1)
             else:
                 bg_prompt, style_hint = raw, ""
-
-        if spiciness == 0:
-            err = enforce_sfw(bg_prompt)
-            if err:
-                return ("[Blocked: potential NSFW content detected. Revise inputs.]", "")
 
         return bg_prompt.strip(), style_hint.strip()
 

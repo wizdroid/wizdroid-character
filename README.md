@@ -71,7 +71,6 @@ data/
 ├── meta_prompt_options.json     # Meta prompt worlds and visual styles
 ├── photo_aspect_modes.json      # Photo aspect extraction modes
 ├── prompt_styles.json           # Prompt templates per model family
-├── content_policies.json        # Content rating policies
 └── system_prompts/              # LLM system prompts
 ```
 

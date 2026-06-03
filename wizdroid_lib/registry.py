@@ -167,6 +167,16 @@ class DataRegistry:
         return cls.get_shared("background_edit", {})
     
     @classmethod
+    def get_style_transfer_styles(cls) -> Any:
+        """Get flux_klein_styles.json data."""
+        return cls.get("flux_klein_styles", [])
+
+    @classmethod
+    def get_photography_styles(cls) -> Any:
+        """Get photography_styles.json data."""
+        return cls.get("photography_styles", [])
+
+    @classmethod
     def clear_cache(cls) -> None:
         """Clear all cached data (useful for testing)."""
         instance = cls()

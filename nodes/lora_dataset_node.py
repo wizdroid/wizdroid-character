@@ -99,7 +99,7 @@ class WizdroidLoRADatasetNode:
         from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
         from wizdroid_lib.ollama_client import collect_models
         
-        ollama_models = collect_models(DEFAULT_OLLAMA_URL)
+        ollama_models = collect_models(DEFAULT_OLLAMA_URL, vision_only=True)
         
         return {
             "required": {

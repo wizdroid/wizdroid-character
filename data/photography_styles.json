@@ -1,0 +1,77 @@
+[
+  {
+    "style_description": "Rendered in film noir photography style, with high-contrast black and white tones, deep shadows, selective lighting, venetian blind shadow patterns, low-key illumination, and grainy film texture. Style: Film noir photography.",
+    "name": "Film Noir",
+    "thumbnail": "film_noir.png"
+  },
+  {
+    "style_description": "Rendered as a vintage Polaroid instant photograph, with faded warm tones, soft focus, visible vignetting, slight color shifts, matte surface texture, and nostalgic white borders. Style: Vintage Polaroid.",
+    "name": "Vintage Polaroid",
+    "thumbnail": "vintage_polaroid.png"
+  },
+  {
+    "style_description": "Rendered in HDR photography style, with expanded dynamic range, crisp micro-contrast, vibrant saturated colors, enhanced shadow and highlight detail, and sharp edge definition. Style: HDR photography.",
+    "name": "HDR Photography",
+    "thumbnail": "hdr.png"
+  },
+  {
+    "style_description": "Rendered in tilt-shift photography style, with selective focus plane, blurred miniature-like surroundings, shallow depth of field, top-down or elevated perspective, and toy-like scale effect. Style: Tilt-shift photography.",
+    "name": "Tilt-Shift Photography",
+    "thumbnail": "tilt_shift.png"
+  },
+  {
+    "style_description": "Rendered in macro photography style, with extreme close-up perspective, shallow depth of field, creamy bokeh background blur, fine texture detail, and magnified scale revealing surface intricacies. Style: Macro photography.",
+    "name": "Macro Photography",
+    "thumbnail": "macro.png"
+  },
+  {
+    "style_description": "Rendered in long exposure photography style, with motion blur trails, light streaks, smoothed water and cloud movement, ghosted moving elements, and static elements remaining sharp against flowing motion. Style: Long exposure photography.",
+    "name": "Long Exposure",
+    "thumbnail": "long_exposure.png"
+  },
+  {
+    "style_description": "Rendered in neon noir photography style, with vibrant neon color accents, deep shadows, wet reflective surfaces, cyan and magenta lighting, urban nighttime atmosphere, and cinematic framing. Style: Neon noir photography.",
+    "name": "Neon Noir",
+    "thumbnail": "neon_noir.png"
+  },
+  {
+    "style_description": "Rendered in glamour photography style, with soft diffused lighting, smooth skin tones, shallow depth of field, professional studio setup, catchlights in eyes, and polished editorial finish. Style: Glamour photography.",
+    "name": "Glamour Photography",
+    "thumbnail": "glamour.png"
+  },
+  {
+    "style_description": "Rendered in cinematic photography style, with widescreen anamorphic aspect ratio, film grain, teal and orange color grading, shallow depth of field, lens flares, and professional cinematography lighting. Style: Cinematic photography.",
+    "name": "Cinematic Photography",
+    "thumbnail": "cinematic.png"
+  },
+  {
+    "style_description": "Rendered in silhouette photography style, with strong backlighting, dark foreground shapes against bright backgrounds, rim lighting on edges, high contrast between subject and sky or light source, and minimal detail in shadow areas. Style: Silhouette photography.",
+    "name": "Silhouette",
+    "thumbnail": "silhouette.png"
+  },
+  {
+    "style_description": "Rendered in analog film photography style, with visible film grain, subtle color shifts, soft highlight rolloff, natural light rendition, slight lens imperfections, and organic texture characteristic of 35mm film stock. Style: Analog film photography.",
+    "name": "Analog Film",
+    "thumbnail": "analog_film.png"
+  },
+  {
+    "style_description": "Rendered in iPhone photography style, with modern smartphone image processing, balanced HDR, clean sharp detail, natural color science, subtle computational photography enhancements, and contemporary social-media-ready aesthetic. Style: iPhone photography.",
+    "name": "iPhone Photography",
+    "thumbnail": "iphone.png"
+  },
+  {
+    "style_description": "Rendered with dark moody atmospheric photography style, with low-key lighting, deep shadows, atmospheric haze, selective illumination, rich blacks, and subtle color desaturation. Style: Dark moody photography.",
+    "name": "Dark Moody Atmosphere",
+    "thumbnail": "dark_moody.png"
+  },
+  {
+    "style_description": "Rendered with volumetric lighting photography, with visible light beams and god rays, atmospheric particles illuminated in the air, shaft lighting through windows or trees, and three-dimensional light volume. Style: Volumetric lighting photography.",
+    "name": "Volumetric Lighting",
+    "thumbnail": "volumetric_lighting.png"
+  },
+  {
+    "style_description": "Rendered in knolling photography style, with overhead flat-lay composition, items arranged in perpendicular grid alignment, clean white or neutral background, even diffused lighting, sharp detail on every object, and organized orderly aesthetic. Style: Knolling photography.",
+    "name": "Knolling Photography",
+    "thumbnail": "knolling.png"
+  }
+]

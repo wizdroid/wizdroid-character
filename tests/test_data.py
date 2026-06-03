@@ -11,7 +11,6 @@ SHARED_DIR = DATA_DIR / "shared"
 DATA_FILE_CHECKS = [
     ("character_options.json", dict),
     ("prompt_styles.json", dict),
-    ("content_policies.json", dict),
     ("regions.json", dict),
     ("countries.json", dict),
     ("cultures.json", dict),

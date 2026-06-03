@@ -24,7 +24,7 @@ TEMPLATE_NODES = [
     ("temporal_scene_planner_node", "WizdroidTemporalScenePlanner"),
     ("multi_clip_story_planner_node", "WizdroidMultiClipStoryPlanner"),
     ("prompt_relay_generator_node", "WizdroidPromptRelayGenerator"),
-    ("qwen_image_edit_node", "WizdroidImageEdit"),
+    ("image_edit_node", "WizdroidImageEdit"),
 ]
 
 

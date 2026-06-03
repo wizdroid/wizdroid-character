@@ -3,7 +3,7 @@ import hashlib
 from typing import Dict, Optional, Tuple
 
 from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
-from wizdroid_lib.content_safety import enforce_sfw
+from wizdroid_lib.helpers import clean_llm_response
 from wizdroid_lib.ollama_client import collect_models, generate_text
 from wizdroid_lib.system_prompts import load_system_prompt_template
 
@@ -110,6 +110,8 @@ def _clean_output(text: str) -> str:
             else:
                 text = remainder.strip()
             break
+    # Strip translation annotations that some LLMs append, e.g. (Translated: ...)
+    text = clean_llm_response(text)
     return text
 
 
@@ -227,9 +229,6 @@ class WizdroidVideoSceneExpanderNode:
             return f"[Error: {result}]"
 
         result = _clean_output(result)
-
-        if err := enforce_sfw(result):
-            return f"[Blocked: {err}]"
 
         return result or "[Empty response from Ollama]"
 

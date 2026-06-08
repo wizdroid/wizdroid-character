@@ -21,28 +21,12 @@ try:
 except ImportError:  # pragma: no cover
     requests = None
 
-from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL
+from wizdroid_lib.constants import DEFAULT_OLLAMA_URL, NONE_LABEL, RANDOM_LABEL, VISION_KEYWORDS
 from wizdroid_lib.data_files import load_json
 from wizdroid_lib.system_prompts import load_system_prompt_text
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
-VISION_KEYWORDS = {
-    "vision",
-    "vl",
-    "llava",
-    "bakllava",
-    "moondream",
-    "cogvlm",
-    "blip",
-    "instructblip",
-    "minigpt",
-    "mplug",
-    "qwen-vl",
-    "florence",
-    "idefics",
-    "fuyu",
-}
 
 
 def _sanitize_clothes_prompt(text: str) -> str:

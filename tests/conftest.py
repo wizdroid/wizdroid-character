@@ -29,6 +29,7 @@ ALL_NODE_MODULES = [
     "image_edit_node",
     "video_negative_prompt_node",
     "photo_aspect_extractor_node",
+    "lora_dataset_node",
 ]
 
 # All JSON data files to validate

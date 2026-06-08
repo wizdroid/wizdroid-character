@@ -9,8 +9,7 @@ try:
 except ImportError:  # pragma: no cover
     requests = None
 
-
-DEFAULT_OLLAMA_URL = "http://localhost:11434"
+from .constants import DEFAULT_OLLAMA_URL, VISION_KEYWORDS
 
 # Model cache with TTL to prevent UI blocking on repeated INPUT_TYPES calls
 _MODELS_CACHE: Dict[str, List[str]] = {}
@@ -18,8 +17,17 @@ _MODELS_CACHE_TIME: Dict[str, float] = {}
 _MODELS_TTL = 60.0  # Refresh models at most every 60 seconds
 
 
-def _check_vision_capable(ollama_url: str, model_name: str) -> bool:
-    """Check if a model has vision capabilities via /api/show."""
+def _is_vision_model(ollama_url: str, model_name: str) -> bool:
+    """Return True if model is vision-capable.
+    
+    Uses cheap name-based keyword match first (supports bakllava, llava, etc
+    even on older Ollama installs where /api/show may omit "capabilities").
+    Falls back to explicit "vision" in capabilities list from /api/show.
+    """
+    lower = (model_name or "").lower()
+    if any(kw in lower for kw in VISION_KEYWORDS):
+        return True
+    # Fallback to server-reported capabilities (newer Ollama + manifest)
     try:
         resp = requests.post(
             f"{ollama_url.rstrip('/')}/api/show",
@@ -29,7 +37,8 @@ def _check_vision_capable(ollama_url: str, model_name: str) -> bool:
         if resp.status_code == 200:
             data = resp.json()
             caps = data.get("capabilities", [])
-            return "vision" in caps
+            if "vision" in caps:
+                return True
     except Exception:  # noqa: BLE001
         pass
     return False
@@ -41,7 +50,7 @@ def collect_models(ollama_url: str, use_cache: bool = True, vision_only: bool = 
     Args:
         ollama_url: Ollama server URL
         use_cache: If True, use TTL-based caching to prevent UI blocking
-        vision_only: If True, only return models with vision capabilities
+        vision_only: If True, only return models with vision capabilities (via name keywords or /api/show)
     
     Returns:
         List of model names, or fallback error strings
@@ -70,8 +79,8 @@ def collect_models(ollama_url: str, use_cache: bool = True, vision_only: bool = 
         all_models = [m.get("name", "unknown") for m in data.get("models", [])]
 
         if vision_only:
-            # Filter to only vision-capable models
-            vision_models = [m for m in all_models if _check_vision_capable(ollama_url, m)]
+            # Filter to only vision-capable models (name keywords + capabilities)
+            vision_models = [m for m in all_models if _is_vision_model(ollama_url, m)]
             result = vision_models or ["no_vision_models_found"]
         else:
             result = all_models or ["no_models_found"]

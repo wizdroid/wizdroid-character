@@ -19,6 +19,27 @@ MIN_IMAGES = 3
 SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 
 
+def _resolve_path(p: str | Path) -> Path:
+    """Resolve a user-provided image/folder path.
+
+    Tries the path as given (respects cwd), then relative to the custom node
+    package root. This makes relative paths like "web/images/foo.png" work
+    both from inside the package (tests) and from ComfyUI root (normal use).
+    """
+    p = Path(p)
+    if p.is_absolute() or p.exists():
+        return p
+    # Try relative to the wizdroid-character package root (sibling of nodes/)
+    try:
+        pkg_root = Path(__file__).resolve().parent.parent
+        cand = (pkg_root / p).resolve()
+        if cand.exists():
+            return cand
+    except Exception:  # noqa: BLE001
+        pass
+    return p
+
+
 def _save_image_with_resize(source: Path, target: Path, resize_mode: str) -> Tuple[int, int]:
     """Copy or resize an image and return final dimensions."""
     if resize_mode == "none":
@@ -99,7 +120,9 @@ class WizdroidLoRADatasetNode:
         from wizdroid_lib.constants import DEFAULT_OLLAMA_URL
         from wizdroid_lib.ollama_client import collect_models
         
-        ollama_models = collect_models(DEFAULT_OLLAMA_URL, vision_only=True)
+        # Force fresh query so newly `ollama pull`'d models (e.g. moondream)
+        # appear in the dropdown without needing a full ComfyUI restart.
+        ollama_models = collect_models(DEFAULT_OLLAMA_URL, use_cache=False, vision_only=True)
         
         return {
             "required": {
@@ -143,19 +166,20 @@ class WizdroidLoRADatasetNode:
         root.mkdir(parents=True, exist_ok=True)
         images_dir.mkdir(parents=True, exist_ok=True)
 
-        # Normalize images input
+        # Normalize images input (use resolver so relative paths work from any cwd)
         if "," in images:
             provided = [p.strip() for p in images.split(",") if p.strip()]
         else:
             provided = [images] if images else []
             if images and not any(images.endswith(ext) for ext in SUPPORTED_EXTENSIONS):
                 # assume single folder
-                provided = [str(p) for p in Path(images).glob("**/*") if p.suffix.lower() in SUPPORTED_EXTENSIONS]
+                folder = _resolve_path(images)
+                provided = [str(p) for p in folder.glob("**/*") if p.suffix.lower() in SUPPORTED_EXTENSIONS]
 
         captions = []
 
         for idx, p in enumerate(provided):
-            p_path = Path(p)
+            p_path = _resolve_path(p)
             if not p_path.is_file():
                 continue
 
